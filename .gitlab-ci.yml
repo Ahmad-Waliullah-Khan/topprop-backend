@@ -57,6 +57,8 @@ deployToStaging:
         - chmod 600 ~/.ssh/id_rsa
     script:
         - bash ./deployment-scripts/.deploy-staging.sh
+    after_script:
+        - docker system prune --volumes -f
 
 deployToProduction:
     stage: deployProduction
@@ -76,3 +78,5 @@ deployToProduction:
         - chmod 600 ~/.ssh/id_rsa
     script:
         - bash ./deployment-scripts/.deploy-production.sh
+    after_script:
+        - docker system prune --volumes -f
