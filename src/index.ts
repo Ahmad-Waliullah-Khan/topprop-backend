@@ -8,13 +8,13 @@ export * from './application';
 export async function main(options: ApplicationConfig = {}) {
     const app = new TopPropBackendApplication(options);
     await app.boot();
+
     //* AutoMigrate DB
     await app.migrateSchema({ existingSchema: 'alter' });
     await app.start();
 
     const url = app.restServer.url;
-    console.log(`Server is running at ${url}`);
-    console.log(`Try ${url}/ping`);
+    console.log(`Top Prop server is running at ${url}`);
 
     return app;
 }
@@ -31,10 +31,10 @@ if (require.main === module) {
             // upon stop, set its value to `0`.
             // See https://www.npmjs.com/package/stoppable
             gracePeriodForClose: 5000, // 5 seconds
-            openApiSpec: {
-                // useful when used with OpenAPI-to-GraphQL to locate your application
-                setServersFromRequest: true,
-            },
+            // openApiSpec: {
+            //     // useful when used with OpenAPI-to-GraphQL to locate your application
+            //     setServersFromRequest: true,
+            // },
         },
     };
     main(config).catch(err => {
