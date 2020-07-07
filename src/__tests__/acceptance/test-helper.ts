@@ -1,32 +1,28 @@
-import {TopPropBackendApplication} from '../..';
-import {
-  createRestAppClient,
-  givenHttpServerConfig,
-  Client,
-} from '@loopback/testlab';
+import { TopPropBackendApplication } from '../..';
+import { createRestAppClient, givenHttpServerConfig, Client } from '@loopback/testlab';
 
 export async function setupApplication(): Promise<AppWithClient> {
-  const restConfig = givenHttpServerConfig({
-    // Customize the server configuration here.
-    // Empty values (undefined, '') will be ignored by the helper.
-    //
-    // host: process.env.HOST,
-    // port: +process.env.PORT,
-  });
+    const restConfig = givenHttpServerConfig({
+        // Customize the server configuration here.
+        // Empty values (undefined, '') will be ignored by the helper.
+        //
+        // host: process.env.HOST,
+        // port: +process.env.PORT,
+    });
 
-  const app = new TopPropBackendApplication({
-    rest: restConfig,
-  });
+    const app = new TopPropBackendApplication({
+        rest: restConfig,
+    });
 
-  await app.boot();
-  await app.start();
+    await app.boot();
+    await app.start();
 
-  const client = createRestAppClient(app);
+    const client = createRestAppClient(app);
 
-  return {app, client};
+    return { app, client };
 }
 
 export interface AppWithClient {
-  app: TopPropBackendApplication;
-  client: Client;
+    app: TopPropBackendApplication;
+    client: Client;
 }
