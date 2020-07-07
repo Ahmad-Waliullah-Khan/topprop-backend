@@ -58,7 +58,7 @@ deployToStaging:
     script:
         - bash ./deployment-scripts/.deploy-staging.sh
     after_script:
-        - docker system prune --volumes -f
+        - docker system prune --volumes -a -f
 
 deployToProduction:
     stage: deployProduction
@@ -79,4 +79,4 @@ deployToProduction:
     script:
         - bash ./deployment-scripts/.deploy-production.sh
     after_script:
-        - docker system prune --volumes -f
+        - docker system prune --volumes -a -f
