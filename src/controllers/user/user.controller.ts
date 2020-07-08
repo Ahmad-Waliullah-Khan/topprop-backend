@@ -1,12 +1,13 @@
+import { authenticate } from '@loopback/authentication';
 import { service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, put, requestBody } from '@loopback/rest';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { securityId } from '@loopback/security';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { JwtService } from '@src/services';
 import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS } from '@src/utils/constants';
+import { API_ENDPOINTS, EMAIL_TEMPLATES } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { ICommonHttpResponse, SignupUserRequest } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
@@ -58,6 +59,9 @@ export class UserController {
         //LOWER CASING THE EMAIL
         body.email = body.email.toLowerCase();
 
+        //TODO: HARDCODED FIELD BECAUSE OF MVP PURPOSES
+        body.accountConfirmedAt = moment().toDate();
+
         //Validate email before save
         const validEmail = await this.userService.validEmail(body.email);
         if (!validEmail) throw new HttpErrors.BadRequest(USER_MESSAGES.EMAIL_ALREADY_USED);
@@ -84,20 +88,13 @@ export class UserController {
             email: user.email,
             [securityId]: user.id.toString(),
         });
-        // this.notificationService.create({
-        //     type: NOTIFICATION_TYPES.EMAIL,
-        //     event: EMAIL_TEMPLATES.WELCOME,
-        //     userId: user.id,
-        //     locals: {
-        //         user,
-        //         verificationCode: user.confirmAccountToken,
-        //     },
-        // });
+
+        this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, { user });
 
         return { data: token, user };
     }
 
-    // @authenticate('jwt')
+    @authenticate('jwt')
     @get(API_ENDPOINTS.USERS.COUNT, {
         responses: {
             '200': {
@@ -110,6 +107,7 @@ export class UserController {
         return { data: await this.userRepository.count(where) };
     }
 
+    @authenticate('jwt')
     @get(API_ENDPOINTS.USERS.CRUD, {
         responses: {
             '200': {
@@ -129,29 +127,30 @@ export class UserController {
         return this.userRepository.find(filter);
     }
 
-    @patch(API_ENDPOINTS.USERS.CRUD, {
-        responses: {
-            '200': {
-                description: 'User PATCH success count',
-                content: { 'application/json': { schema: CountSchema } },
-            },
-        },
-    })
-    async updateAll(
-        @requestBody({
-            content: {
-                'application/json': {
-                    schema: getModelSchemaRef(User, { partial: true }),
-                },
-            },
-        })
-        user: User,
-        @param.where(User) where?: Where<User>,
-    ): Promise<Count> {
-        return this.userRepository.updateAll(user, where);
-    }
+    // @patch(API_ENDPOINTS.USERS.CRUD, {
+    //     responses: {
+    //         '200': {
+    //             description: 'User PATCH success count',
+    //             content: { 'application/json': { schema: CountSchema } },
+    //         },
+    //     },
+    // })
+    // async updateAll(
+    //     @requestBody({
+    //         content: {
+    //             'application/json': {
+    //                 schema: getModelSchemaRef(User, { partial: true }),
+    //             },
+    //         },
+    //     })
+    //     user: User,
+    //     @param.where(User) where?: Where<User>,
+    // ): Promise<Count> {
+    //     return this.userRepository.updateAll(user, where);
+    // }
 
-    @get('/users/{id}', {
+    @authenticate('jwt')
+    @get(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '200': {
                 description: 'User model instance',
@@ -170,7 +169,8 @@ export class UserController {
         return this.userRepository.findById(id, filter);
     }
 
-    @patch('/users/{id}', {
+    @authenticate('jwt')
+    @patch(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '204': {
                 description: 'User PATCH success',
@@ -191,18 +191,19 @@ export class UserController {
         await this.userRepository.updateById(id, user);
     }
 
-    @put('/users/{id}', {
-        responses: {
-            '204': {
-                description: 'User PUT success',
-            },
-        },
-    })
-    async replaceById(@param.path.number('id') id: number, @requestBody() user: User): Promise<void> {
-        await this.userRepository.replaceById(id, user);
-    }
+    // @put(API_ENDPOINTS.USERS.BY_ID, {
+    //     responses: {
+    //         '204': {
+    //             description: 'User PUT success',
+    //         },
+    //     },
+    // })
+    // async replaceById(@param.path.number('id') id: number, @requestBody() user: User): Promise<void> {
+    //     await this.userRepository.replaceById(id, user);
+    // }
 
-    @del('/users/{id}', {
+    @authenticate('jwt')
+    @del(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '204': {
                 description: 'User DELETE success',

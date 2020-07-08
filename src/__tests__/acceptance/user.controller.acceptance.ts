@@ -205,8 +205,8 @@ describe('User Controller', () => {
         //             fullName: 'test',
         //             email: process.env.ADMIN_EMAIL,
         //             username: '@test-admin1',
-        //             password: 'Treads10',
-        //             confirmPassword: 'Treads10',
+        //             password: 'Top Prop10',
+        //             confirmPassword: 'Top Prop10',
         //         })
         //         .expect(200);
         // });
@@ -216,7 +216,7 @@ describe('User Controller', () => {
         //         .post(`${baseAPI}/admin-login`)
         //         .send({
         //             email: process.env.ADMIN_EMAIL,
-        //             password: 'Treads10',
+        //             password: 'Top Prop10',
         //         })
         //         .expect(200);
         //     adminAuthToken += response.body.data;
@@ -226,7 +226,7 @@ describe('User Controller', () => {
         //         .post(`${baseAPI}/login`)
         //         .send({
         //             email: process.env.ADMIN_EMAIL,
-        //             password: 'Treads10',
+        //             password: 'Top Prop10',
         //         })
         //         .expect(400);
         // });
