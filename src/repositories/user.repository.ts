@@ -7,8 +7,15 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
     constructor(@inject('datasources.db') dataSource: DbDataSource) {
         super(User, dataSource);
 
-        this.modelClass.observe('before save', async ctx => {
-            console.log(ctx);
-        });
+        // this.modelClass.observe('before save', async ctx => {
+        //     console.log(ctx);
+        // });
+        // this.modelClass.observe('after save', async ctx => {
+        //     if (ctx.isNewInstance && !ctx.hookState.skipSendWelcome) {
+        //         console.log(ctx.instance.email);
+        //         ctx.hookState.skipSendWelcome = true;
+        //     }
+        //     return;
+        // });
     }
 }

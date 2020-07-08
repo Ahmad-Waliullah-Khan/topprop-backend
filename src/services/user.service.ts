@@ -1,21 +1,26 @@
-import { bind, BindingScope, Getter } from '@loopback/core';
+import { bind, BindingScope, Getter, service } from '@loopback/core';
 import { Filter, repository, Where } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
-import { ROLES } from '@src/utils/constants';
+import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
 import { UserHelpers } from '@src/utils/helpers';
 import { Credentials } from '@src/utils/interfaces';
 import { USER_MESSAGES } from '@src/utils/messages';
 import { compare, hash } from 'bcrypt';
+import chalk from 'chalk';
 import { randomBytes } from 'crypto';
-import { isEqual, merge } from 'lodash';
+import { isEqual, isNumber, merge } from 'lodash';
 import moment from 'moment';
+import { EmailService } from './email.service';
 
 @bind({ scope: BindingScope.TRANSIENT })
 export class UserService {
     private HASH_ROUNDS = 10;
-    constructor(@repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>) {}
+    constructor(
+        @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
+        @service() private emailService: EmailService,
+    ) {}
 
     async setPassword(password: string) {
         return await hash(password, this.HASH_ROUNDS);
@@ -152,38 +157,42 @@ export class UserService {
     //     return devices;
     // }
 
-    // async sendEmail(
-    //     user: User | number,
-    //     template: EMAIL_TEMPLATES,
-    //     locals: { [key: string]: any },
-    //     customEmail?: string,
-    // ): Promise<void> {
-    //     if (isNumber(user)) user = await this.userRepository.findById(user);
-    //     emailSender
-    //         .send({
-    //             template,
-    //             message: {
-    //                 to: customEmail ? customEmail : user.email,
-    //             },
-    //             locals,
-    //         })
-    //         .then((res: any) => {
-    //             console.log(
-    //                 chalk.greenBright(
-    //                     `Email sent. Template: ${template} - To: ${customEmail ? customEmail : (user as User).email}`,
-    //                 ),
-    //             );
-    //         })
-    //         .catch((error: any) => {
-    //             console.error(
-    //                 chalk.redBright(
-    //                     `Error sending email. Template: ${template} - To: ${
-    //                         customEmail ? customEmail : (user as User).email
-    //                     }. Error: ${JSON.stringify(error)}`,
-    //                 ),
-    //             );
-    //         });
-    // }
+    async sendEmail(
+        user: User | number,
+        template: EMAIL_TEMPLATES,
+        locals: { [key: string]: any },
+        customEmail?: string,
+    ): Promise<void> {
+        const userRepository = await this.userRepositoryGetter();
+
+        if (isNumber(user)) user = await userRepository.findById(user);
+
+        this.emailService.emailSender
+            .send({
+                template,
+                message: {
+                    to: customEmail ? customEmail : user.email,
+                },
+                locals,
+            })
+            .then((res: any) => {
+                console.log(
+                    chalk.greenBright(
+                        `Email sent. Template: ${template} - To: ${customEmail ? customEmail : (user as User).email}`,
+                    ),
+                );
+            })
+            .catch((error: any) => {
+                console.error(
+                    chalk.redBright(
+                        `Error sending email. Template: ${template} - To: ${
+                            customEmail ? customEmail : (user as User).email
+                        }. Error: `,
+                        error,
+                    ),
+                );
+            });
+    }
 
     async compareId(user: User, id: number) {
         return user.id === id;
