@@ -166,162 +166,284 @@ describe('User Controller', () => {
                 })
                 .expect(400);
         });
+    });
 
-        // it('Should fail login as regular user. Bad password', async () => {
-        //     await client
-        //         .post(`${baseAPI}/login`)
-        //         .send({
-        //             email: 'test-user@gb.com',
-        //             password: '123456780',
-        //         })
-        //         .expect(400);
-        // });
+    describe(`POST Method - Login Users`, async () => {
+        it('Should fail login as regular user. Bad password', async () => {
+            await client
+                .post(`${baseAPI}/login`)
+                .send({
+                    emailOrUsername: 'test-user@gb.com',
+                    password: '123456780',
+                })
+                .expect(400);
+        });
+        it('Should fail login as regular user. Bad email or username', async () => {
+            await client
+                .post(`${baseAPI}/login`)
+                .send({
+                    emailOrUsername: 'test-user',
+                    password: '12345678',
+                })
+                .expect(400);
+        });
+        it('Should login as user with email', async () => {
+            let response = await client
+                .post(`${baseAPI}/login`)
+                .send({
+                    emailOrUsername: 'test-user@gb.com',
+                    password: '12345678',
+                })
+                .expect(200);
+            userAuthToken += response.body.data;
+        });
+        it('Should login as user with username', async () => {
+            let response = await client
+                .post(`${baseAPI}/login`)
+                .send({
+                    emailOrUsername: '@test-user1',
+                    password: '12345678',
+                })
+                .expect(200);
+            userAuthToken = 'Bearer ';
 
-        // it('Should fail login as regular user. Bad email', async () => {
-        //     await client
-        //         .post(`${baseAPI}/login`)
-        //         .send({
-        //             email: 'test-user',
-        //             password: '12345678',
-        //         })
-        //         .expect(400);
-        // });
+            userAuthToken += response.body.data;
+        });
+        it('Should register admin', async () => {
+            await client
+                .post(`${baseAPI}/sign-up`)
+                .send({
+                    fullName: 'test',
+                    email: process.env.ADMIN_EMAIL,
+                    username: '@test-admin1',
+                    password: 'Top.Prop10',
+                    confirmPassword: 'Top.Prop10',
+                })
+                .expect(200);
+        });
+        it('Should login as admin with email', async () => {
+            let response = await client
+                .post(`${baseAPI}/admin-login`)
+                .send({
+                    emailOrUsername: process.env.ADMIN_EMAIL,
+                    password: 'Top.Prop10',
+                })
+                .expect(200);
+            adminAuthToken += response.body.data;
+        });
+        it('Should login as admin with username', async () => {
+            let response = await client
+                .post(`${baseAPI}/admin-login`)
+                .send({
+                    emailOrUsername: '@test-admin1',
+                    password: 'Top.Prop10',
+                })
+                .expect(200);
+            adminAuthToken = 'Bearer ';
+            adminAuthToken += response.body.data;
+        });
+        it('Should not login admin in users endpoint', async () => {
+            let response = await client
+                .post(`${baseAPI}/login`)
+                .send({
+                    emailOrUsername: process.env.ADMIN_EMAIL,
+                    password: 'Top.Prop10',
+                })
+                .expect(400);
+        });
+    });
 
-        // it('Should login as user', async () => {
-        //     let response = await client
-        //         .post(`${baseAPI}/login`)
-        //         .send({
-        //             email: 'test-user@gb.com',
-        //             password: '12345678',
-        //         })
-        //         .expect(200);
-        //     userAuthToken += response.body.data;
-        // });
-
-        // it('Should register admin', async () => {
-        //     await client
-        //         .post(`${baseAPI}/signup`)
-        //         .send({
-        //             fullName: 'test',
-        //             email: process.env.ADMIN_EMAIL,
-        //             username: '@test-admin1',
-        //             password: 'Top Prop10',
-        //             confirmPassword: 'Top Prop10',
-        //         })
-        //         .expect(200);
-        // });
-
-        // it('Should login as admin', async () => {
-        //     let response = await client
-        //         .post(`${baseAPI}/admin-login`)
-        //         .send({
-        //             email: process.env.ADMIN_EMAIL,
-        //             password: 'Top Prop10',
-        //         })
-        //         .expect(200);
-        //     adminAuthToken += response.body.data;
-        // });
-        // it('Should not login admin in users endpoint', async () => {
-        //     let response = await client
-        //         .post(`${baseAPI}/login`)
-        //         .send({
-        //             email: process.env.ADMIN_EMAIL,
-        //             password: 'Top Prop10',
-        //         })
-        //         .expect(400);
-        // });
-
-        // it('should not validate a username without username provided', async () => {
-        //     let response = await client
-        //         .post(`${baseAPI}/username/validate`)
-        //         .send({
-        //             username: '',
-        //         })
-        //         .expect(400);
-        // });
-        // it('should not validate a username without body', async () => {
-        //     let response = await client.post(`${baseAPI}/username/validate`).expect(422);
-        // });
-
-        // it('should not validate an invalid username', async () => {
-        //     let response = await client
-        //         .post(`${baseAPI}/username/validate`)
-        //         .send({
-        //             username: '@very-very-very-long-test-username-aaaaaaaaaaaaaa',
-        //         })
-        //         .expect(400);
-        // });
-
-        // it('should validate a username', async () => {
-        //     let response = await client
-        //         .post(`${baseAPI}/username/validate`)
-        //         .send({
-        //             username: '@test-username',
-        //         })
-        //         .expect(200);
-        // });
-
+    describe(`POST Method - Username validate endpoint`, async () => {
+        it('should not validate a username without username provided', async () => {
+            let response = await client
+                .post(`${baseAPI}/username/validate`)
+                .send({
+                    username: '',
+                })
+                .expect(400);
+        });
+        it('should not validate a username without body', async () => {
+            let response = await client.post(`${baseAPI}/username/validate`).expect(422);
+        });
+        it('should not validate an invalid username', async () => {
+            let response = await client
+                .post(`${baseAPI}/username/validate`)
+                .send({
+                    username: '@very-very-very-long-test-username-aaaaaaaaaaaaaa',
+                })
+                .expect(400);
+        });
+        it('should validate a username', async () => {
+            let response = await client
+                .post(`${baseAPI}/username/validate`)
+                .send({
+                    username: '@test-username',
+                })
+                .expect(200);
+        });
         // it('should not generate a username without an email provided', async () => {
         //     let response = await client
         //         .post(`${baseAPI}/username/generate`)
         //         .send({
-        //             email: '',
+        //             emailOrUsername: '',
         //         })
         //         .expect(400);
         // });
         // it('should not generate a username without body', async () => {
         //     let response = await client.post(`${baseAPI}/username/generate`).expect(422);
         // });
-
         // it('should not generate a username with an invalid email', async () => {
         //     let response = await client
         //         .post(`${baseAPI}/username/generate`)
         //         .send({
-        //             email: 'invalid',
+        //             emailOrUsername: 'invalid',
         //         })
         //         .expect(400);
         // });
-
         // it('should generate a username', async () => {
         //     let response = await client
         //         .post(`${baseAPI}/username/generate`)
         //         .send({
-        //             email: 'test-email@gb.com',
+        //             emailOrUsername: 'test-email@gb.com',
         //         })
         //         .expect(200);
         // });
     });
 
-    // describe('GET Method - List Users', async () => {
-    //     it('Should fail listing user without auth token', async () => {
-    //         await client.get(baseAPI).expect(401);
-    //     });
+    describe(`POST Method - Forgot Password`, async () => {
+        it('Should fail requesting reset password without body', async () => {
+            await client
+                .patch(`${baseAPI}/forgot-password`)
+                .send({
+                    email: '',
+                })
+                .expect(400);
+        });
 
-    //     it('Should list users', async () => {
-    //         await client.get(baseAPI).set('Authorization', adminAuthToken).expect(200);
-    //     });
+        it('Should fail requesting reset password with invalid email', async () => {
+            await client
+                .patch(`${baseAPI}/forgot-password`)
+                .send({
+                    email: 'invalidEmail',
+                })
+                .expect(400);
+        });
 
-    //     it('Should list one user by filters', async () => {
-    //         let response = await client
-    //             .get(baseAPI)
-    //             .set('Authorization', adminAuthToken)
-    //             .query({ 'filter[where][email]': 'test-user@gb.com' })
-    //             .expect(200);
+        it('Should request reset password for regular user', async () => {
+            await client
+                .patch(`${baseAPI}/forgot-password`)
+                .send({
+                    email: 'test-user@gb.com',
+                })
+                .expect(200);
+        });
 
-    //         testUserId = response.body.data[0].id;
-    //         confirmUserAuthToken += response.body.data[0].confirmAccountToken;
-    //     });
+        it('Should fail requesting reset password with a request already sent', async () => {
+            await client
+                .patch(`${baseAPI}/forgot-password`)
+                .send({
+                    email: 'test-user@gb.com',
+                })
+                .expect(429);
+        });
 
-    //     it('Should list one admin user by filters', async () => {
-    //         let response = await client
-    //             .get(baseAPI)
-    //             .set('Authorization', adminAuthToken)
-    //             .query({ 'filter[where][email]': process.env.ADMIN_EMAIL })
-    //             .expect(200);
+        it('Should list one user by filters to reset the password', async () => {
+            let response = await client
+                .get(baseAPI)
+                .set('Authorization', adminAuthToken)
+                .query({ 'filter[where][email]': 'test-user@gb.com' })
+                .expect(200);
 
-    //         adminId = response.body.data[0].id;
-    //     });
-    // });
+            forgotPasswordToken = response.body.data[0].forgotPasswordToken;
+        });
+    });
+    describe(`POST Method - Reset Password`, async () => {
+        it('Should fail resetting password with empty body', async () => {
+            await client
+                .patch(`${baseAPI}/reset-password`)
+                .send({
+                    password: '',
+                    confirmPassword: '',
+                    forgotPasswordToken: '',
+                })
+                .expect(400);
+        });
+
+        it('Should fail resetting password with invalid forgot password token', async () => {
+            await client
+                .patch(`${baseAPI}/reset-password`)
+                .send({
+                    password: '',
+                    confirmPassword: '',
+                    forgotPasswordToken: 'invalid',
+                })
+                .expect(400);
+        });
+
+        it('Should fail resetting password with invalid password', async () => {
+            await client
+                .patch(`${baseAPI}/reset-password`)
+                .send({
+                    password: 'pass',
+                    confirmPassword: 'pass',
+                    forgotPasswordToken,
+                })
+                .expect(400);
+        });
+
+        it('Should fail resetting password with invalid confirm password', async () => {
+            await client
+                .patch(`${baseAPI}/reset-password`)
+                .send({
+                    password: 'Testing1',
+                    confirmPassword: 'pass',
+                    forgotPasswordToken,
+                })
+                .expect(400);
+        });
+
+        it('Should reset password successfully', async () => {
+            await client
+                .patch(`${baseAPI}/reset-password`)
+                .send({
+                    password: 'Testing1',
+                    confirmPassword: 'Testing1',
+                    forgotPasswordToken,
+                })
+                .expect(200);
+        });
+    });
+
+    describe('GET Method - List Users', async () => {
+        it('Should fail listing user without auth token', async () => {
+            await client.get(baseAPI).expect(401);
+        });
+
+        it('Should list users', async () => {
+            await client.get(baseAPI).set('Authorization', adminAuthToken).expect(200);
+        });
+
+        it('Should list one user by filters', async () => {
+            let response = await client
+                .get(baseAPI)
+                .set('Authorization', adminAuthToken)
+                .query({ 'filter[where][email]': 'test-user@gb.com' })
+                .expect(200);
+
+            testUserId = response.body.data[0].id;
+            confirmUserAuthToken += response.body.data[0].confirmAccountToken;
+        });
+
+        it('Should list one admin user by filters', async () => {
+            let response = await client
+                .get(baseAPI)
+                .set('Authorization', adminAuthToken)
+                .query({ 'filter[where][email]': process.env.ADMIN_EMAIL })
+                .expect(200);
+
+            adminId = response.body.data[0].id;
+        });
+    });
 
     // describe('GET Method - Retrieve User App Settings', async () => {
     //     it('Should fail listing user without auth token', async () => {
@@ -927,9 +1049,9 @@ describe('User Controller', () => {
     //     });
     // });
 
-    // describe('DELETE Method - Delete Users', async () => {
-    //     it('Should delete test user', async () => {
-    //         await client.delete(`${baseAPI}/${testUserId}`).set('Authorization', adminAuthToken).expect(204);
-    //     });
-    // });
+    describe('DELETE Method - Delete Users', async () => {
+        it('Should delete test user', async () => {
+            await client.delete(`${baseAPI}/${testUserId}`).set('Authorization', adminAuthToken).expect(204);
+        });
+    });
 });

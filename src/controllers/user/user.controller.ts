@@ -11,7 +11,7 @@ import { UserService } from '@src/services/user.service';
 import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, LoginCredentials, SignupUserRequest } from '@src/utils/interfaces';
+import { ICommonHttpResponse, LoginCredentials, ResetPasswordRequest, SignupUserRequest } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
 import { USER_VALIDATORS } from '@src/utils/validators';
 import { isEmpty, isEqual } from 'lodash';
@@ -61,9 +61,6 @@ export class UserController {
         //LOWER CASING THE EMAIL
         body.email = body.email.toLowerCase();
 
-        //TODO: HARDCODED FIELD BECAUSE OF MVP PURPOSES
-        body.accountConfirmedAt = moment().toDate();
-
         //Validate email before save
         const validEmail = await this.userService.validEmail(body.email);
         if (!validEmail) throw new HttpErrors.BadRequest(USER_MESSAGES.EMAIL_ALREADY_USED);
@@ -80,7 +77,9 @@ export class UserController {
         } else {
             body.permissions = this.userService.assignDefaultPermissions();
             body.role = this.userService.assignDefaultRole();
-            body.confirmAccountToken = this.userService.setConfirmAccountToken();
+            // body.confirmAccountToken = this.userService.setConfirmAccountToken();
+            //TODO: HARDCODED FIELD BECAUSE OF MVP PURPOSES
+            body.accountConfirmedAt = moment().toDate();
         }
         delete body.password;
         delete body.confirmPassword;
@@ -94,20 +93,6 @@ export class UserController {
         this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, { user });
 
         return { data: token, user };
-    }
-
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.COUNT_USERS)] })
-    @get(API_ENDPOINTS.USERS.COUNT, {
-        responses: {
-            '200': {
-                description: 'User model count',
-                content: { 'application/json': { schema: CountSchema } },
-            },
-        },
-    })
-    async count(@param.where(User) where?: Where<User>): Promise<ICommonHttpResponse<Count>> {
-        return { data: await this.userRepository.count(where) };
     }
 
     @post(API_ENDPOINTS.USERS.ADMIN_LOGIN, {
@@ -149,6 +134,7 @@ export class UserController {
         const token = await this.jwtService.generateToken({
             id: user.id.toString(),
             email: user.email,
+            username: user.username,
             [securityId]: user.id.toString(),
         });
 
@@ -198,7 +184,111 @@ export class UserController {
         return { data: token };
     }
 
+    @post(API_ENDPOINTS.USERS.USERNAME_VALIDATE)
+    async validateUsername(@requestBody() body: Pick<User, 'username'>): Promise<ICommonHttpResponse<boolean>> {
+        const validationSchema = {
+            username: USER_VALIDATORS.username,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        return {
+            data: await this.userService.validUsername(body.username),
+        };
+        // let username = this.userService.buildUsername('murder05kill@gmail.com');
+        // console.log(username);
+        // console.log(username.length);
+        // return { data: true };
+    }
+
+    @patch(API_ENDPOINTS.USERS.SET_FORGOT_PASSWORD_TOKEN)
+    async setForgotPasswordToken(
+        @requestBody()
+        body: Pick<User, 'email'>,
+    ): Promise<ICommonHttpResponse> {
+        const validationSchema = {
+            email: USER_VALIDATORS.email,
+        };
+
+        const validation = new Schema(validationSchema, { strip: false });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const user = await this.userRepository.findOne({ where: { email: body.email } });
+
+        if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+        if (user.socialId) throw new HttpErrors.NotFound(USER_MESSAGES.LOGGED_IN_WITH_SOCIAL_NETWORK);
+
+        if (user.forgotPasswordToken && user.forgotPasswordTokenExpiresIn) {
+            const forgotTokenExpired = this.userService.isForgotPasswordTokenExpired(user.forgotPasswordTokenExpiresIn);
+            if (!forgotTokenExpired) throw new HttpErrors.TooManyRequests(USER_MESSAGES.FORGOT_EMAIL_ALREADY_SENT);
+        }
+
+        const newUser = this.userService.setForgotPasswordFields(user);
+
+        await this.userRepository.save(newUser);
+        this.userService.sendEmail(newUser, EMAIL_TEMPLATES.FORGOT_PASSWORD, {
+            user: newUser,
+            forgotPasswordToken: newUser.forgotPasswordToken,
+        });
+
+        return { message: 'Check you inbox.' };
+    }
+
+    @patch(API_ENDPOINTS.USERS.RESET_PASSWORD)
+    async resetPassword(
+        @requestBody()
+        body: ResetPasswordRequest,
+    ): Promise<ICommonHttpResponse> {
+        const validationSchema = {
+            password: USER_VALIDATORS.password,
+            confirmPassword: USER_VALIDATORS.confirmPassword,
+            forgotPasswordToken: USER_VALIDATORS.forgotPasswordToken,
+        };
+
+        const validation = new Schema(validationSchema, { strip: false });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const user = await this.userRepository.findOne({
+            where: { forgotPasswordToken: body.forgotPasswordToken },
+        });
+
+        if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+        if (
+            user.forgotPasswordTokenExpiresIn &&
+            this.userService.isForgotPasswordTokenExpired(user.forgotPasswordTokenExpiresIn)
+        )
+            throw new HttpErrors.BadRequest(USER_MESSAGES.RESET_PASS_TOKEN_EXPIRED);
+
+        const hash = await this.userService.setPassword(body.password);
+        user.hash = hash;
+        user.forgotPasswordToken = null;
+        user.forgotPasswordTokenExpiresIn = null;
+        const newUser = await this.userRepository.save(user);
+        this.userService.sendEmail(user, EMAIL_TEMPLATES.NEW_PASSWORD_SET, { user: newUser });
+
+        return { message: 'Password reset successfully.' };
+    }
+
     @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.COUNT_USERS)] })
+    @get(API_ENDPOINTS.USERS.COUNT, {
+        responses: {
+            '200': {
+                description: 'User model count',
+                content: { 'application/json': { schema: CountSchema } },
+            },
+        },
+    })
+    async count(@param.where(User) where?: Where<User>): Promise<ICommonHttpResponse<Count>> {
+        return { data: await this.userRepository.count(where) };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ALL_USERS)] })
     @get(API_ENDPOINTS.USERS.CRUD, {
         responses: {
             '200': {
@@ -214,8 +304,8 @@ export class UserController {
             },
         },
     })
-    async find(@param.filter(User) filter?: Filter<User>): Promise<User[]> {
-        return this.userRepository.find(filter);
+    async find(@param.filter(User) filter?: Filter<User>): Promise<ICommonHttpResponse<User[]>> {
+        return { data: await this.userRepository.find(filter) };
     }
 
     // @patch(API_ENDPOINTS.USERS.CRUD, {
@@ -240,6 +330,7 @@ export class UserController {
     //     return this.userRepository.updateAll(user, where);
     // }
 
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_USER)] })
     @authenticate('jwt')
     @get(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
@@ -256,31 +347,31 @@ export class UserController {
     async findById(
         @param.path.number('id') id: number,
         @param.filter(User, { exclude: 'where' }) filter?: FilterExcludingWhere<User>,
-    ): Promise<User> {
-        return this.userRepository.findById(id, filter);
+    ): Promise<ICommonHttpResponse<User>> {
+        return { data: await this.userRepository.findById(id, filter) };
     }
 
-    @authenticate('jwt')
-    @patch(API_ENDPOINTS.USERS.BY_ID, {
-        responses: {
-            '204': {
-                description: 'User PATCH success',
-            },
-        },
-    })
-    async updateById(
-        @param.path.number('id') id: number,
-        @requestBody({
-            content: {
-                'application/json': {
-                    schema: getModelSchemaRef(User, { partial: true }),
-                },
-            },
-        })
-        user: User,
-    ): Promise<void> {
-        await this.userRepository.updateById(id, user);
-    }
+    // @authenticate('jwt')
+    // @patch(API_ENDPOINTS.USERS.BY_ID, {
+    //     responses: {
+    //         '204': {
+    //             description: 'User PATCH success',
+    //         },
+    //     },
+    // })
+    // async updateById(
+    //     @param.path.number('id') id: number,
+    //     @requestBody({
+    //         content: {
+    //             'application/json': {
+    //                 schema: getModelSchemaRef(User, { partial: true }),
+    //             },
+    //         },
+    //     })
+    //     user: User,
+    // ): Promise<void> {
+    //     await this.userRepository.updateById(id, user);
+    // }
 
     // @put(API_ENDPOINTS.USERS.BY_ID, {
     //     responses: {
@@ -294,6 +385,7 @@ export class UserController {
     // }
 
     @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_ANY_USER)] })
     @del(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '204': {

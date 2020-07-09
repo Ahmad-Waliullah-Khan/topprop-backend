@@ -5,6 +5,7 @@ export interface ICustomUserProfile extends UserProfile {
     // role?: ROLES;
     permissions?: string[];
     token?: string;
+    username?: string;
     isAdmin?: boolean;
 }
 

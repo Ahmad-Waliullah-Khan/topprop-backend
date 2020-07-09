@@ -23,6 +23,7 @@
         "eslint:fix": "npm run eslint -- --fix",
         "pretest": "npm run clean && npm run build",
         "test": "lb-mocha -r module-alias/register --bail --timeout 10000 --allow-console-logs \"dist/__tests__\"",
+        "test:users": "lb-mocha -r module-alias/register --bail --timeout 10000 --allow-console-logs \"dist/__tests__/acceptance/user.controller.acceptance.js\"",
         "posttest": "npm run prettier:fix",
         "test:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
         "docker:build": "docker build -t top-prop-backend .",

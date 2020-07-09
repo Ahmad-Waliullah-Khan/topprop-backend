@@ -1,7 +1,9 @@
 //* LOAD ENV VARIABLES AT THE VERY BEGINNING
 require('dotenv').config();
+import chalk from 'chalk';
 import 'module-alias/register';
 import { ApplicationConfig, TopPropBackendApplication } from './application';
+import { UserService } from './services';
 
 export * from './application';
 
@@ -15,6 +17,13 @@ export async function main(options: ApplicationConfig = {}) {
 
     const url = app.restServer.url;
     console.log(`Top Prop server is running at ${url}`);
+
+    //* UPDATE PERMISSIONS ON EVERY START
+    const userService = await app.service(UserService).getValue(app);
+    userService
+        .syncDefaultPermissions()
+        .then(() => console.log(chalk.greenBright(`Permissions updated!`)))
+        .catch(err => console.error(chalk.redBright(`Error updating permissions. Error: `, err)));
 
     return app;
 }

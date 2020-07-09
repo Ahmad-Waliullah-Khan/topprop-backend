@@ -8,4 +8,5 @@ export const USER_MESSAGES = {
     INVALID_CONFIRMATION_TOKEN: `Invalid confirmation token.`,
     FORGOT_EMAIL_ALREADY_SENT: `Please check your email to reset your password.`,
     RESET_PASS_TOKEN_EXPIRED: `Your reset password token has expired. Generate a new one and try again.`,
+    LOGGED_IN_WITH_SOCIAL_NETWORK: `You have logged in with a social network.`,
 };
