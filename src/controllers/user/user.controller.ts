@@ -30,7 +30,6 @@ export class UserController {
         public userRepository: UserRepository,
         @service() protected userService: UserService,
         @service() protected jwtService: JwtService,
-        @inject(SecurityBindings.USER) private user: ICustomUserProfile,
     ) {}
 
     @post(API_ENDPOINTS.USERS.SIGNUP, {
@@ -94,6 +93,7 @@ export class UserController {
         let token = await this.jwtService.generateToken({
             id: user.id.toString(),
             email: user.email,
+            username: user.username,
             [securityId]: user.id.toString(),
         });
 
@@ -185,6 +185,7 @@ export class UserController {
         const token = await this.jwtService.generateToken({
             id: user.id.toString(),
             email: user.email,
+            username: user.username,
             [securityId]: user.id.toString(),
         });
 
@@ -211,12 +212,14 @@ export class UserController {
             },
         },
     })
-    async facebookLogin(): Promise<ICommonHttpResponse> {
-        if (!this.user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+    async facebookLogin(@inject(SecurityBindings.USER) user: ICustomUserProfile): Promise<ICommonHttpResponse> {
+        if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
         const token = await this.jwtService.generateToken({
-            ...this.user,
-            [securityId]: this.user.id.toString(),
+            id: user.id.toString(),
+            email: user.email,
+            username: user.username,
+            [securityId]: user.id.toString(),
         });
         return { data: token };
     }
