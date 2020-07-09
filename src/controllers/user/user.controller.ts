@@ -1,4 +1,5 @@
 import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
 import { service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
@@ -7,9 +8,10 @@ import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { JwtService } from '@src/services';
 import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES } from '@src/utils/constants';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
-import { ICommonHttpResponse, SignupUserRequest } from '@src/utils/interfaces';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse, LoginCredentials, SignupUserRequest } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
 import { USER_VALIDATORS } from '@src/utils/validators';
 import { isEmpty, isEqual } from 'lodash';
@@ -95,6 +97,7 @@ export class UserController {
     }
 
     @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.COUNT_USERS)] })
     @get(API_ENDPOINTS.USERS.COUNT, {
         responses: {
             '200': {
@@ -105,6 +108,94 @@ export class UserController {
     })
     async count(@param.where(User) where?: Where<User>): Promise<ICommonHttpResponse<Count>> {
         return { data: await this.userRepository.count(where) };
+    }
+
+    @post(API_ENDPOINTS.USERS.ADMIN_LOGIN, {
+        responses: {
+            '200': {
+                description: 'Token',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                data: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async adminLogin(
+        @requestBody()
+        credentials: LoginCredentials,
+    ): Promise<ICommonHttpResponse> {
+        if (!credentials || isEmpty(credentials)) throw new HttpErrors.BadRequest(USER_MESSAGES.EMPTY_CREDENTIALS);
+
+        const validationSchema = {
+            password: USER_VALIDATORS.password,
+            emailOrUsername: USER_VALIDATORS.emailOrUsername,
+        };
+
+        const validation = new Schema(validationSchema, { strip: false });
+        const validationErrors = validation.validate(credentials);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        // ensure the user exists, and the password is correct
+        const user = await this.userService.verifyCredentials(credentials, true);
+        const token = await this.jwtService.generateToken({
+            id: user.id.toString(),
+            email: user.email,
+            [securityId]: user.id.toString(),
+        });
+
+        return { data: token };
+    }
+
+    @post(API_ENDPOINTS.USERS.LOGIN, {
+        responses: {
+            '200': {
+                description: 'Token',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                data: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async userLogin(
+        @requestBody()
+        credentials: LoginCredentials,
+    ): Promise<ICommonHttpResponse> {
+        const validationSchema = {
+            password: USER_VALIDATORS.password,
+            emailOrUsername: USER_VALIDATORS.emailOrUsername,
+        };
+
+        const validation = new Schema(validationSchema, { strip: false });
+        const validationErrors = validation.validate(credentials);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        // ensure the user exists, and the password is correct
+        const user = await this.userService.verifyCredentials(credentials);
+        const token = await this.jwtService.generateToken({
+            id: user.id.toString(),
+            email: user.email,
+            [securityId]: user.id.toString(),
+        });
+
+        return { data: token };
     }
 
     @authenticate('jwt')
