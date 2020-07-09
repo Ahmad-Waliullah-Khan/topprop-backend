@@ -1,3 +1,9 @@
+import {
+    AuthenticateFn,
+    AuthenticationBindings,
+    AUTHENTICATION_STRATEGY_NOT_FOUND,
+    USER_PROFILE_NOT_FOUND,
+} from '@loopback/authentication';
 import { inject } from '@loopback/core';
 import {
     FindRoute,
@@ -27,6 +33,8 @@ export class MySequence implements SequenceHandler {
         @inject(SequenceActions.INVOKE_METHOD) protected invoke: InvokeMethod,
         @inject(SequenceActions.SEND) public send: Send,
         @inject(SequenceActions.REJECT) public reject: Reject,
+        @inject(AuthenticationBindings.AUTH_ACTION)
+        protected authenticateRequest: AuthenticateFn,
     ) {}
 
     async handle(context: RequestContext) {
@@ -36,9 +44,18 @@ export class MySequence implements SequenceHandler {
             if (finished) return;
             const route = this.findRoute(request);
             const args = await this.parseParams(request, route);
+
+            //call authentication action
+            await this.authenticateRequest(request);
+
             const result = await this.invoke(route, args);
             this.send(response, result);
         } catch (err) {
+            if (err.code === AUTHENTICATION_STRATEGY_NOT_FOUND || err.code === USER_PROFILE_NOT_FOUND)
+                Object.assign(err, { statusCode: 401 });
+
+            if (err.statusCode === 404) Object.assign(err, { message: `The Resource was not found.` });
+
             this.reject(context, err);
         }
     }
