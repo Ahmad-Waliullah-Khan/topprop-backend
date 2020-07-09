@@ -64,11 +64,13 @@
         "lodash": "^4.17.15",
         "loopback-connector-postgresql": "^5.0.1",
         "moment": "^2.27.0",
+        "passport-facebook-token": "^4.0.0",
         "pug": "^3.0.0",
         "tslib": "^2.0.0",
         "validate": "^5.1.0"
     },
     "devDependencies": {
+        "@loopback/authentication-passport": "^2.1.9",
         "@loopback/build": "^6.1.0",
         "@loopback/eslint-config": "^8.0.3",
         "@loopback/express": "^1.2.5",
@@ -82,12 +84,15 @@
         "@types/module-alias": "^2.0.0",
         "@types/morgan": "^1.9.1",
         "@types/node": "^10.17.26",
+        "@types/passport-facebook-token": "^0.4.34",
+        "@types/randomstring": "^1.1.6",
         "chalk": "^4.1.0",
         "cron": "^1.8.2",
         "dotenv": "^8.2.0",
         "eslint": "^7.3.1",
         "module-alias": "^2.2.2",
         "morgan": "^1.10.0",
+        "randomstring": "^1.1.5",
         "source-map-support": "^0.5.19",
         "typescript": "~3.9.5"
     }
