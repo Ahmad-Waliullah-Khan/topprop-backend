@@ -39,6 +39,13 @@ export const USER_VALIDATORS = {
             match: 'Invalid email.',
         },
     },
+    emailOrUsername: {
+        type: String,
+        required: true,
+        message: {
+            required: 'Email or username is required.',
+        },
+    },
     username: {
         type: String,
         required: true,

@@ -1,4 +1,5 @@
 import { AuthenticationComponent, registerAuthenticationStrategy } from '@loopback/authentication';
+import { AuthorizationComponent } from '@loopback/authorization';
 import { BootMixin } from '@loopback/boot';
 import { ApplicationConfig } from '@loopback/core';
 import { RepositoryMixin } from '@loopback/repository';
@@ -36,6 +37,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         this.sequence(MySequence);
 
         this.component(AuthenticationComponent);
+        this.component(AuthorizationComponent);
 
         // Set up default home page
         // this.static('/', path.join(__dirname, '../public'));

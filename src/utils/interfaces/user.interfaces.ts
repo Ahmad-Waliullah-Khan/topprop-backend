@@ -3,7 +3,7 @@ import { User } from '@src/models';
 
 export interface ICustomUserProfile extends UserProfile {
     // role?: ROLES;
-    // permissions?: string[];
+    permissions?: string[];
     token?: string;
     isAdmin?: boolean;
 }
@@ -28,6 +28,6 @@ export class ChangePasswordRequest {
     constructor(public password: string, public confirmPassword: string) {}
 }
 
-export class Credentials {
-    constructor(public email: string, public password: string) {}
+export class LoginCredentials {
+    constructor(public password: string, public emailOrUsername: string) {}
 }

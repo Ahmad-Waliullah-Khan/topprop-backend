@@ -36,8 +36,8 @@ export class JwtService {
                 id: user.id,
                 email: user.email,
                 [securityId]: user.id.toString(),
-                // role: user.role,
-                // permissions: user.permissions,
+                role: user.role,
+                permissions: user.permissions,
                 isAdmin: isEqual(user.role, ROLES.ADMIN),
             };
             return userProfile;

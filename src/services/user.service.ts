@@ -5,7 +5,7 @@ import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
 import { UserHelpers } from '@src/utils/helpers';
-import { Credentials } from '@src/utils/interfaces';
+import { LoginCredentials } from '@src/utils/interfaces';
 import { USER_MESSAGES } from '@src/utils/messages';
 import { compare, hash } from 'bcrypt';
 import chalk from 'chalk';
@@ -30,12 +30,20 @@ export class UserService {
         return await compare(password, hashPassword);
     }
 
-    async verifyCredentials(credentials: Credentials, verifyAdmin = false): Promise<User> {
+    async verifyCredentials(credentials: LoginCredentials, verifyAdmin = false): Promise<User> {
         let verifyUserQuery: Filter<User> = {
-            where: { email: credentials.email },
+            where: {
+                and: [
+                    {
+                        or: [
+                            { email: credentials.emailOrUsername.toLowerCase().trim() },
+                            { username: credentials.emailOrUsername.trim() },
+                        ],
+                    },
+                    { role: verifyAdmin ? ROLES.ADMIN : ROLES.USER },
+                ],
+            },
         };
-        if (verifyAdmin) verifyUserQuery.where = { ...verifyUserQuery.where, role: ROLES.ADMIN };
-        else verifyUserQuery.where = { ...verifyUserQuery.where, role: ROLES.USER };
 
         const userRepository = await this.userRepositoryGetter();
         const foundUser = await userRepository.findOne(verifyUserQuery);
@@ -43,9 +51,7 @@ export class UserService {
         const passwordMatched =
             (foundUser && (await this.validPassword(credentials.password, foundUser.hash as string))) || false;
 
-        if (!foundUser || !passwordMatched) {
-            throw new HttpErrors.BadRequest(USER_MESSAGES.INVALID_CREDENTIALS);
-        }
+        if (!foundUser || !passwordMatched) throw new HttpErrors.BadRequest(USER_MESSAGES.INVALID_CREDENTIALS);
 
         return foundUser;
     }
