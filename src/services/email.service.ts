@@ -48,7 +48,7 @@ export class EmailService {
 
     async sendEmail(options: EmailTemplate.EmailOptions): Promise<void> {
         try {
-            this.emailSender.send(options);
+            await this.emailSender.send(options);
             console.log(chalk.greenBright(`Email sent. Template: ${options.template} - To: ${options.message.to}`));
         } catch (error) {
             console.error(
