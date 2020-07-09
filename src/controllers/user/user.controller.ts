@@ -1,9 +1,9 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
+import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { securityId } from '@loopback/security';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { JwtService } from '@src/services';
@@ -11,7 +11,13 @@ import { UserService } from '@src/services/user.service';
 import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, LoginCredentials, ResetPasswordRequest, SignupUserRequest } from '@src/utils/interfaces';
+import {
+    ICommonHttpResponse,
+    ICustomUserProfile,
+    LoginCredentials,
+    ResetPasswordRequest,
+    SignupUserRequest,
+} from '@src/utils/interfaces';
 import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
 import { USER_VALIDATORS } from '@src/utils/validators';
 import { isEmpty, isEqual } from 'lodash';
@@ -24,6 +30,7 @@ export class UserController {
         public userRepository: UserRepository,
         @service() protected userService: UserService,
         @service() protected jwtService: JwtService,
+        @inject(SecurityBindings.USER) private user: ICustomUserProfile,
     ) {}
 
     @post(API_ENDPOINTS.USERS.SIGNUP, {
@@ -181,6 +188,36 @@ export class UserController {
             [securityId]: user.id.toString(),
         });
 
+        return { data: token };
+    }
+
+    @authenticate('facebookToken')
+    @post(API_ENDPOINTS.USERS.FACEBOOK_LOGIN, {
+        responses: {
+            '200': {
+                description: 'Token',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                data: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async facebookLogin(): Promise<ICommonHttpResponse> {
+        if (!this.user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        const token = await this.jwtService.generateToken({
+            ...this.user,
+            [securityId]: this.user.id.toString(),
+        });
         return { data: token };
     }
 

@@ -4,7 +4,7 @@ import { HttpErrors } from '@loopback/rest';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
-import { UserHelpers } from '@src/utils/helpers';
+import { MiscHelpers, UserHelpers } from '@src/utils/helpers';
 import { LoginCredentials } from '@src/utils/interfaces';
 import { USER_MESSAGES } from '@src/utils/messages';
 import { compare, hash } from 'bcrypt';
@@ -117,12 +117,12 @@ export class UserService {
         return true;
     }
 
-    // buildUsername(email: string): string {
-    //     let splittedEmail = email.split('@');
-    //     let tentativeUsername = `@${splittedEmail[0]}`.substr(0, 5).replace('+', '-');
-    //     let defaultUsername = MiscHelpers.appendRandomStr(`${tentativeUsername}-`, 20);
-    //     return defaultUsername;
-    // }
+    buildUsername(email: string): string {
+        let splittedEmail = email.split('@');
+        let tentativeUsername = `@${splittedEmail[0]}`.substr(0, 5).replace('+', '-');
+        let defaultUsername = MiscHelpers.appendRandomStr(`${tentativeUsername}-`, 20);
+        return defaultUsername;
+    }
 
     async validEmail(email: string, excludeUserId?: number): Promise<boolean> {
         const userRepository = await this.userRepositoryGetter();
