@@ -8,7 +8,6 @@ import { UserHelpers } from '@src/utils/helpers';
 import { LoginCredentials } from '@src/utils/interfaces';
 import { USER_MESSAGES } from '@src/utils/messages';
 import { compare, hash } from 'bcrypt';
-import chalk from 'chalk';
 import { randomBytes } from 'crypto';
 import { isEqual, isNumber, merge } from 'lodash';
 import moment from 'moment';
@@ -169,38 +168,21 @@ export class UserService {
         locals: { [key: string]: any },
         customEmail?: string,
     ): Promise<void> {
-        const userRepository = await this.userRepositoryGetter();
+        if (isNumber(user)) {
+            const userRepository = await this.userRepositoryGetter();
+            user = await userRepository.findById(user);
+        }
 
-        if (isNumber(user)) user = await userRepository.findById(user);
-
-        this.emailService.emailSender
-            .send({
-                template,
-                message: {
-                    to: customEmail ? customEmail : user.email,
-                },
-                locals,
-            })
-            .then((res: any) => {
-                console.log(
-                    chalk.greenBright(
-                        `Email sent. Template: ${template} - To: ${customEmail ? customEmail : (user as User).email}`,
-                    ),
-                );
-            })
-            .catch((error: any) => {
-                console.error(
-                    chalk.redBright(
-                        `Error sending email. Template: ${template} - To: ${
-                            customEmail ? customEmail : (user as User).email
-                        }. Error: `,
-                        error,
-                    ),
-                );
-            });
+        this.emailService.sendEmail({
+            template,
+            message: {
+                to: customEmail ? customEmail : user.email,
+            },
+            locals,
+        });
     }
 
-    async compareId(user: User, id: number) {
-        return user.id === id;
+    async compareId(user: User, id: number): Promise<boolean> {
+        return isEqual(user.id, id);
     }
 }

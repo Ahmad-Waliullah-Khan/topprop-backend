@@ -1,10 +1,11 @@
 import { bind, /* inject, */ BindingScope } from '@loopback/core';
 import { join } from 'path';
 import EmailTemplate = require('email-templates');
+import chalk = require('chalk');
 
 @bind({ scope: BindingScope.SINGLETON })
 export class EmailService {
-    emailSender: EmailTemplate;
+    private emailSender: EmailTemplate;
     constructor() {
         const transport = {
             port: +(process.env.SMTP_PORT as string),
@@ -13,7 +14,7 @@ export class EmailService {
                 user: process.env.SMTP_USER as string,
                 pass: process.env.SMTP_PASS as string,
             },
-            secure: false, //TODO: CHANGE TO TRUE ONCE WE HAVE THE REAL CREDENTIALS
+            secure: true,
             tls: {
                 // do not fail on invalid certs
                 rejectUnauthorized: false,
@@ -43,5 +44,19 @@ export class EmailService {
                 },
             },
         });
+    }
+
+    async sendEmail(options: EmailTemplate.EmailOptions): Promise<void> {
+        try {
+            this.emailSender.send(options);
+            console.log(chalk.greenBright(`Email sent. Template: ${options.template} - To: ${options.message.to}`));
+        } catch (error) {
+            console.error(
+                chalk.redBright(
+                    `Error sending email. Template: ${options} - To: ${options.message.to}. Error: `,
+                    error,
+                ),
+            );
+        }
     }
 }
