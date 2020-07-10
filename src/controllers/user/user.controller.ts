@@ -91,7 +91,7 @@ export class UserController {
         delete body.confirmPassword;
         const user = await this.userRepository.create(body);
         let token = await this.jwtService.generateToken({
-            id: user.id.toString(),
+            id: user.id,
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
@@ -139,7 +139,7 @@ export class UserController {
         // ensure the user exists, and the password is correct
         const user = await this.userService.verifyCredentials(credentials, true);
         const token = await this.jwtService.generateToken({
-            id: user.id.toString(),
+            id: user.id,
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
@@ -183,7 +183,7 @@ export class UserController {
         // ensure the user exists, and the password is correct
         const user = await this.userService.verifyCredentials(credentials);
         const token = await this.jwtService.generateToken({
-            id: user.id.toString(),
+            id: user.id,
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
@@ -219,7 +219,7 @@ export class UserController {
         if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
         const token = await this.jwtService.generateToken({
-            id: user.id.toString(),
+            id: user.id,
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
