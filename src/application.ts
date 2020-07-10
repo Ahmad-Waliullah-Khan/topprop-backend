@@ -1,17 +1,13 @@
-import {
-    AuthenticationBindings,
-    AuthenticationComponent,
-    registerAuthenticationStrategy,
-} from '@loopback/authentication';
+import { AuthenticationComponent, registerAuthenticationStrategy } from '@loopback/authentication';
 import { AuthorizationComponent } from '@loopback/authorization';
 import { BootMixin } from '@loopback/boot';
-import { addExtension, ApplicationConfig } from '@loopback/core';
+import { ApplicationConfig } from '@loopback/core';
 import { RepositoryMixin } from '@loopback/repository';
 import { RestApplication } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
 import { isEqual } from 'lodash';
 import morgan from 'morgan';
-import { JWTAuthenticationStrategy, PassportFacebookTokenAuthProvider } from './authentication-strategies';
+import { JWTAuthenticationStrategy } from './authentication-strategies';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 
@@ -38,17 +34,17 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         registerAuthenticationStrategy(this, JWTAuthenticationStrategy);
 
         //* Register fb token strategy
-        this.bind('authentication.facebookToken.verify').toProvider(PassportFacebookTokenAuthProvider);
+        // this.bind('authentication.facebookToken.verify').toProvider(PassportFacebookTokenAuthProvider);
 
-        // register PassportBasicAuthProvider as a custom authentication strategy
-        addExtension(
-            this,
-            AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
-            PassportFacebookTokenAuthProvider,
-            {
-                namespace: AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
-            },
-        );
+        // // register PassportBasicAuthProvider as a custom authentication strategy
+        // addExtension(
+        //     this,
+        //     AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
+        //     PassportFacebookTokenAuthProvider,
+        //     {
+        //         namespace: AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
+        //     },
+        // );
 
         // Set up the custom sequence
         this.sequence(MySequence);

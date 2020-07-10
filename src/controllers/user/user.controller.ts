@@ -192,7 +192,7 @@ export class UserController {
         return { data: token };
     }
 
-    @authenticate('facebookToken')
+    // @authenticate('facebookToken')
     @post(API_ENDPOINTS.USERS.FACEBOOK_LOGIN, {
         responses: {
             '200': {
