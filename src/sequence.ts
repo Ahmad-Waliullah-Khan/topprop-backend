@@ -51,6 +51,14 @@ export class MySequence implements SequenceHandler {
             const result = await this.invoke(route, args);
             this.send(response, result);
         } catch (err) {
+            //Facebook Login Error Handling
+            if (err.message && err.message.oauthError)
+                Object.assign(err, {
+                    statusCode: err.message.oauthError.statusCode,
+                    message: err.message.message,
+                    name: err.message.name,
+                });
+
             if (err.code === AUTHENTICATION_STRATEGY_NOT_FOUND || err.code === USER_PROFILE_NOT_FOUND)
                 Object.assign(err, { statusCode: 401 });
 
