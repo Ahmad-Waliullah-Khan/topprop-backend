@@ -212,7 +212,10 @@ export class UserController {
             },
         },
     })
-    async facebookLogin(@inject(SecurityBindings.USER) user: ICustomUserProfile): Promise<ICommonHttpResponse> {
+    async facebookLogin(
+        @inject(SecurityBindings.USER) user: ICustomUserProfile,
+        @requestBody() body: { access_token: string },
+    ): Promise<ICommonHttpResponse> {
         if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
         const token = await this.jwtService.generateToken({
