@@ -246,6 +246,7 @@ export class UserController {
         // return { data: true };
     }
 
+    @authenticate.skip()
     @patch(API_ENDPOINTS.USERS.SET_FORGOT_PASSWORD_TOKEN)
     async setForgotPasswordToken(
         @requestBody()
@@ -280,6 +281,7 @@ export class UserController {
         return { message: 'Check you inbox.' };
     }
 
+    @authenticate.skip()
     @patch(API_ENDPOINTS.USERS.RESET_PASSWORD)
     async resetPassword(
         @requestBody()
