@@ -66,6 +66,7 @@
         "moment": "^2.27.0",
         "passport-facebook-token": "^4.0.0",
         "pug": "^3.0.0",
+        "stripe": "^8.69.0",
         "tslib": "^2.0.0",
         "validate": "^5.1.0"
     },
