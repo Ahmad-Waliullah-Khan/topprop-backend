@@ -4,33 +4,35 @@ import { Provider, service, ValueOrPromise } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { isEqual } from 'lodash';
 import moment from 'moment';
-import FacebookStrategy, { Profile, StrategyInstance, VerifyFunction } from 'passport-facebook-token';
+//@ts-ignore
+// import * as GoogleTokenStrategy from 'passport-google-id-token';
+import GoogleTokenStrategy from 'passport-google-id-token';
 import { UserRepository } from '../repositories';
 import { UserService } from '../services';
 
-export class PassportFacebookTokenAuthProvider implements Provider<AuthenticationStrategy> {
-    name: string = 'facebookToken';
+export class PassportGoogleTokenAuthProvider implements Provider<AuthenticationStrategy> {
+    name: string = 'googleToken';
     constructor(
         @repository(UserRepository) private userRepository: UserRepository,
         @service()
         protected userService: UserService,
     ) {}
     value(): ValueOrPromise<AuthenticationStrategy> {
-        const verify = async (accessToken: string, refreshToken: string, profile: Profile, done: Function) => {
+        const verify = async (parsedToken: any, googleId: string, done: Function) => {
             try {
-                const profileJSON = profile._json;
+                const profileJSON = parsedToken.payload;
 
-                if (!profileJSON.email)
+                if (!profileJSON || !profileJSON.email)
                     return done(null, false, { message: 'The current profile does not have an email.' });
                 let user = await this.userRepository.findOne({
-                    where: { or: [{ socialId: profile.id }, { email: profileJSON.email }] },
+                    where: { or: [{ socialId: googleId }, { email: profileJSON.email }] },
                 });
 
                 if (user) {
                     let shouldUpdate = false;
-                    if (!isEqual(user.socialId, profile.id)) {
-                        user.socialId = profile.id;
-                        user.profileImage = `https://graph.facebook.com/${profile.id}/picture?type=large`;
+                    if (!isEqual(user.socialId, googleId)) {
+                        user.socialId = googleId;
+                        user.profileImage = profileJSON.picture;
                         shouldUpdate = true;
                     }
                     if (!isEqual(user.email, profileJSON.email)) {
@@ -44,11 +46,11 @@ export class PassportFacebookTokenAuthProvider implements Provider<Authenticatio
                         email: profileJSON.email,
                         fullName: profileJSON.name || 'N/A',
                         username: this.userService.buildUsername(profileJSON.email),
-                        socialId: profile.id,
+                        socialId: googleId,
                         accountConfirmedAt: moment().toDate(),
                         permissions: this.userService.assignDefaultPermissions(),
                         role: this.userService.assignDefaultRole(),
-                        profileImage: `https://graph.facebook.com/${profile.id}/picture?type=large`,
+                        profileImage: profileJSON.picture || '',
                     });
                 }
                 done(null, {
@@ -63,17 +65,17 @@ export class PassportFacebookTokenAuthProvider implements Provider<Authenticatio
                 done(null, false, err);
             }
         };
-        const facebookTokenStrategy = this.configuredFacebookTokenStrategy(verify);
-        return this.convertToAuthStrategy(facebookTokenStrategy);
+        const googleTokenStrategy = this.configuredGoogleTokenStrategy(verify);
+        return this.convertToAuthStrategy(googleTokenStrategy);
     }
     // Takes in the verify callback function and returns a configured basic strategy.
-    private configuredFacebookTokenStrategy(verifyFn: VerifyFunction): StrategyInstance {
-        return new FacebookStrategy(
+    private configuredGoogleTokenStrategy(verifyFn: Function) {
+        return new GoogleTokenStrategy(
             {
-                clientID: process.env.FACEBOOK_APP_ID as string,
-                clientSecret: process.env.FACEBOOK_APP_SECRET_ID as string,
-                fbGraphVersion: 'v7.0',
-                profileFields: ['email', 'displayName', 'id'],
+                clientID: process.env.GOOGLE_CLIENT_ID as string,
+                // clientSecret: process.env.FACEBOOK_APP_SECRET_ID as string,
+                // fbGraphVersion: 'v7.0',
+                // profileFields: ['email', 'displayName', 'id'],
             },
             verifyFn,
         );
@@ -83,7 +85,7 @@ export class PassportFacebookTokenAuthProvider implements Provider<Authenticatio
     // You'd better define your strategy name as a constant, like
     // `const AUTH_STRATEGY_NAME = 'basic'`
     // You will need to decorate the APIs later with the same name
-    private convertToAuthStrategy(basic: StrategyInstance): AuthenticationStrategy {
+    private convertToAuthStrategy(basic: any): AuthenticationStrategy {
         return new StrategyAdapter(basic, this.name);
     }
 }

@@ -227,6 +227,41 @@ export class UserController {
         return { data: token };
     }
 
+    @authenticate('googleToken')
+    @post(API_ENDPOINTS.USERS.GOOGLE_LOGIN, {
+        responses: {
+            '200': {
+                description: 'Token',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                data: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async googleLogin(
+        @inject(SecurityBindings.USER) user: ICustomUserProfile,
+        @requestBody() body: { access_token: string },
+    ): Promise<ICommonHttpResponse> {
+        if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        const token = await this.jwtService.generateToken({
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            [securityId]: user.id.toString(),
+        });
+        return { data: token };
+    }
+
     @post(API_ENDPOINTS.USERS.USERNAME_VALIDATE)
     async validateUsername(@requestBody() body: Pick<User, 'username'>): Promise<ICommonHttpResponse<boolean>> {
         const validationSchema = {

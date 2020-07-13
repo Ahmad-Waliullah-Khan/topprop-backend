@@ -11,7 +11,11 @@ import { RestApplication } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
 import { isEqual } from 'lodash';
 import morgan from 'morgan';
-import { JWTAuthenticationStrategy, PassportFacebookTokenAuthProvider } from './authentication-strategies';
+import {
+    JWTAuthenticationStrategy,
+    PassportFacebookTokenAuthProvider,
+    PassportGoogleTokenAuthProvider,
+} from './authentication-strategies';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 
@@ -45,6 +49,19 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
             this,
             AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
             PassportFacebookTokenAuthProvider,
+            {
+                namespace: AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
+            },
+        );
+
+        //* Register google token strategy
+        this.bind('authentication.googleToken.verify').toProvider(PassportGoogleTokenAuthProvider);
+
+        // register PassportBasicAuthProvider as a custom authentication strategy
+        addExtension(
+            this,
+            AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
+            PassportGoogleTokenAuthProvider,
             {
                 namespace: AuthenticationBindings.AUTHENTICATION_STRATEGY_EXTENSION_POINT_NAME,
             },
