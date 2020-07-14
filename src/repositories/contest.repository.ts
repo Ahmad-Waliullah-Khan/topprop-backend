@@ -2,11 +2,11 @@ import { inject } from '@loopback/core';
 import { DefaultCrudRepository } from '@loopback/repository';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { User, UserRelations } from '../models';
+import { Contest, ContestRelations } from '../models';
 
-export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
+export class ContestRepository extends DefaultCrudRepository<Contest, typeof Contest.prototype.id, ContestRelations> {
     constructor(@inject('datasources.db') dataSource: DbDataSource) {
-        super(User, dataSource);
+        super(Contest, dataSource);
 
         this.modelClass.observe('before save', async ctx => {
             if (ctx.instance && !ctx.hookState.skipSetUpdateAt) {
@@ -15,12 +15,5 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
             }
             return;
         });
-        // this.modelClass.observe('after save', async ctx => {
-        //     if (ctx.isNewInstance && !ctx.hookState.skipSendWelcome) {
-        //         console.log(ctx.instance.email);
-        //         ctx.hookState.skipSendWelcome = true;
-        //     }
-        //     return;
-        // });
     }
 }

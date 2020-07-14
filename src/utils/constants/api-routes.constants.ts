@@ -5,10 +5,16 @@ export enum API_VERSIONS {
 export const BASE_API_PATH = '/api';
 
 export const API_RESOURCES = {
+    CONTESTS: 'contests',
     USERS: 'users',
 };
 
 export const API_ENDPOINTS = {
+    CONTESTS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/count`,
+    },
     USERS: {
         SIGNUP: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/sign-up`,
         LOGIN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/login`,
