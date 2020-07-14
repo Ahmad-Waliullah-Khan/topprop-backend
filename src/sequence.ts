@@ -58,6 +58,13 @@ export class MySequence implements SequenceHandler {
                     message: err.message.message,
                     name: err.message.name,
                 });
+            //Google Login Error Handling
+            if (err.message && err.message.message)
+                Object.assign(err, {
+                    // statusCode: err.message.oauthError.statusCode,
+                    message: 'Session expired. Login Again.',
+                    // name: err.message.name,
+                });
 
             if (err.code === AUTHENTICATION_STRATEGY_NOT_FOUND || err.code === USER_PROFILE_NOT_FOUND)
                 Object.assign(err, { statusCode: 401 });
