@@ -23,6 +23,7 @@
         "eslint:fix": "npm run eslint -- --fix",
         "pretest": "npm run clean && npm run build",
         "test": "lb-mocha -r module-alias/register --bail --timeout 10000 --allow-console-logs \"dist/__tests__\"",
+        "test:contacts": "lb-mocha -r module-alias/register --bail --timeout 10000 --allow-console-logs \"dist/__tests__/acceptance/contact-submission.controller.acceptance.js\"",
         "test:contests": "lb-mocha -r module-alias/register --bail --timeout 10000 --allow-console-logs \"dist/__tests__/acceptance/contest.controller.acceptance.js\"",
         "test:users": "lb-mocha -r module-alias/register --bail --timeout 10000 --allow-console-logs \"dist/__tests__/acceptance/user.controller.acceptance.js\"",
         "posttest": "npm run prettier:fix",

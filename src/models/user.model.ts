@@ -1,5 +1,6 @@
-import { Entity, model, property } from '@loopback/repository';
+import { Entity, hasMany, model, property } from '@loopback/repository';
 import { ROLES } from '@src/utils/constants';
+import { ContactSubmission } from './contact-submission.model';
 
 @model({
     settings: {
@@ -104,6 +105,9 @@ export class User extends Entity {
     })
     updatedAt?: string;
 
+    @hasMany(() => ContactSubmission)
+    contactSubmissions: ContactSubmission[];
+
     constructor(data?: Partial<User>) {
         super(data);
     }
@@ -111,6 +115,7 @@ export class User extends Entity {
 
 export interface UserRelations {
     // describe navigational properties here
+    contactSubmissions?: ContactSubmission[];
 }
 
 export type UserWithRelations = User & UserRelations;
