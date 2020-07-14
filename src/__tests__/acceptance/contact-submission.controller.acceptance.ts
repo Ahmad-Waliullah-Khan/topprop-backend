@@ -1,4 +1,6 @@
+import { Filter } from '@loopback/repository';
 import { Client, expect } from '@loopback/testlab';
+import { ContactSubmission } from '@src/models';
 import { API_RESOURCES } from '@src/utils/constants';
 import { TopPropBackendApplication } from '../..';
 import { setupApplication } from './test-helper';
@@ -160,10 +162,11 @@ describe('Contact Submission Controller', () => {
             expect(res.body.data).to.be.an.Array;
         });
         it('Should list contact submissions with filter', async () => {
+            const filter: Filter<ContactSubmission> = { include: [{ relation: 'user' }] };
             const res = await client
                 .get(contactSubmissionsBaseAPI)
                 .set('Authorization', adminAuthToken1)
-                .query({ 'filter[include][0][relation]': 'user' })
+                .query({ filter: JSON.stringify(filter) })
                 .expect(200);
             expect(res).to.have.property('body');
             expect(res.body).to.have.property('data');
