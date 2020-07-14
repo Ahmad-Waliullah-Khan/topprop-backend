@@ -5,8 +5,8 @@ import { del, get, getModelSchemaRef, param } from '@loopback/rest';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { Contest } from '../models';
-import { ContestRepository } from '../repositories';
+import { Contest } from '@src/models';
+import { ContestRepository } from '@src/repositories';
 
 export class ContestController {
     constructor(

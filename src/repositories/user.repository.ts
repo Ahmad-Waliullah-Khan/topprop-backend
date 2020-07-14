@@ -1,12 +1,24 @@
-import { inject } from '@loopback/core';
-import { DefaultCrudRepository } from '@loopback/repository';
+import { Getter, inject } from '@loopback/core';
+import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@loopback/repository';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { User, UserRelations } from '../models';
+import { ContactSubmission, User, UserRelations } from '../models';
+import { ContactSubmissionRepository } from './contact-submission.repository';
 
 export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
-    constructor(@inject('datasources.db') dataSource: DbDataSource) {
+    public readonly contactSubmissions: HasManyRepositoryFactory<ContactSubmission, typeof User.prototype.id>;
+
+    constructor(
+        @inject('datasources.db') dataSource: DbDataSource,
+        @repository.getter('ContactSubmissionRepository')
+        protected contactSubmissionRepositoryGetter: Getter<ContactSubmissionRepository>,
+    ) {
         super(User, dataSource);
+        this.contactSubmissions = this.createHasManyRepositoryFactoryFor(
+            'contactSubmissions',
+            contactSubmissionRepositoryGetter,
+        );
+        this.registerInclusionResolver('contactSubmissions', this.contactSubmissions.inclusionResolver);
 
         this.modelClass.observe('before save', async ctx => {
             if (ctx.instance && !ctx.hookState.skipSetUpdateAt) {

@@ -46,6 +46,12 @@ describe('Contest Controller', () => {
     });
 
     after(async () => {
+        const contests = await client.get(`${contestsBaseAPI}`).set('Authorization', adminAuthToken1);
+        console.log('Removing all users...');
+        for (let index = 0; index < contests.body.data.length; index++) {
+            const user = contests.body.data[index];
+            await client.delete(`${usersBaseAPI}/${user.id}`).set('Authorization', adminAuthToken1);
+        }
         let users = await client.get(`${usersBaseAPI}`).set('Authorization', adminAuthToken1);
         console.log('Removing all users...');
         for (let index = 0; index < users.body.data.length; index++) {

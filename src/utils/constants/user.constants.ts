@@ -1,4 +1,14 @@
 export const PERMISSIONS = {
+    CONTACT_SUBMISSIONS: {
+        VIEW_ALL_CONTACT_SUBMISSIONS: 'viewAllContactSubmissions',
+        VIEW_ANY_CONTACT_SUBMISSION: 'viewAnyContactSubmission',
+        CREATE_ANY_CONTACT_SUBMISSION: 'createAnyContactSubmission',
+        UN_READ_ANY_CONTACT_SUBMISSION: 'unReadAnyContactSubmission',
+        REPLY_ANY_CONTACT_SUBMISSION: 'replyAnyContactSubmission',
+        DELETE_ANY_CONTACT_SUBMISSION: 'deleteAnyContactSubmission',
+        ARCHIVE_ANY_CONTACT_SUBMISSION: 'archiveAnyContactSubmission',
+        COUNT_CONTACT_SUBMISSIONS: 'countContactSubmissions',
+    },
     CONTESTS: {
         VIEW_ALL_CONTESTS: 'viewAllContests',
         VIEW_ANY_CONTEST: 'viewAnyContest',
