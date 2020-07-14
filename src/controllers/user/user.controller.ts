@@ -408,8 +408,8 @@ export class UserController {
     //     return this.userRepository.updateAll(user, where);
     // }
 
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_USER)] })
     @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_USER)] })
     @get(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '200': {
