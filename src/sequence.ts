@@ -69,7 +69,7 @@ export class MySequence implements SequenceHandler {
             if (err.code === AUTHENTICATION_STRATEGY_NOT_FOUND || err.code === USER_PROFILE_NOT_FOUND)
                 Object.assign(err, { statusCode: 401 });
 
-            if (err.statusCode === 404) Object.assign(err, { message: `The Resource was not found.` });
+            // if (err.statusCode === 404) Object.assign(err, { message: `The Resource was not found.` });
 
             this.reject(context, err);
         }
