@@ -10,3 +10,8 @@ export const USER_MESSAGES = {
     RESET_PASS_TOKEN_EXPIRED: `Your reset password token has expired. Generate a new one and try again.`,
     LOGGED_IN_WITH_SOCIAL_NETWORK: `You have logged in with a social network.`,
 };
+export const WALLET_MESSAGES = {
+    MISSING_WALLET: `User does not a wallet yet. Add a card first.`,
+    PAYMENT_METHOD_ALREADY_DEFAULT: `Payment method provided is already the default.`,
+    DEFAULT_PAYMENT_METHOD_DETACH_ERROR: `The default payment method cannot be detached. Add a new payment method and select it as default to detach this one.`,
+};

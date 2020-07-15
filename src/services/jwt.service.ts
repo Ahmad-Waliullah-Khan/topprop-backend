@@ -8,7 +8,7 @@ import { ICustomUserProfile } from '@src/utils/interfaces';
 import { sign, TokenExpiredError, verify } from 'jsonwebtoken';
 import { isEqual } from 'lodash';
 
-@bind({ scope: BindingScope.TRANSIENT })
+@bind({ scope: BindingScope.SINGLETON })
 export class JwtService {
     constructor(
         @inject('TOKEN_SECRET_SIGN')

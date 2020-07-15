@@ -27,6 +27,10 @@ export const PERMISSIONS = {
         ARCHIVE_ANY_USER: 'archiveAnyUser',
         COUNT_USERS: 'countUsers',
         RUN_UPDATE_FIXES: 'runUpdatesAndFixes',
+        CREATE_PAYMENT_METHODS: 'createPaymentMethods',
+        UPDATE_PAYMENT_METHODS: 'updatePaymentMethods',
+        VIEW_ANY_WALLET: 'viewAnyWallet',
+        ADD_WALLET_FUNDS: 'addWalletFunds',
     },
 };
 
