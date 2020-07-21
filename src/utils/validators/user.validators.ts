@@ -91,7 +91,7 @@ export const USER_VALIDATORS = {
     forgotPasswordToken: {
         type: String,
         required: true,
-        match: /^[a-z0-9]{6}$/,
+        match: /^[a-z0-9]{24}$/,
         message: {
             required: 'Forgot password token is required.',
             match: 'Bad formatted token.',

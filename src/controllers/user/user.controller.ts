@@ -309,7 +309,8 @@ export class UserController {
         await this.userRepository.save(newUser);
         this.userService.sendEmail(newUser, EMAIL_TEMPLATES.FORGOT_PASSWORD, {
             user: newUser,
-            forgotPasswordToken: newUser.forgotPasswordToken,
+            // forgotPasswordToken: newUser.forgotPasswordToken,
+            link: `${process.env.CLIENT_HOST}/reset-password/${newUser.forgotPasswordToken}`,
         });
 
         return { message: 'Check you inbox.' };

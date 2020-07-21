@@ -92,7 +92,7 @@ export class UserService {
     }
 
     setForgotPasswordFields(user: User) {
-        user.forgotPasswordToken = randomBytes(3).toString('hex');
+        user.forgotPasswordToken = randomBytes(12).toString('hex');
         user.forgotPasswordTokenExpiresIn = moment().add(30, 'minutes').toDate();
         return user;
     }
