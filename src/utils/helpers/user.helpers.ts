@@ -34,6 +34,8 @@ export class UserHelpers {
                 PERMISSIONS.USERS.VIEW_ANY_WALLET,
                 PERMISSIONS.USERS.ADD_WALLET_FUNDS,
                 PERMISSIONS.USERS.VIEW_WALLET_FUNDS,
+                PERMISSIONS.USERS.CREATE_PAYMENT_METHODS,
+                PERMISSIONS.USERS.UPDATE_PAYMENT_METHODS,
             );
             topUpPermissions.push();
         }

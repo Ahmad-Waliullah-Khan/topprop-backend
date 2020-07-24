@@ -1,4 +1,5 @@
 import { bind, BindingScope } from '@loopback/core';
+import { isEqual } from 'lodash';
 import Stripe from 'stripe';
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -9,12 +10,16 @@ export class StripeService {
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
             apiVersion: apiVersion2020_03_02,
         });
-        // this.stripe.accounts.del('acct_1H8S4XEPnaM6Osxg').then(res => console.log);
     }
 
     async defaultPaymentMethod(customerToken: string): Promise<string> {
         const customer = (await this.stripe.customers.retrieve(customerToken)) as Stripe.Customer;
         return customer.invoice_settings.default_payment_method as string;
+    }
+    async validPaymentMethod(customerToken: string, paymentMethodToken: string): Promise<boolean> {
+        const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodToken);
+        if (isEqual(paymentMethod.customer, customerToken)) return true;
+        return false;
     }
 
     stripifyAmount(amount: number) {
@@ -22,7 +27,9 @@ export class StripeService {
     }
 
     calculateAppFee(amount: number): number {
-        return amount * 0.029 + 30;
+        let returnValue = amount * 0.029 + 30;
+        if (returnValue % 1 === 0) return returnValue;
+        return Math.ceil(returnValue);
     }
 
     amountAfterFees(amount: number): number {

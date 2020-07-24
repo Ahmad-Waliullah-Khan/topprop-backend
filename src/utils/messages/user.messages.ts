@@ -14,4 +14,5 @@ export const WALLET_MESSAGES = {
     MISSING_WALLET: `User does not a wallet yet. Add a card first.`,
     PAYMENT_METHOD_ALREADY_DEFAULT: `Payment method provided is already the default.`,
     DEFAULT_PAYMENT_METHOD_DETACH_ERROR: `The default payment method cannot be detached. Add a new payment method and select it as default to detach this one.`,
+    INVALID_PAYMENT_METHOD: `The payment method provided is is not attached to the user.`,
 };

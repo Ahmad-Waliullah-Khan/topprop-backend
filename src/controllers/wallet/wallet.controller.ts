@@ -182,6 +182,7 @@ export class WalletController {
         try {
             const validationSchema = {
                 amount: WALLET_VALIDATORS.amount,
+                paymentMethod: WALLET_VALIDATORS.paymentMethod,
             };
 
             const validation = new Schema(validationSchema, { strip: true });
@@ -226,8 +227,12 @@ export class WalletController {
             //     user = await this.userRepository.save(user);
             // }
 
-            //* ADD FUNDS TO CONNECT ACCOUNT
-            const defaultPaymentMethod = await this.stripeService.defaultPaymentMethod(user._customerToken);
+            let paymentMethod: string;
+            if (body.paymentMethod) {
+                if (!(await this.stripeService.validPaymentMethod(user._customerToken, body.paymentMethod)))
+                    throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_PAYMENT_METHOD);
+                else paymentMethod = body.paymentMethod;
+            } else paymentMethod = await this.stripeService.defaultPaymentMethod(user._customerToken);
 
             const paymentIntent = await this.stripeService.stripe.paymentIntents.create(
                 {
@@ -237,7 +242,7 @@ export class WalletController {
                     customer: user._customerToken,
                     description: `Top Prop. Funds added.`,
                     statement_descriptor_suffix: 'TOPPROP',
-                    payment_method: defaultPaymentMethod,
+                    payment_method: paymentMethod,
                     metadata: {
                         userId: user.id,
                     },
