@@ -4,11 +4,14 @@ import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@lo
 import { StripeService } from '@src/services/stripe.service';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { ContactSubmission, User, UserRelations } from '../models';
+import { ContactSubmission, User, UserRelations, TopUp } from '../models';
 import { ContactSubmissionRepository } from './contact-submission.repository';
+import { TopUpRepository } from './top-up.repository';
 
 export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
     public readonly contactSubmissions: HasManyRepositoryFactory<ContactSubmission, typeof User.prototype.id>;
+
+    public readonly topUps: HasManyRepositoryFactory<TopUp, typeof User.prototype.id>;
 
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
@@ -16,8 +19,11 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
         // @inject.context() public ctx: Context,
         @repository.getter('ContactSubmissionRepository')
         protected contactSubmissionRepositoryGetter: Getter<ContactSubmissionRepository>,
+        @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
     ) {
         super(User, dataSource);
+        this.topUps = this.createHasManyRepositoryFactoryFor('topUps', topUpRepositoryGetter);
+        this.registerInclusionResolver('topUps', this.topUps.inclusionResolver);
         this.contactSubmissions = this.createHasManyRepositoryFactoryFor(
             'contactSubmissions',
             contactSubmissionRepositoryGetter,
@@ -43,6 +49,8 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
                     let removableUser = await this.findById(ctx.where && ctx.where.id);
                     if (removableUser && removableUser._customerToken)
                         ctx.hookState.stripeCustomerToDelete = removableUser._customerToken;
+                    if (removableUser && removableUser._connectToken)
+                        ctx.hookState.stripeConnectToDelete = removableUser._connectToken;
                     ctx.hookState.removableUserId = removableUser.id;
                     ctx.hookState.userEmail = removableUser.email;
                 } catch (error) {
@@ -56,7 +64,7 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
         /*
          * AFTER DELETE
          */
-        //* Delete Stripe account
+        //* Delete Stripe customer account
         this.modelClass.observe('after delete', async ctx => {
             if (!ctx.hookState.notRemoveStripeCustomerAgain && ctx.hookState.stripeCustomerToDelete) {
                 try {
@@ -66,6 +74,20 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
                     console.error(`Could not delete stripe customer for user ${ctx.hookState.userEmail}`);
                 }
                 ctx.hookState.notRemoveStripeCustomerAgain = true;
+            }
+            return;
+        });
+
+        //* Delete Stripe connect account
+        this.modelClass.observe('after delete', async ctx => {
+            if (!ctx.hookState.notRemoveStripeConnectAgain && ctx.hookState.stripeConnectToDelete) {
+                try {
+                    await this.stripeService.stripe.accounts.del(ctx.hookState.stripeConnectToDelete);
+                    console.log(`Stripe connect removed for user ${ctx.hookState.userEmail}`);
+                } catch (error) {
+                    console.error(`Could not delete stripe connect for user ${ctx.hookState.userEmail}`);
+                }
+                ctx.hookState.notRemoveStripeConnectAgain = true;
             }
             return;
         });

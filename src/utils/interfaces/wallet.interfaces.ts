@@ -3,4 +3,5 @@ export interface IWalletAddPaymentMethodReqData {
 }
 export interface IWalletAddFundReqData {
     amount: number;
+    paymentMethod?: string;
 }

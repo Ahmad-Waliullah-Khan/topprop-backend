@@ -8,11 +8,13 @@ export class UserHelpers {
         let contactSubmissionPermissions: string[] = [];
         let contestPermissions: string[] = [];
         let userPermissions: string[] = [];
+        let topUpPermissions: string[] = [];
 
         if (isAdmin) {
             forOwn(PERMISSIONS.CONTACT_SUBMISSIONS, (value, key) => contactSubmissionPermissions.push(value));
             forOwn(PERMISSIONS.CONTESTS, (value, key) => contestPermissions.push(value));
             forOwn(PERMISSIONS.USERS, (value, key) => userPermissions.push(value));
+            forOwn(PERMISSIONS.TOP_UPS, (value, key) => topUpPermissions.push(value));
         } else {
             contactSubmissionPermissions.push(
                 PERMISSIONS.CONTACT_SUBMISSIONS.CREATE_ANY_CONTACT_SUBMISSION,
@@ -26,8 +28,22 @@ export class UserHelpers {
                 PERMISSIONS.CONTESTS.UPDATE_ANY_CONTEST,
                 PERMISSIONS.CONTESTS.COUNT_CONTESTS,
             );
-            userPermissions.push(PERMISSIONS.USERS.VIEW_ANY_USER, PERMISSIONS.USERS.UPDATE_ANY_USER);
+            userPermissions.push(
+                PERMISSIONS.USERS.VIEW_ANY_USER,
+                PERMISSIONS.USERS.UPDATE_ANY_USER,
+                PERMISSIONS.USERS.VIEW_ANY_WALLET,
+                PERMISSIONS.USERS.ADD_WALLET_FUNDS,
+                PERMISSIONS.USERS.VIEW_WALLET_FUNDS,
+                PERMISSIONS.USERS.CREATE_PAYMENT_METHODS,
+                PERMISSIONS.USERS.UPDATE_PAYMENT_METHODS,
+            );
+            topUpPermissions.push();
         }
-        return defaultPermissions.concat(contactSubmissionPermissions, contestPermissions, userPermissions);
+        return defaultPermissions.concat(
+            contactSubmissionPermissions,
+            contestPermissions,
+            userPermissions,
+            topUpPermissions,
+        );
     }
 }

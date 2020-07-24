@@ -37,6 +37,14 @@ export const WALLET_VALIDATORS = {
             required: 'Payment method token is a required param (paymentMethodToken).',
         },
     },
+
+    // ONLY TO THE ADD FUNDS API
+    paymentMethod: {
+        type: String,
+        message: {
+            TYPE: 'Payment method must be a string.',
+        },
+    },
     amount: {
         type: Number,
         required: true,
