@@ -31,6 +31,17 @@ export const PERMISSIONS = {
         UPDATE_PAYMENT_METHODS: 'updatePaymentMethods',
         VIEW_ANY_WALLET: 'viewAnyWallet',
         ADD_WALLET_FUNDS: 'addWalletFunds',
+        VIEW_WALLET_FUNDS: 'viewWalletFunds',
+        CALCULATE_WALLET_NET_FUNDS: 'calculateWalletNetFunds',
+    },
+    TOP_UPS: {
+        VIEW_ALL_TOP_UPS: 'viewAllTopUps',
+        VIEW_ANY_TOP_UP: 'viewAnyTopUp',
+        // CREATE_ANY_TOP_UP: 'createAnyTopUp',
+        // UPDATE_ANY_TOP_UP: 'updateAnyTopUp',
+        // DELETE_ANY_TOP_UP: 'deleteAnyTopUp',
+        // ARCHIVE_ANY_TOP_UP: 'archiveAnyTopUp',
+        COUNT_TOP_UPS: 'countTopUps',
     },
 };
 

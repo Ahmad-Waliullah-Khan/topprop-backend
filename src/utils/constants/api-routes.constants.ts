@@ -8,6 +8,7 @@ export const API_RESOURCES = {
     CONTACT_SUBMISSIONS: 'contact-submissions',
     CONTESTS: 'contests',
     USERS: 'users',
+    TOP_UPS: 'top-ups',
 };
 
 export const API_ENDPOINTS = {
@@ -54,6 +55,10 @@ export const API_ENDPOINTS = {
             FIX_PERMISSIONS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/fixes-updates/permissions`,
             FIX_ROLES: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/fixes-updates/roles`,
         },
+        TOP_UPS: {
+            CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/top-ups`,
+            BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/top-ups/{topUpId}`,
+        },
         WALLET: {
             FETCH_WALLET_INFO: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet`,
             CREATE_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods`,
@@ -61,8 +66,16 @@ export const API_ENDPOINTS = {
             DETACH_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/detach`,
             FUNDS: {
                 ADD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/add`,
+                RETRIEVE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/retrieve`,
+                CALCULATE_NET_AMOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/calculate-net-amount`,
             },
         },
+    },
+    TOP_UPS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/count`,
+        USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}/user`,
     },
     // STRIPE_WEBHOOKS: {
     //     INVOICES: {
