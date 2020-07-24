@@ -4,25 +4,26 @@ import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@lo
 import { StripeService } from '@src/services/stripe.service';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { ContactSubmission, User, UserRelations, TopUp} from '../models';
+import { ContactSubmission, User, UserRelations, TopUp } from '../models';
 import { ContactSubmissionRepository } from './contact-submission.repository';
-import {TopUpRepository} from './top-up.repository';
+import { TopUpRepository } from './top-up.repository';
 
 export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
     public readonly contactSubmissions: HasManyRepositoryFactory<ContactSubmission, typeof User.prototype.id>;
 
-  public readonly topUps: HasManyRepositoryFactory<TopUp, typeof User.prototype.id>;
+    public readonly topUps: HasManyRepositoryFactory<TopUp, typeof User.prototype.id>;
 
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
         @service() private stripeService: StripeService,
         // @inject.context() public ctx: Context,
         @repository.getter('ContactSubmissionRepository')
-        protected contactSubmissionRepositoryGetter: Getter<ContactSubmissionRepository>, @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
+        protected contactSubmissionRepositoryGetter: Getter<ContactSubmissionRepository>,
+        @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
     ) {
         super(User, dataSource);
-      this.topUps = this.createHasManyRepositoryFactoryFor('topUps', topUpRepositoryGetter,);
-      this.registerInclusionResolver('topUps', this.topUps.inclusionResolver);
+        this.topUps = this.createHasManyRepositoryFactoryFor('topUps', topUpRepositoryGetter);
+        this.registerInclusionResolver('topUps', this.topUps.inclusionResolver);
         this.contactSubmissions = this.createHasManyRepositoryFactoryFor(
             'contactSubmissions',
             contactSubmissionRepositoryGetter,
