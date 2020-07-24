@@ -1,6 +1,7 @@
 import { Entity, hasMany, model, property } from '@loopback/repository';
 import { ROLES } from '@src/utils/constants';
 import { ContactSubmission } from './contact-submission.model';
+import { TopUp } from './top-up.model';
 
 @model({
     settings: {
@@ -48,6 +49,11 @@ export class User extends Entity {
         type: 'string',
     })
     _customerToken: string;
+
+    @property({
+        type: 'string',
+    })
+    _connectToken: string;
 
     @property({
         type: 'date',
@@ -108,6 +114,9 @@ export class User extends Entity {
     @hasMany(() => ContactSubmission)
     contactSubmissions: ContactSubmission[];
 
+    @hasMany(() => TopUp)
+    topUps: TopUp[];
+
     constructor(data?: Partial<User>) {
         super(data);
     }
@@ -116,6 +125,7 @@ export class User extends Entity {
 export interface UserRelations {
     // describe navigational properties here
     contactSubmissions?: ContactSubmission[];
+    topUps?: TopUp[];
 }
 
 export type UserWithRelations = User & UserRelations;
