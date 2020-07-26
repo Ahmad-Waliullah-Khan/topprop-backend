@@ -30,6 +30,30 @@ export class TopUp extends Base {
     transferId: string | null;
 
     @property({
+        type: 'boolean',
+        default: false,
+    })
+    paidOut: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    payOutId: string | null;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    refunded: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    refundId: string | null;
+
+    @property({
         type: 'number',
         required: true,
     })

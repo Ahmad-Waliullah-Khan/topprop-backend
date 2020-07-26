@@ -121,7 +121,7 @@ describe('Wallet Controller', () => {
             await client.get(`${usersBaseAPI}/${testUserId1}/wallet`).expect(401);
         });
         it('Should fail fetching wallet for a non existing user', async () => {
-            await client.get(`${usersBaseAPI}/${500}/wallet`).set('Authorization', adminAuthToken1).expect(404);
+            await client.get(`${usersBaseAPI}/${1000}/wallet`).set('Authorization', adminAuthToken1).expect(404);
         });
         it('Should fail fetching wallet for a user who does not have stripe account', async () => {
             await client.get(`${usersBaseAPI}/${adminId1}/wallet`).set('Authorization', adminAuthToken1).expect(404);
@@ -234,7 +234,7 @@ describe('Wallet Controller', () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/calculate-net-amount`)
                 //.set('Authorization', userAuthToken)
-                .send({ amount: 500 })
+                .send({ amount: 1000 })
                 .expect(401);
         });
 
@@ -244,18 +244,25 @@ describe('Wallet Controller', () => {
                 .set('Authorization', adminAuthToken1)
                 .expect(422);
         });
-        it('Should fail calculate net amount with an invalid amount ', async () => {
+        it('Should fail calculate net amount with an invalid amount (invalid type)', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/calculate-net-amount`)
                 .set('Authorization', adminAuthToken1)
                 .send({ amount: 'test' })
                 .expect(400);
         });
-        it('Should calculate net amount', async () => {
+        it('Should fail calculate net amount with an invalid amount (less than 10) ', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/calculate-net-amount`)
                 .set('Authorization', adminAuthToken1)
                 .send({ amount: 500 })
+                .expect(400);
+        });
+        it('Should calculate net amount', async () => {
+            await client
+                .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/calculate-net-amount`)
+                .set('Authorization', adminAuthToken1)
+                .send({ amount: 1000 })
                 .expect(200);
         });
     });
@@ -264,7 +271,7 @@ describe('Wallet Controller', () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 //.set('Authorization', userAuthToken)
-                .send({ amount: 500 })
+                .send({ amount: 1000 })
                 .expect(401);
         });
 
@@ -274,32 +281,39 @@ describe('Wallet Controller', () => {
                 .set('Authorization', adminAuthToken1)
                 .expect(422);
         });
-        it('Should fail add funds with an invalid amount ', async () => {
+        it('Should fail add funds with an invalid amount (invalid type)', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
                 .send({ amount: 'test' })
                 .expect(400);
         });
-        it('Should add funds', async () => {
+        it('Should fail add funds with an invalid amount (less than 10)', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
                 .send({ amount: 500 })
+                .expect(400);
+        });
+        it('Should add funds', async () => {
+            await client
+                .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
+                .set('Authorization', adminAuthToken1)
+                .send({ amount: 1000 })
                 .expect(200);
         });
         it('Should not add funds with and invalid payment method', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
-                .send({ amount: 500, paymentMethod: 'invalid' })
+                .send({ amount: 1000, paymentMethod: 'invalid' })
                 .expect(404);
         });
         it('Should not add funds with a payment method that does not belong to the user', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
-                .send({ amount: 500, paymentMethod: thirdPaymentMethod })
+                .send({ amount: 1000, paymentMethod: thirdPaymentMethod })
                 .expect(400);
         });
     });

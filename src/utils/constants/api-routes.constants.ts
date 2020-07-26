@@ -8,6 +8,7 @@ export const API_RESOURCES = {
     CONTACT_SUBMISSIONS: 'contact-submissions',
     CONTESTS: 'contests',
     USERS: 'users',
+    STRIPE_WEBHOOKS: 'stripe-webhooks',
     TOP_UPS: 'top-ups',
 };
 
@@ -77,14 +78,9 @@ export const API_ENDPOINTS = {
         COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/count`,
         USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}/user`,
     },
-    // STRIPE_WEBHOOKS: {
-    //     INVOICES: {
-    //         PAYMENT_SUCCEEDED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/invoices/payment-succeeded`,
-    //         PAYMENT_FAILED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/invoices/payment-failed`,
-    //     },
-    //     SUBSCRIPTIONS: {
-    //         SUBSCRIPTION_CANCELED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/subscriptions/cancellation`,
-    //         SUBSCRIPTION_UPDATED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/subscriptions/updated`,
-    //     },
-    // },
+    STRIPE_WEBHOOKS: {
+        PAYMENTS: {
+            REFUNDED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/payments/refunded`,
+        },
+    },
 };

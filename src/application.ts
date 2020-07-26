@@ -7,7 +7,7 @@ import { AuthorizationComponent } from '@loopback/authorization';
 import { BootMixin } from '@loopback/boot';
 import { addExtension, ApplicationConfig } from '@loopback/core';
 import { RepositoryMixin } from '@loopback/repository';
-import { RestApplication } from '@loopback/rest';
+import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
 import { isEqual } from 'lodash';
 import morgan from 'morgan';
@@ -18,12 +18,26 @@ import {
 } from './authentication-strategies';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
+import { IRawRequest } from './utils/interfaces';
 
 export { ApplicationConfig };
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
         super(options);
+
+        //* Handle raw body data for stripe webhook endpoints
+        const requestBodyParserOptions: RequestBodyParserOptions = {
+            json: {
+                strict: true,
+                limit: '2mb',
+                verify: function (req: IRawRequest, res, buf) {
+                    let url = req.originalUrl;
+                    if (/stripe-webhooks/gi.test(url)) req.rawBody = buf;
+                },
+            },
+        };
+        this.bind(RestBindings.REQUEST_BODY_PARSER_OPTIONS).to(requestBodyParserOptions);
 
         //Binding DB credentials
         !isEqual(process.env.NODE_ENV, 'test') && ApplicationHelpers.bindDbSourceCredential(this);

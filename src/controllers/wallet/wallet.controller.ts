@@ -258,7 +258,9 @@ export class WalletController {
             const topUp = await this.topUpRepository.create({
                 paymentIntentId: paymentIntent.id,
                 grossAmount: paymentIntent.amount,
-                netAmount: this.stripeService.amountAfterFees(body.amount),
+                //* TOP PROP WILL TAKE OVER THE STRIPE FEE
+                netAmount: paymentIntent.amount,
+                // netAmount: this.stripeService.amountAfterFees(body.amount),
                 userId: user.id,
             });
 
@@ -318,7 +320,13 @@ export class WalletController {
     async getWalletFunds(@param.path.number('id') id: typeof User.prototype.id): Promise<ICommonHttpResponse<Number>> {
         if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
-        const topUps = await this.userRepository.topUps(id).find({ fields: { netAmount: true } });
+        //* RETRIEVE ALL TOP-UPS WHICH HAVE NOT BEEN PAID OUT
+        const topUps = await this.userRepository
+            .topUps(id)
+            .find({ where: { paidOut: false, refunded: false }, fields: { netAmount: true } });
+
+        //TODO WE SHOULD HAVE HERE ALSO THE WON COMPETITIONS
+
         const totalNetAMount = topUps.reduce((total, current) => {
             return total + current.netAmount;
         }, 0);
