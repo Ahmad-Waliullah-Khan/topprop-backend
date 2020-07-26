@@ -1,0 +1,1 @@
+export const TOP_PROP_FEES_MULTIPLIER = 2;

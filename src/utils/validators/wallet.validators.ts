@@ -48,11 +48,11 @@ export const WALLET_VALIDATORS = {
     amount: {
         type: Number,
         required: true,
-        size: { min: 1 },
+        size: { min: 1000 },
         message: {
             type: 'Amount must be a number.',
             required: 'Amount is required.',
-            size: `Amount must be greater than zero.`,
+            size: `The minimum amount is 10 USD.`,
         },
     },
 };

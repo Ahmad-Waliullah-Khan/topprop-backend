@@ -7,3 +7,4 @@ export * from './user/user-contact-submission.controller';
 export * from './user/user-top-up.controller';
 export * from './user/user.controller';
 export * from './wallet/wallet.controller';
+export * from './stripe-webhook.controller';

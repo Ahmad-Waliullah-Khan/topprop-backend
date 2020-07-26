@@ -1,4 +1,5 @@
 import { bind, BindingScope } from '@loopback/core';
+import { TOP_PROP_FEES_MULTIPLIER } from '@src/utils/constants';
 import { isEqual } from 'lodash';
 import Stripe from 'stripe';
 
@@ -27,9 +28,10 @@ export class StripeService {
     }
 
     calculateAppFee(amount: number): number {
-        let returnValue = amount * 0.029 + 30;
-        if (returnValue % 1 === 0) return returnValue;
-        return Math.ceil(returnValue);
+        let fees = amount * 0.029 + 30;
+        // if (returnValue % 1 === 0) return returnValue * TOP_PROP_FEES_MULTIPLIER;
+        // return Math.ceil(returnValue * TOP_PROP_FEES_MULTIPLIER);
+        return fees * TOP_PROP_FEES_MULTIPLIER;
     }
 
     amountAfterFees(amount: number): number {
