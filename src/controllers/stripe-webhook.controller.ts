@@ -87,13 +87,14 @@ export class StripeWebhookController {
         const charge = signedEventData.event.data.object as Stripe.Charge;
         const topUpRepository = await this.topUpRepositoryGetter();
 
-        await topUpRepository.updateAll(
+        const topUpsUpdated = await topUpRepository.updateAll(
             { refunded: charge.refunded, refundId: charge.refunds.data[0].id },
             {
                 paymentIntentId: charge.payment_intent as string,
             },
         );
-        console.log(chalk.greenBright(`Top up refunded with paymentIntentId: ${charge.payment_intent}`));
+        topUpsUpdated.count &&
+            console.log(chalk.greenBright(`Top up refunded with paymentIntentId: ${charge.payment_intent}`));
     }
 
     // @authorize(['*'])
