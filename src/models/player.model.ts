@@ -11,6 +11,18 @@ export class Player extends Base {
     })
     id: number;
 
+    @property({
+        type: 'string',
+        required: true,
+    })
+    name: string;
+
+    @property({
+        type: 'string',
+        required: true,
+    })
+    position: string;
+
     @belongsTo(() => Team)
     teamId: number;
 
