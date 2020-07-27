@@ -4,3 +4,4 @@ export * from './contest.model';
 export * from './top-up.model';
 export * from './user.model';
 export * from './team.model';
+export * from './player.model';
