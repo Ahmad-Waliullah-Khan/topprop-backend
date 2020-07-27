@@ -8,7 +8,9 @@ export const API_RESOURCES = {
     CONTACT_SUBMISSIONS: 'contact-submissions',
     CONTESTS: 'contests',
     USERS: 'users',
+    PLAYERS: 'players',
     STRIPE_WEBHOOKS: 'stripe-webhooks',
+    TEAMS: 'teams',
     TOP_UPS: 'top-ups',
 };
 
@@ -72,15 +74,30 @@ export const API_ENDPOINTS = {
             },
         },
     },
-    TOP_UPS: {
-        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}`,
-        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}`,
-        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/count`,
-        USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}/user`,
+    PLAYERS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}/count`,
+        TEAM: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}/{id}/team`,
     },
     STRIPE_WEBHOOKS: {
         PAYMENTS: {
             REFUNDED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/payments/refunded`,
         },
+    },
+    TEAMS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}/count`,
+        PLAYERS: {
+            CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}/{id}/players`,
+            BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}/{id}/players/{playerId}`,
+        },
+    },
+    TOP_UPS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/count`,
+        USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}/user`,
     },
 };

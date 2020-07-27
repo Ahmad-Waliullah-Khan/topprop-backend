@@ -1,5 +1,6 @@
-import { model, property } from '@loopback/repository';
+import { hasMany, model, property } from '@loopback/repository';
 import { Base } from '.';
+import { Player } from './player.model';
 
 @model()
 export class Team extends Base {
@@ -15,6 +16,11 @@ export class Team extends Base {
         required: true,
     })
     league: string;
+    @property({
+        type: 'string',
+        required: true,
+    })
+    abbr: string;
 
     @property({
         type: 'string',
@@ -28,6 +34,9 @@ export class Team extends Base {
     })
     name: string;
 
+    @hasMany(() => Player)
+    players: Player[];
+
     constructor(data?: Partial<Team>) {
         super(data);
     }
@@ -35,6 +44,7 @@ export class Team extends Base {
 
 export interface TeamRelations {
     // describe navigational properties here
+    players?: Player[];
 }
 
 export type TeamWithRelations = Team & TeamRelations;

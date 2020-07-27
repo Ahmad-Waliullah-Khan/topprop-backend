@@ -18,6 +18,15 @@ export const PERMISSIONS = {
         ARCHIVE_ANY_CONTEST: 'archiveAnyContest',
         COUNT_CONTESTS: 'countContests',
     },
+    PLAYERS: {
+        VIEW_ALL_PLAYERS: 'viewAllPlayers',
+        VIEW_ANY_PLAYER: 'viewAnyPlayer',
+        // CREATE_ANY_PLAYER: 'createAnyPlayer',
+        // UPDATE_ANY_PLAYER: 'updateAnyPlayer',
+        DELETE_ANY_PLAYER: 'deleteAnyPlayer',
+        // ARCHIVE_ANY_PLAYER: 'archiveAnyPlayer',
+        COUNT_PLAYERS: 'countPlayers',
+    },
     USERS: {
         VIEW_ALL_USERS: 'viewAllUsers',
         VIEW_ANY_USER: 'viewAnyUser',
@@ -33,6 +42,11 @@ export const PERMISSIONS = {
         ADD_WALLET_FUNDS: 'addWalletFunds',
         VIEW_WALLET_FUNDS: 'viewWalletFunds',
         CALCULATE_WALLET_NET_FUNDS: 'calculateWalletNetFunds',
+    },
+    TEAMS: {
+        VIEW_ALL_TEAMS: 'viewAllTeams',
+        VIEW_ANY_TEAM: 'viewAnyTeam',
+        COUNT_TEAMS: 'countTeams',
     },
     TOP_UPS: {
         VIEW_ALL_TOP_UPS: 'viewAllTopUps',

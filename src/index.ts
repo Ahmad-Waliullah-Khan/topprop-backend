@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import 'module-alias/register';
 import { ApplicationConfig, TopPropBackendApplication } from './application';
 import { UserService } from './services';
+import { TeamService } from './services/team.service';
 
 export * from './application';
 
@@ -24,6 +25,9 @@ export async function main(options: ApplicationConfig = {}) {
         .syncDefaultPermissions()
         .then(() => console.log(chalk.greenBright(`Permissions updated!`)))
         .catch(err => console.error(chalk.redBright(`Error updating permissions. Error: `, err)));
+
+    const teamService = await app.service(TeamService).getValue(app);
+    teamService._init();
 
     return app;
 }
