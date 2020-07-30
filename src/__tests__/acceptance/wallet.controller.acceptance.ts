@@ -156,6 +156,42 @@ describe('Wallet Controller', () => {
         });
     });
 
+    describe('GET Method - List Payment methods', async () => {
+        it('Should fail fetching payment methods without auth token', async () => {
+            await client.get(`${usersBaseAPI}/${testUserId1}/wallet/payment-methods`).expect(401);
+        });
+        it('Should fetch payment methods for a non existing user', async () => {
+            await client
+                .get(`${usersBaseAPI}/${1000}/wallet/payment-methods`)
+                .set('Authorization', adminAuthToken1)
+                .expect(404);
+        });
+
+        it('Should fail fetching payment methods for a user who does not have stripe account', async () => {
+            const res = await client
+                .get(`${usersBaseAPI}/${adminId1}/wallet/payment-methods`)
+                .set('Authorization', adminAuthToken1)
+                .expect(200);
+            expect(res).to.have.property('body');
+            expect(res.body).to.have.property('data');
+            expect(res.body.data).to.be.an.Array;
+            expect(res.body.data).to.have.lengthOf(0);
+        });
+
+        it('Should fetch payment methods for a test user to get the default payment method', async () => {
+            let walletResponse = await client
+                .get(`${usersBaseAPI}/${testUserId1}/wallet/payment-methods`)
+                .set('Authorization', userAuthToken1)
+                .expect(200);
+        });
+        it('Should fetch payment methods for a test user 2 to get the default payment method', async () => {
+            let walletResponse = await client
+                .get(`${usersBaseAPI}/${testUserId2}/wallet/payment-methods`)
+                .set('Authorization', userAuthToken2)
+                .expect(200);
+        });
+    });
+
     describe('PATCH Method - Update Wallet (Payment methods)', async () => {
         it('Should fail changing default payment method without auth token', async () => {
             await client

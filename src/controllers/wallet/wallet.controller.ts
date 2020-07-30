@@ -56,8 +56,36 @@ export class WalletController {
     }
 
     @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_PAYMENT_METHODS)] })
+    @get(API_ENDPOINTS.USERS.WALLET.PAYMENT_METHODS.CRUD)
+    async fetchPaymentMethods(
+        @param.path.number('id') id: typeof User.prototype.id,
+    ): Promise<ICommonHttpResponse<Stripe.PaymentMethod[]> | undefined> {
+        try {
+            if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+            const user = await this.userRepository.findById(id);
+            const paymentMethods: Stripe.PaymentMethod[] = [];
+
+            if (user._customerToken) {
+                // let customer = await this.stripeService.stripe.customers.retrieve(user._customerToken);
+
+                for await (const paymentMethod of this.stripeService.stripe.paymentMethods.list({
+                    customer: user._customerToken,
+                    type: 'card',
+                })) {
+                    paymentMethods.push(paymentMethod);
+                }
+            }
+
+            return { data: paymentMethods };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.CREATE_PAYMENT_METHODS)] })
-    @post(API_ENDPOINTS.USERS.WALLET.CREATE_PAYMENT_METHOD)
+    @post(API_ENDPOINTS.USERS.WALLET.PAYMENT_METHODS.CRUD)
     async createPaymentMethod(
         @param.path.number('id') id: typeof User.prototype.id,
         @requestBody()
@@ -118,7 +146,7 @@ export class WalletController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.UPDATE_PAYMENT_METHODS)] })
-    @patch(API_ENDPOINTS.USERS.WALLET.DEFAULT_PAYMENT_METHOD)
+    @patch(API_ENDPOINTS.USERS.WALLET.PAYMENT_METHODS.DEFAULT_PAYMENT_METHOD)
     async setDefaultPaymentMethod(
         @param.path.number('id') id: typeof User.prototype.id,
         @param.path.string('paymentMethod') paymentMethod: string,
@@ -146,7 +174,7 @@ export class WalletController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.UPDATE_PAYMENT_METHODS)] })
-    @patch(API_ENDPOINTS.USERS.WALLET.DETACH_PAYMENT_METHOD)
+    @patch(API_ENDPOINTS.USERS.WALLET.PAYMENT_METHODS.DETACH_PAYMENT_METHOD)
     async detachPaymentMethod(
         @param.path.number('id') id: typeof User.prototype.id,
         @param.path.string('paymentMethod') paymentMethod: string,

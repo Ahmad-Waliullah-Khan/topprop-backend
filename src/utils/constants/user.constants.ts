@@ -37,6 +37,7 @@ export const PERMISSIONS = {
         COUNT_USERS: 'countUsers',
         RUN_UPDATE_FIXES: 'runUpdatesAndFixes',
         CREATE_PAYMENT_METHODS: 'createPaymentMethods',
+        VIEW_PAYMENT_METHODS: 'viewPaymentMethods',
         UPDATE_PAYMENT_METHODS: 'updatePaymentMethods',
         VIEW_ANY_WALLET: 'viewAnyWallet',
         ADD_WALLET_FUNDS: 'addWalletFunds',

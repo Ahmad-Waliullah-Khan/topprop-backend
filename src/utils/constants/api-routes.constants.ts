@@ -64,9 +64,11 @@ export const API_ENDPOINTS = {
         },
         WALLET: {
             FETCH_WALLET_INFO: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet`,
-            CREATE_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods`,
-            DEFAULT_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/default`,
-            DETACH_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/detach`,
+            PAYMENT_METHODS: {
+                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods`,
+                DEFAULT_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/default`,
+                DETACH_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/detach`,
+            },
             FUNDS: {
                 ADD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/add`,
                 RETRIEVE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/retrieve`,
