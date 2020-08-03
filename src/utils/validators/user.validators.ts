@@ -52,7 +52,7 @@ export const USER_VALIDATORS = {
         match: /^@(?=.{5,20}$)(?:[a-zA-Z\d]+(?:(?:\.|-|_)[a-zA-Z\d])*)+$/,
         message: {
             required: 'Username is required.',
-            match: `Username must start with @. Could be alphanumeric and can contain symbols (- _ . -one at a time-) and must contain between 6 and 20 characters.`,
+            match: `Username could be alphanumeric and can contain symbols (- _ . -one at a time-) and must contain between 5 and 20 characters.`,
         },
     },
     fullName: {
