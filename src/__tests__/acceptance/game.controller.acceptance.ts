@@ -1,18 +1,19 @@
 import { Filter } from '@loopback/repository';
 import { Client, expect } from '@loopback/testlab';
 import { Player } from '@src/models';
-import { PlayerService, TeamService } from '@src/services';
+import { TeamService } from '@src/services';
+import { GameService } from '@src/services/game.service';
 import { API_RESOURCES } from '@src/utils/constants';
 import { TopPropBackendApplication } from '../..';
 import { setupApplication } from './test-helper';
 
-describe('Player Controller', () => {
+describe('Game Controller', () => {
     let app: TopPropBackendApplication;
     let client: Client;
     const apiV1Endpoint = '/api/v1';
-    const playersResource = API_RESOURCES.PLAYERS;
+    const gamesResource = API_RESOURCES.GAMES;
     const userResource = API_RESOURCES.USERS;
-    const playersBaseAPI = `${apiV1Endpoint}/${playersResource}`;
+    const gamesBaseAPI = `${apiV1Endpoint}/${gamesResource}`;
     const usersBaseAPI = `${apiV1Endpoint}/${userResource}`;
     let adminAuthToken1 = 'Bearer ';
     let userAuthToken1 = 'Bearer ';
@@ -51,12 +52,13 @@ describe('Player Controller', () => {
         adminAuthToken1 += adminSignupRes1.body.data;
     });
 
-    before(`Load default teams & players`, async () => {
+    before(`Load default teams & games`, async () => {
         const teamService = await app.service(TeamService).getValue(app);
         await teamService._init();
 
-        const playerService = await app.service(PlayerService).getValue(app);
-        await playerService._init();
+        //*GAMES
+        const gameService = await app.service(GameService).getValue(app);
+        await gameService._init();
     });
 
     after(async () => {
@@ -69,27 +71,28 @@ describe('Player Controller', () => {
         await app.stop();
     });
 
-    describe('GET Method - List Players  (Root endpoint /players)', async () => {
-        it('Should not list players without auth token', async () => {
-            await client.get(playersBaseAPI).expect(401);
+    describe('GET Method - List Games  (Root endpoint /games)', async () => {
+        it('Should not list games without auth token', async () => {
+            await client.get(gamesBaseAPI).expect(401);
         });
-        it('Should list players', async () => {
-            const res = await client.get(playersBaseAPI).set('Authorization', adminAuthToken1).expect(200);
+        it('Should list games', async () => {
+            const res = await client.get(gamesBaseAPI).set('Authorization', adminAuthToken1).expect(200);
             expect(res).to.have.property('body');
             expect(res.body).to.have.property('data');
             expect(res.body.data).to.be.an.Array;
         });
-        it('Should list players with filter', async () => {
-            const filter: Filter<Player> = { include: [{ relation: 'team' }] };
+        it('Should list games with filter', async () => {
+            const filter: Filter<Player> = { include: [{ relation: 'homeTeam' }, { relation: 'visitorTeam' }] };
             const res = await client
-                .get(playersBaseAPI)
+                .get(gamesBaseAPI)
                 .set('Authorization', adminAuthToken1)
                 .query({ filter: JSON.stringify(filter) })
                 .expect(200);
             expect(res).to.have.property('body');
             expect(res.body).to.have.property('data');
             expect(res.body.data).to.be.an.Array;
-            expect(res.body.data[0]).to.be.have.property('team');
+            expect(res.body.data[0]).to.be.have.property('visitorTeam');
+            expect(res.body.data[0]).to.be.have.property('homeTeam');
         });
     });
 });

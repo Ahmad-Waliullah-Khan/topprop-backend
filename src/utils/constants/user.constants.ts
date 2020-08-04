@@ -18,6 +18,15 @@ export const PERMISSIONS = {
         ARCHIVE_ANY_CONTEST: 'archiveAnyContest',
         COUNT_CONTESTS: 'countContests',
     },
+    GAMES: {
+        VIEW_ALL_GAMES: 'viewAllGames',
+        VIEW_ANY_GAME: 'viewAnyGame',
+        // CREATE_ANY_GAME: 'createAnyGame',
+        // UPDATE_ANY_GAME: 'updateAn/yGame',
+        // DELETE_ANY_GAME: 'deleteAnyGame',
+        // ARCHIVE_ANY_GAME: 'archiveAnyGame',
+        COUNT_GAMES: 'countGames',
+    },
     PLAYERS: {
         VIEW_ALL_PLAYERS: 'viewAllPlayers',
         VIEW_ANY_PLAYER: 'viewAnyPlayer',
