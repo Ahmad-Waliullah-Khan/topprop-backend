@@ -7,6 +7,7 @@ export class UserHelpers {
 
         let contactSubmissionPermissions: string[] = [];
         let contestPermissions: string[] = [];
+        let gamePermissions: string[] = [];
         let playerPermissions: string[] = [];
         let userPermissions: string[] = [];
         let teamPermissions: string[] = [];
@@ -15,6 +16,7 @@ export class UserHelpers {
         if (isAdmin) {
             forOwn(PERMISSIONS.CONTACT_SUBMISSIONS, (value, key) => contactSubmissionPermissions.push(value));
             forOwn(PERMISSIONS.CONTESTS, (value, key) => contestPermissions.push(value));
+            forOwn(PERMISSIONS.GAMES, (value, key) => gamePermissions.push(value));
             forOwn(PERMISSIONS.PLAYERS, (value, key) => playerPermissions.push(value));
             forOwn(PERMISSIONS.USERS, (value, key) => userPermissions.push(value));
             forOwn(PERMISSIONS.TEAMS, (value, key) => teamPermissions.push(value));
@@ -31,6 +33,11 @@ export class UserHelpers {
                 PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST,
                 PERMISSIONS.CONTESTS.UPDATE_ANY_CONTEST,
                 PERMISSIONS.CONTESTS.COUNT_CONTESTS,
+            );
+            gamePermissions.push(
+                PERMISSIONS.GAMES.VIEW_ALL_GAMES,
+                PERMISSIONS.GAMES.VIEW_ANY_GAME,
+                PERMISSIONS.GAMES.COUNT_GAMES,
             );
             playerPermissions.push(
                 PERMISSIONS.PLAYERS.COUNT_PLAYERS,
@@ -58,6 +65,7 @@ export class UserHelpers {
         return defaultPermissions.concat(
             contactSubmissionPermissions,
             contestPermissions,
+            gamePermissions,
             playerPermissions,
             userPermissions,
             teamPermissions,

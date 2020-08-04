@@ -16,7 +16,7 @@ export class PlayerService {
             const nflPlayer = NFL_PLAYERS[index];
             const team = await this.teamRepository.findOne({ where: { abbr: nflPlayer.team } });
             if (team) {
-                const player = this.playerRepository.findOne({
+                const player = await this.playerRepository.findOne({
                     where: { name: nflPlayer.name, position: nflPlayer.position, teamId: team.id },
                 });
                 if (player)

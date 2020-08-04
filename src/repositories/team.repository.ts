@@ -3,6 +3,7 @@ import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@lo
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
 import { Player, Team, TeamRelations } from '../models';
+import { GameRepository } from './game.repository';
 import { PlayerRepository } from './player.repository';
 
 export class TeamRepository extends DefaultCrudRepository<Team, typeof Team.prototype.id, TeamRelations> {
@@ -11,6 +12,7 @@ export class TeamRepository extends DefaultCrudRepository<Team, typeof Team.prot
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
         @repository.getter('PlayerRepository') protected playerRepositoryGetter: Getter<PlayerRepository>,
+        @repository.getter('GameRepository') protected gameRepositoryGetter: Getter<GameRepository>,
     ) {
         super(Team, dataSource);
         this.players = this.createHasManyRepositoryFactoryFor('players', playerRepositoryGetter);

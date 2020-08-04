@@ -1,25 +1,14 @@
-import { Entity, model, property } from '@loopback/repository';
+import { model, property } from '@loopback/repository';
+import { Base } from './base.model';
 
 @model()
-export class Contest extends Entity {
+export class Contest extends Base {
     @property({
         type: 'number',
         id: true,
         generated: true,
     })
     id: number;
-
-    @property({
-        type: 'date',
-        default: () => new Date(),
-    })
-    createdAt?: string;
-
-    @property({
-        type: 'date',
-        default: () => new Date(),
-    })
-    updatedAt?: string;
 
     constructor(data?: Partial<Contest>) {
         super(data);

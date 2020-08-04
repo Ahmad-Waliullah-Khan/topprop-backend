@@ -7,6 +7,7 @@ export const BASE_API_PATH = '/api';
 export const API_RESOURCES = {
     CONTACT_SUBMISSIONS: 'contact-submissions',
     CONTESTS: 'contests',
+    GAMES: 'games',
     USERS: 'users',
     PLAYERS: 'players',
     STRIPE_WEBHOOKS: 'stripe-webhooks',
@@ -28,6 +29,15 @@ export const API_ENDPOINTS = {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}`,
         BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/{id}`,
         COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/count`,
+    },
+    GAMES: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/count`,
+        TEAMS: {
+            VISITOR: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/{id}/visitor-team`,
+            HOME: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/{id}/home-team`,
+        },
     },
     USERS: {
         CONTACT_SUBMISSIONS: {
