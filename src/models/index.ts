@@ -6,3 +6,4 @@ export * from './player.model';
 export * from './team.model';
 export * from './top-up.model';
 export * from './user.model';
+export * from './contender.model';

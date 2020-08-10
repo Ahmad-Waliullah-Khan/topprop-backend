@@ -4,9 +4,6 @@ import chalk from 'chalk';
 import 'module-alias/register';
 import { ApplicationConfig, TopPropBackendApplication } from './application';
 import { UserService } from './services';
-import { GameService } from './services/game.service';
-import { PlayerService } from './services/player.service';
-import { TeamService } from './services/team.service';
 
 export * from './application';
 
@@ -28,14 +25,14 @@ export async function main(options: ApplicationConfig = {}) {
         .then(() => console.log(chalk.greenBright(`Permissions updated!`)))
         .catch(err => console.error(chalk.redBright(`Error updating permissions. Error: `, err)));
 
-    const teamService = await app.service(TeamService).getValue(app);
-    await teamService._init();
-    const playerService = await app.service(PlayerService).getValue(app);
-    await playerService._init();
+    // const teamService = await app.service(TeamService).getValue(app);
+    // await teamService._init();
+    // const playerService = await app.service(PlayerService).getValue(app);
+    // await playerService._init();
 
     //*GAMES
-    const gameService = await app.service(GameService).getValue(app);
-    await gameService._init();
+    // const gameService = await app.service(GameService).getValue(app);
+    // await gameService._init();
 
     return app;
 }

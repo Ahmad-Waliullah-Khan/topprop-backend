@@ -1,3 +1,4 @@
+export * from './contest.interfaces';
 export * from './http.interfaces';
 export * from './loopback.interfaces';
 export * from './stripe.interfaces';

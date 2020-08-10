@@ -2,6 +2,7 @@ import { Entity, hasMany, model, property } from '@loopback/repository';
 import { ROLES } from '@src/utils/constants';
 import { ContactSubmission } from './contact-submission.model';
 import { TopUp } from './top-up.model';
+import { Contest } from './contest.model';
 
 @model({
     settings: {
@@ -116,6 +117,9 @@ export class User extends Entity {
 
     @hasMany(() => TopUp)
     topUps: TopUp[];
+
+    @hasMany(() => Contest, { keyTo: 'creatorId' })
+    contests: Contest[];
 
     constructor(data?: Partial<User>) {
         super(data);
