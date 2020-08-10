@@ -1,12 +1,19 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
+import { inject } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, param } from '@loopback/rest';
-import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
+import { del, get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
+import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse, IContestRequest, ICustomUserProfile } from '@src/utils/interfaces';
+import { COMMON_MESSAGES } from '@src/utils/messages';
+import { CONTENDER_VALIDATORS, CONTEST_VALIDATORS } from '@src/utils/validators';
+import { isEmpty } from 'lodash';
+import Schema from 'validate';
 
 export class ContestController {
     constructor(
@@ -14,29 +21,48 @@ export class ContestController {
         public contestRepository: ContestRepository,
     ) {}
 
-    // @post(API_ENDPOINTS.CONTESTS.CRUD, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Contest model instance',
-    //             content: { 'application/json': { schema: getModelSchemaRef(Contest) } },
-    //         },
-    //     },
-    // })
-    // async create(
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Contest, {
-    //                     title: 'NewContest',
-    //                     exclude: ['id'],
-    //                 }),
-    //             },
-    //         },
-    //     })
-    //     contest: Omit<Contest, 'id'>,
-    // ): Promise<Contest> {
-    //     return this.contestRepository.create(contest);
-    // }
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.CONTESTS.CRUD, {
+        responses: {
+            '200': {
+                description: 'Contest model instance',
+                content: { 'application/json': { schema: getModelSchemaRef(Contest) } },
+            },
+        },
+    })
+    async create(
+        @requestBody()
+        body: Partial<IContestRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<Contest>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        if (!body.creatorId) body.creatorId = +currentUser[securityId];
+
+        const validationSchema = {
+            creatorId: CONTEST_VALIDATORS.creatorId,
+            playerId: CONTEST_VALIDATORS.playerId,
+            gameId: CONTEST_VALIDATORS.gameId,
+            fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
+            scoring: CONTEST_VALIDATORS.scoring,
+            type: CONTENDER_VALIDATORS.type,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const contestType = body.type;
+
+        delete body.type;
+        return {
+            data: await this.contestRepository.create(body, {
+                creatorId: +currentUser[securityId],
+                contestType,
+            }),
+        };
+    }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.COUNT_CONTESTS)] })

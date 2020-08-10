@@ -28,7 +28,11 @@ export const API_ENDPOINTS = {
     CONTESTS: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}`,
         BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/{id}`,
+        CREATOR: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/{id}/creator`,
         COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/count`,
+        CONTENDERS: {
+            CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/{id}/contenders`,
+        },
     },
     GAMES: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}`,
@@ -64,6 +68,13 @@ export const API_ENDPOINTS = {
         RENEW_TOKEN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/renew-token`,
         RESEND_CONFIRM_TOKEN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/resend-confirm-token`,
         CONFIRM_ACCOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/confirm-account`,
+        CONTESTS: {
+            MY: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contests/my`,
+            CONTENDER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contests/contender`,
+        },
+        CONTENDER: {
+            CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contender`,
+        },
         FIXES_UPDATES: {
             FIX_PERMISSIONS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/fixes-updates/permissions`,
             FIX_ROLES: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/fixes-updates/roles`,
