@@ -17,7 +17,7 @@ export class Contest extends Base {
 
     @property({
         type: 'number',
-        required: true,
+        required: false,
         postgresql: {
             dataType: 'decimal',
         },
@@ -26,13 +26,13 @@ export class Contest extends Base {
 
     @property({
         type: 'string',
-        required: true,
+        required: false,
     })
     scoring: CONTEST_SCORING_OPTIONS;
 
     @property({
         type: 'string',
-        required: true,
+        required: false,
         default: CONTEST_STATUSES.OPEN,
     })
     status: CONTEST_STATUSES;

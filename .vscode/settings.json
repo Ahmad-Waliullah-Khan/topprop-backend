@@ -28,8 +28,22 @@
     "eslint.validate": ["javascript", "typescript"],
     "files.autoSave": "onFocusChange",
     "workbench.colorCustomizations": {
-        "activityBar.background": "#56103C",
-        "titleBar.activeBackground": "#781653",
-        "titleBar.activeForeground": "#FEFCFD"
-    }
+        "activityBar.background": "#56103c",
+        "titleBar.activeBackground": "#2b081e",
+        "titleBar.activeForeground": "#e7e7e7",
+        "activityBar.activeBackground": "#56103c",
+        "activityBar.activeBorder": "#4b6b14",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#4b6b14",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "statusBar.background": "#2b081e",
+        "statusBar.border": "#2b081e",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#56103c",
+        "titleBar.border": "#2b081e",
+        "titleBar.inactiveBackground": "#2b081e99",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#2b081e"
 }
