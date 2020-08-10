@@ -7,6 +7,7 @@ export class UserHelpers {
 
         let contactSubmissionPermissions: string[] = [];
         let contestPermissions: string[] = [];
+        let contenderPermissions: string[] = [];
         let gamePermissions: string[] = [];
         let playerPermissions: string[] = [];
         let userPermissions: string[] = [];
@@ -15,6 +16,7 @@ export class UserHelpers {
 
         if (isAdmin) {
             forOwn(PERMISSIONS.CONTACT_SUBMISSIONS, (value, key) => contactSubmissionPermissions.push(value));
+            forOwn(PERMISSIONS.CONTENDERS, (value, key) => contenderPermissions.push(value));
             forOwn(PERMISSIONS.CONTESTS, (value, key) => contestPermissions.push(value));
             forOwn(PERMISSIONS.GAMES, (value, key) => gamePermissions.push(value));
             forOwn(PERMISSIONS.PLAYERS, (value, key) => playerPermissions.push(value));
@@ -26,6 +28,11 @@ export class UserHelpers {
                 PERMISSIONS.CONTACT_SUBMISSIONS.CREATE_ANY_CONTACT_SUBMISSION,
                 PERMISSIONS.CONTACT_SUBMISSIONS.VIEW_ANY_CONTACT_SUBMISSION,
                 PERMISSIONS.CONTACT_SUBMISSIONS.VIEW_ALL_CONTACT_SUBMISSIONS,
+            );
+            contenderPermissions.push(
+                PERMISSIONS.CONTENDERS.VIEW_ALL_CONTENDERS,
+                PERMISSIONS.CONTENDERS.COUNT_CONTENDERS,
+                PERMISSIONS.CONTENDERS.CREATE_ANY_CONTENDER,
             );
             contestPermissions.push(
                 PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS,
@@ -64,6 +71,7 @@ export class UserHelpers {
         }
         return defaultPermissions.concat(
             contactSubmissionPermissions,
+            contenderPermissions,
             contestPermissions,
             gamePermissions,
             playerPermissions,

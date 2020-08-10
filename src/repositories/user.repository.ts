@@ -4,14 +4,17 @@ import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@lo
 import { StripeService } from '@src/services/stripe.service';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { ContactSubmission, User, UserRelations, TopUp } from '../models';
+import { ContactSubmission, Contest, TopUp, User, UserRelations } from '../models';
 import { ContactSubmissionRepository } from './contact-submission.repository';
+import { ContestRepository } from './contest.repository';
 import { TopUpRepository } from './top-up.repository';
 
 export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
     public readonly contactSubmissions: HasManyRepositoryFactory<ContactSubmission, typeof User.prototype.id>;
 
     public readonly topUps: HasManyRepositoryFactory<TopUp, typeof User.prototype.id>;
+
+    public readonly contests: HasManyRepositoryFactory<Contest, typeof User.prototype.id>;
 
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
@@ -20,8 +23,11 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
         @repository.getter('ContactSubmissionRepository')
         protected contactSubmissionRepositoryGetter: Getter<ContactSubmissionRepository>,
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
+        @repository.getter('ContestRepository') protected contestRepositoryGetter: Getter<ContestRepository>,
     ) {
         super(User, dataSource);
+        this.contests = this.createHasManyRepositoryFactoryFor('contests', contestRepositoryGetter);
+        this.registerInclusionResolver('contests', this.contests.inclusionResolver);
         this.topUps = this.createHasManyRepositoryFactoryFor('topUps', topUpRepositoryGetter);
         this.registerInclusionResolver('topUps', this.topUps.inclusionResolver);
         this.contactSubmissions = this.createHasManyRepositoryFactoryFor(

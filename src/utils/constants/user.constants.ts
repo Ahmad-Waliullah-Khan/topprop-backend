@@ -9,6 +9,15 @@ export const PERMISSIONS = {
         ARCHIVE_ANY_CONTACT_SUBMISSION: 'archiveAnyContactSubmission',
         COUNT_CONTACT_SUBMISSIONS: 'countContactSubmissions',
     },
+    CONTENDERS: {
+        VIEW_ALL_CONTENDERS: 'viewAllContenders',
+        // VIEW_ANY_CONTENDER: 'viewAnyContender',
+        CREATE_ANY_CONTENDER: 'createAnyContender',
+        // UPDATE_ANY_CONTENDER: 'updateAnyContender',
+        // DELETE_ANY_CONTENDER: 'deleteAnyContender',
+        // ARCHIVE_ANY_CONTENDER: 'archiveAnyContender',
+        COUNT_CONTENDERS: 'countContenders',
+    },
     CONTESTS: {
         VIEW_ALL_CONTESTS: 'viewAllContests',
         VIEW_ANY_CONTEST: 'viewAnyContest',
