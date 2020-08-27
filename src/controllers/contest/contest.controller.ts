@@ -52,7 +52,7 @@ export class ContestController {
             scoring: CONTEST_VALIDATORS.scoring,
             type: CONTENDER_VALIDATORS.type,
             toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
-            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
+            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(100),
         };
 
         const validation = new Schema(validationSchema, { strip: true });
