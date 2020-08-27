@@ -26,11 +26,11 @@ export class WalletService {
             return total + current.netAmount;
         }, 0);
         const totalBetsAMount = bets.reduce((total, current) => {
-            return total + current.amount;
+            return total + +current.amount;
         }, 0);
 
         const totalGainsAMount = gains.reduce((total, current) => {
-            return total + current.amount;
+            return total + +current.amount;
         }, 0);
 
         return totalTopUpsAMount + totalGainsAMount - totalBetsAMount;
