@@ -1,4 +1,9 @@
 export const PERMISSIONS = {
+    BETS: {
+        VIEW_ALL_BETS: 'viewAllBets',
+        VIEW_ANY_BET: 'viewAnyBet',
+        COUNT_BETS: 'countBets',
+    },
     CONTACT_SUBMISSIONS: {
         VIEW_ALL_CONTACT_SUBMISSIONS: 'viewAllContactSubmissions',
         VIEW_ANY_CONTACT_SUBMISSION: 'viewAnyContactSubmission',
@@ -26,6 +31,11 @@ export const PERMISSIONS = {
         DELETE_ANY_CONTEST: 'deleteAnyContest',
         ARCHIVE_ANY_CONTEST: 'archiveAnyContest',
         COUNT_CONTESTS: 'countContests',
+    },
+    GAINS: {
+        VIEW_ALL_GAINS: 'viewAllGains',
+        VIEW_ANY_GAIN: 'viewAnyGain',
+        COUNT_GAINS: 'countGains',
     },
     GAMES: {
         VIEW_ALL_GAMES: 'viewAllGames',

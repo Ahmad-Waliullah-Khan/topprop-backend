@@ -3,4 +3,6 @@ import { CONTEST_TYPES } from '../constants';
 
 export interface IContestRequest extends Contest {
     type: CONTEST_TYPES;
+    toRiskAmount: number;
+    toWinAmount: number;
 }

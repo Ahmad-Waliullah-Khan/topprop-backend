@@ -5,9 +5,11 @@ export class UserHelpers {
     static defaultPermissions(isAdmin = false) {
         let defaultPermissions: string[] = [];
 
+        let betPermissions: string[] = [];
         let contactSubmissionPermissions: string[] = [];
         let contestPermissions: string[] = [];
         let contenderPermissions: string[] = [];
+        let gainPermissions: string[] = [];
         let gamePermissions: string[] = [];
         let playerPermissions: string[] = [];
         let userPermissions: string[] = [];
@@ -15,9 +17,11 @@ export class UserHelpers {
         let topUpPermissions: string[] = [];
 
         if (isAdmin) {
+            forOwn(PERMISSIONS.BETS, (value, key) => betPermissions.push(value));
             forOwn(PERMISSIONS.CONTACT_SUBMISSIONS, (value, key) => contactSubmissionPermissions.push(value));
             forOwn(PERMISSIONS.CONTENDERS, (value, key) => contenderPermissions.push(value));
             forOwn(PERMISSIONS.CONTESTS, (value, key) => contestPermissions.push(value));
+            forOwn(PERMISSIONS.GAINS, (value, key) => gainPermissions.push(value));
             forOwn(PERMISSIONS.GAMES, (value, key) => gamePermissions.push(value));
             forOwn(PERMISSIONS.PLAYERS, (value, key) => playerPermissions.push(value));
             forOwn(PERMISSIONS.USERS, (value, key) => userPermissions.push(value));
@@ -41,6 +45,7 @@ export class UserHelpers {
                 PERMISSIONS.CONTESTS.UPDATE_ANY_CONTEST,
                 PERMISSIONS.CONTESTS.COUNT_CONTESTS,
             );
+            gainPermissions.push(PERMISSIONS.GAINS.VIEW_ALL_GAINS, PERMISSIONS.GAINS.COUNT_GAINS);
             gamePermissions.push(
                 PERMISSIONS.GAMES.VIEW_ALL_GAMES,
                 PERMISSIONS.GAMES.VIEW_ANY_GAME,
@@ -68,11 +73,14 @@ export class UserHelpers {
                 PERMISSIONS.TEAMS.VIEW_ANY_TEAM,
             );
             topUpPermissions.push();
+            betPermissions.push(PERMISSIONS.BETS.VIEW_ALL_BETS, PERMISSIONS.BETS.COUNT_BETS);
         }
         return defaultPermissions.concat(
+            betPermissions,
             contactSubmissionPermissions,
             contenderPermissions,
             contestPermissions,
+            gainPermissions,
             gamePermissions,
             playerPermissions,
             userPermissions,

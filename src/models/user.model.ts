@@ -1,8 +1,10 @@
 import { Entity, hasMany, model, property } from '@loopback/repository';
 import { ROLES } from '@src/utils/constants';
+import { Bet } from './bet.model';
 import { ContactSubmission } from './contact-submission.model';
-import { TopUp } from './top-up.model';
 import { Contest } from './contest.model';
+import { Gain } from './gain.model';
+import { TopUp } from './top-up.model';
 
 @model({
     settings: {
@@ -121,6 +123,12 @@ export class User extends Entity {
     @hasMany(() => Contest, { keyTo: 'creatorId' })
     contests: Contest[];
 
+    @hasMany(() => Bet)
+    bets: Bet[];
+
+    @hasMany(() => Gain)
+    gains: Gain[];
+
     constructor(data?: Partial<User>) {
         super(data);
     }
@@ -130,6 +138,8 @@ export interface UserRelations {
     // describe navigational properties here
     contactSubmissions?: ContactSubmission[];
     topUps?: TopUp[];
+    gains?: Gain[];
+    bets?: Bet[];
 }
 
 export type UserWithRelations = User & UserRelations;

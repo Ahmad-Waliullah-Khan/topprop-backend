@@ -33,6 +33,24 @@ export class Contender extends Base {
     })
     type: CONTEST_TYPES;
 
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    toRiskAmount: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    toWinAmount: number;
+
     @belongsTo(() => Contest)
     contestId: number;
 

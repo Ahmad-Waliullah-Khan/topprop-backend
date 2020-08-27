@@ -7,3 +7,5 @@ export * from './team.model';
 export * from './top-up.model';
 export * from './user.model';
 export * from './contender.model';
+export * from './bet.model';
+export * from './gain.model';

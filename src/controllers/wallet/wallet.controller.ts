@@ -5,7 +5,7 @@ import { repository } from '@loopback/repository';
 import { get, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { User } from '@src/models';
 import { TopUpRepository, UserRepository } from '@src/repositories';
-import { StripeService } from '@src/services';
+import { StripeService, WalletService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -24,6 +24,7 @@ export class WalletController {
         @repository(TopUpRepository)
         private topUpRepository: TopUpRepository,
         @service() protected stripeService: StripeService,
+        @service() protected walletService: WalletService,
     ) {}
 
     @authenticate('jwt')
@@ -329,7 +330,7 @@ export class WalletController {
     async calculateNetFunds(
         @param.path.number('id') id: typeof User.prototype.id,
         @requestBody() body: IWalletAddFundReqData,
-    ): Promise<ICommonHttpResponse<Number>> {
+    ): Promise<ICommonHttpResponse<number>> {
         const validationSchema = {
             amount: WALLET_VALIDATORS.amount,
         };
@@ -348,16 +349,8 @@ export class WalletController {
     async getWalletFunds(@param.path.number('id') id: typeof User.prototype.id): Promise<ICommonHttpResponse<Number>> {
         if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
-        //* RETRIEVE ALL TOP-UPS WHICH HAVE NOT BEEN PAID OUT
-        const topUps = await this.userRepository
-            .topUps(id)
-            .find({ where: { paidOut: false, refunded: false }, fields: { netAmount: true } });
+        const totalNetAmount = await this.walletService.userBalance(id);
 
-        //TODO WE SHOULD HAVE HERE ALSO THE WON COMPETITIONS
-
-        const totalNetAMount = topUps.reduce((total, current) => {
-            return total + current.netAmount;
-        }, 0);
-        return { data: totalNetAMount };
+        return { data: totalNetAmount };
     }
 }

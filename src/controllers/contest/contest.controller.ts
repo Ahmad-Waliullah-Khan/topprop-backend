@@ -1,11 +1,12 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { inject } from '@loopback/core';
+import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
+import { WalletService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -19,6 +20,7 @@ export class ContestController {
     constructor(
         @repository(ContestRepository)
         public contestRepository: ContestRepository,
+        @service() private walletService: WalletService,
     ) {}
 
     @authenticate('jwt')
@@ -40,6 +42,8 @@ export class ContestController {
 
         if (!body.creatorId) body.creatorId = +currentUser[securityId];
 
+        const funds = await this.walletService.userBalance(body.creatorId);
+
         const validationSchema = {
             creatorId: CONTEST_VALIDATORS.creatorId,
             playerId: CONTEST_VALIDATORS.playerId,
@@ -47,6 +51,8 @@ export class ContestController {
             fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
             scoring: CONTEST_VALIDATORS.scoring,
             type: CONTENDER_VALIDATORS.type,
+            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
+            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
         };
 
         const validation = new Schema(validationSchema, { strip: true });
@@ -54,12 +60,19 @@ export class ContestController {
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         const contestType = body.type;
+        const toRiskAmount = body.toRiskAmount;
+        const toWinAmount = body.toWinAmount;
 
         delete body.type;
+        delete body.toRiskAmount;
+        delete body.toWinAmount;
+
         return {
             data: await this.contestRepository.create(body, {
-                creatorId: +currentUser[securityId],
+                creatorId: body.creatorId,
                 contestType,
+                toRiskAmount,
+                toWinAmount,
             }),
         };
     }

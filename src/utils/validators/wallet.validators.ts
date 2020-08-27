@@ -1,3 +1,5 @@
+import { MINIMUM_BET_AMOUNT } from '../constants';
+
 export const WALLET_VALIDATORS = {
     /*************** Stripe validators ******************/
     // _stripeAccountToken: {
@@ -48,7 +50,7 @@ export const WALLET_VALIDATORS = {
     amount: {
         type: Number,
         required: true,
-        size: { min: 1000 },
+        size: { min: MINIMUM_BET_AMOUNT },
         message: {
             type: 'Amount must be a number.',
             required: 'Amount is required.',

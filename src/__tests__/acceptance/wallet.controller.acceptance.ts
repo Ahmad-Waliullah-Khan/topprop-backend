@@ -1,5 +1,5 @@
 import { Client, expect } from '@loopback/testlab';
-import { API_RESOURCES } from '@src/utils/constants';
+import { API_RESOURCES, MINIMUM_BET_AMOUNT } from '@src/utils/constants';
 import { TopPropBackendApplication } from '../..';
 import { setupApplication } from './test-helper';
 
@@ -270,7 +270,7 @@ describe('Wallet Controller', () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/calculate-net-amount`)
                 //.set('Authorization', userAuthToken)
-                .send({ amount: 1000 })
+                .send({ amount: MINIMUM_BET_AMOUNT })
                 .expect(401);
         });
 
@@ -298,7 +298,7 @@ describe('Wallet Controller', () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/calculate-net-amount`)
                 .set('Authorization', adminAuthToken1)
-                .send({ amount: 1000 })
+                .send({ amount: MINIMUM_BET_AMOUNT })
                 .expect(200);
         });
     });
@@ -307,7 +307,7 @@ describe('Wallet Controller', () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 //.set('Authorization', userAuthToken)
-                .send({ amount: 1000 })
+                .send({ amount: MINIMUM_BET_AMOUNT })
                 .expect(401);
         });
 
@@ -335,21 +335,21 @@ describe('Wallet Controller', () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
-                .send({ amount: 1000 })
+                .send({ amount: MINIMUM_BET_AMOUNT })
                 .expect(200);
         });
         it('Should not add funds with and invalid payment method', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
-                .send({ amount: 1000, paymentMethod: 'invalid' })
+                .send({ amount: MINIMUM_BET_AMOUNT, paymentMethod: 'invalid' })
                 .expect(404);
         });
         it('Should not add funds with a payment method that does not belong to the user', async () => {
             await client
                 .post(`${usersBaseAPI}/${testUserId1}/wallet/funds/add`)
                 .set('Authorization', adminAuthToken1)
-                .send({ amount: 1000, paymentMethod: thirdPaymentMethod })
+                .send({ amount: MINIMUM_BET_AMOUNT, paymentMethod: thirdPaymentMethod })
                 .expect(400);
         });
     });

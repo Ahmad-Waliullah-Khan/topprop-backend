@@ -92,15 +92,22 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                 ctx.isNewInstance &&
                 ctx.options.creatorId &&
                 ctx.options.contestType &&
+                ctx.options.toRiskAmount &&
+                ctx.options.toWinAmount &&
                 !ctx.hookState.skipInitialContenderCreation
             ) {
                 const contenderRepository = await this.contenderRepositoryGetter();
-                await contenderRepository.create({
-                    contenderId: ctx.options.creatorId,
-                    contestId: ctx.instance.id,
-                    type: ctx.options.contestType,
-                    creator: true,
-                });
+                await contenderRepository.create(
+                    {
+                        contenderId: ctx.options.creatorId,
+                        contestId: ctx.instance.id,
+                        type: ctx.options.contestType,
+                        creator: true,
+                        toRiskAmount: ctx.options.toRiskAmount,
+                        toWinAmount: ctx.options.toWinAmount,
+                    },
+                    { fromContest: true },
+                );
                 ctx.hookState.skipInitialContenderCreation = true;
             }
             return;

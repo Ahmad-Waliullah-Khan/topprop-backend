@@ -5,3 +5,4 @@ export * from './stripe.service';
 export * from './team.service';
 export * from './player.service';
 export * from './game.service';
+export * from './wallet.service';

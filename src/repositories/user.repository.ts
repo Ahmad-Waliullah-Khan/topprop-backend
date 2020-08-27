@@ -4,9 +4,11 @@ import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@lo
 import { StripeService } from '@src/services/stripe.service';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { ContactSubmission, Contest, TopUp, User, UserRelations } from '../models';
+import { Bet, ContactSubmission, Contest, Gain, TopUp, User, UserRelations } from '../models';
+import { BetRepository } from './bet.repository';
 import { ContactSubmissionRepository } from './contact-submission.repository';
 import { ContestRepository } from './contest.repository';
+import { GainRepository } from './gain.repository';
 import { TopUpRepository } from './top-up.repository';
 
 export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
@@ -16,6 +18,10 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
 
     public readonly contests: HasManyRepositoryFactory<Contest, typeof User.prototype.id>;
 
+    public readonly bets: HasManyRepositoryFactory<Bet, typeof User.prototype.id>;
+
+    public readonly gains: HasManyRepositoryFactory<Gain, typeof User.prototype.id>;
+
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
         @service() private stripeService: StripeService,
@@ -24,8 +30,14 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
         protected contactSubmissionRepositoryGetter: Getter<ContactSubmissionRepository>,
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
         @repository.getter('ContestRepository') protected contestRepositoryGetter: Getter<ContestRepository>,
+        @repository.getter('BetRepository') protected betRepositoryGetter: Getter<BetRepository>,
+        @repository.getter('GainRepository') protected gainRepositoryGetter: Getter<GainRepository>,
     ) {
         super(User, dataSource);
+        this.gains = this.createHasManyRepositoryFactoryFor('gains', gainRepositoryGetter);
+        this.registerInclusionResolver('gains', this.gains.inclusionResolver);
+        this.bets = this.createHasManyRepositoryFactoryFor('bets', betRepositoryGetter);
+        this.registerInclusionResolver('bets', this.bets.inclusionResolver);
         this.contests = this.createHasManyRepositoryFactoryFor('contests', contestRepositoryGetter);
         this.registerInclusionResolver('contests', this.contests.inclusionResolver);
         this.topUps = this.createHasManyRepositoryFactoryFor('topUps', topUpRepositoryGetter);

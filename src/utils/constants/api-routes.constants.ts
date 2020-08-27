@@ -5,8 +5,10 @@ export enum API_VERSIONS {
 export const BASE_API_PATH = '/api';
 
 export const API_RESOURCES = {
+    BETS: 'bets',
     CONTACT_SUBMISSIONS: 'contact-submissions',
     CONTESTS: 'contests',
+    GAINS: 'gains',
     GAMES: 'games',
     USERS: 'users',
     PLAYERS: 'players',
@@ -82,6 +84,14 @@ export const API_ENDPOINTS = {
         TOP_UPS: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/top-ups`,
             BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/top-ups/{topUpId}`,
+        },
+        BETS: {
+            CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/bets`,
+            BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/bets/{betId}`,
+        },
+        GAINS: {
+            CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/gains`,
+            BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/gains/{gainId}`,
         },
         WALLET: {
             FETCH_WALLET_INFO: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet`,

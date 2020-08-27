@@ -48,6 +48,10 @@ export class ValidatorHelpers {
     static isBetween = (betweenMoments: [moment.Moment, moment.Moment]) => (val: string, schema: any): boolean =>
         moment(val).isBetween(betweenMoments[0], betweenMoments[1]);
 
+    static lowerOrEqualThan = (amount: number) => (val: number, schema: any): boolean => val <= amount;
+
+    static greaterOrEqualThan = (amount: number) => (val: number, schema: any): boolean => val >= amount;
+
     // static validDeviceInfo = (val: IDeviceInfo, schema: any): boolean => {
     //     if (isEmpty(val) || !val) return false;
     //     let validDeviceInfo = false;

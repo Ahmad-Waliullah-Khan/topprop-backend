@@ -1,11 +1,12 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { inject } from '@loopback/core';
+import { inject, service } from '@loopback/core';
 import { Filter, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
+import { WalletService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -16,7 +17,10 @@ import { isEmpty } from 'lodash';
 import Schema from 'validate';
 
 export class ContestContenderController {
-    constructor(@repository(ContestRepository) protected contestRepository: ContestRepository) {}
+    constructor(
+        @repository(ContestRepository) protected contestRepository: ContestRepository,
+        @service() private walletService: WalletService,
+    ) {}
 
     @authenticate('jwt')
     @authorize({
@@ -67,10 +71,14 @@ export class ContestContenderController {
         if (!body.contenderId) body.contenderId = +currentUser[securityId];
         // body.contestId = id;
 
+        const funds = await this.walletService.userBalance(body.contenderId);
+
         const validationSchema = {
             // contestId: CONTENDER_VALIDATORS.contestId,
             contenderId: CONTENDER_VALIDATORS.contenderId,
             type: CONTENDER_VALIDATORS.type,
+            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
+            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
         };
 
         const validation = new Schema(validationSchema, { strip: true });
