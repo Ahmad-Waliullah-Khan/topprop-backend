@@ -1,25 +1,26 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { Filter, repository, Where } from '@loopback/repository';
+import { Filter, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, param } from '@loopback/rest';
-import { Contender, Contest } from '@src/models';
-import { ContenderRepository, UserRepository } from '@src/repositories';
+import { Contest } from '@src/models';
+import { ContenderRepository, ContestRepository, UserRepository } from '@src/repositories';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { isNull, isUndefined, merge } from 'lodash';
+import { merge } from 'lodash';
 
 export class UserContestController {
     constructor(
         @repository(UserRepository) protected userRepository: UserRepository,
         @repository(ContenderRepository) protected contenderRepository: ContenderRepository,
+        @repository(ContestRepository) protected contestRepository: ContestRepository,
     ) {}
 
     @authenticate('jwt')
     @authorize({
         voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)],
     })
-    @get(API_ENDPOINTS.USERS.CONTESTS.MY, {
+    @get(API_ENDPOINTS.USERS.CONTESTS.OWN, {
         responses: {
             '200': {
                 description: 'Array of User has many Contest',
@@ -31,7 +32,7 @@ export class UserContestController {
             },
         },
     })
-    async find(
+    async findMyOwn(
         @param.path.number('id') id: number,
         @param.query.object('filter') filter?: Filter<Contest>,
     ): Promise<ICommonHttpResponse<Contest[]>> {
@@ -42,7 +43,7 @@ export class UserContestController {
     @authorize({
         voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)],
     })
-    @get(API_ENDPOINTS.USERS.CONTESTS.CONTENDER, {
+    @get(API_ENDPOINTS.USERS.CONTESTS.IAM_CONTENDER, {
         responses: {
             '200': {
                 description: 'Array of User has many Contest',
@@ -54,25 +55,27 @@ export class UserContestController {
             },
         },
     })
-    async contestContender(
+    async findIamContender(
         @param.path.number('id') id: number,
-        @param.query.object('where') where?: Where<Contender>,
+        @param.query.object('filter') filter?: Filter<Contest>,
     ): Promise<ICommonHttpResponse<Contest[]>> {
-        let defaultWhere: Where<Contender> = {
-            contenderId: id,
+        const contenders = await this.contenderRepository.find({
+            where: { contenderId: id },
+            fields: { id: true, contestId: true },
+        });
+
+        const contestIds = contenders.map(contender => contender.contestId);
+
+        let defaultFilter: Filter<Contest> = {
+            where: { id: { inq: contestIds } },
+            include: [
+                { relation: 'contenders' },
+                { relation: 'game', scope: { include: [{ relation: 'homeTeam' }, { relation: 'visitorTeam' }] } },
+                { relation: 'player' },
+            ],
         };
-        if (where) defaultWhere = merge(defaultWhere, where);
-
-        const defaultFilter: Filter<Contender> = {
-            where: defaultWhere,
-            include: [{ relation: 'contest' }],
-        };
-
-        const contenders = await this.contenderRepository.find(defaultFilter);
-
-        const data = contenders
-            .filter(contender => !isNull(contender.contest) && !isUndefined(contender.contest))
-            .map(contender => contender.contest as Contest);
+        if (filter) defaultFilter = merge(defaultFilter, filter);
+        const data = await this.contestRepository.find(defaultFilter);
 
         return { data };
     }
