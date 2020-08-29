@@ -28,20 +28,20 @@
     "eslint.validate": ["javascript", "typescript"],
     "files.autoSave": "onFocusChange",
     "workbench.colorCustomizations": {
-        "activityBar.background": "#56103c",
-        "titleBar.activeBackground": "#2b081e",
-        "titleBar.activeForeground": "#e7e7e7",
-        "activityBar.activeBackground": "#56103c",
-        "activityBar.activeBorder": "#4b6b14",
-        "activityBar.foreground": "#e7e7e7",
-        "activityBar.inactiveForeground": "#e7e7e799",
-        "activityBarBadge.background": "#4b6b14",
+        "activityBar.background": "#ffcc60",
+        "titleBar.activeBackground": "#ffbc2d",
+        "titleBar.activeForeground": "#15202b",
+        "activityBar.activeBackground": "#ffcc60",
+        "activityBar.activeBorder": "#009f6c",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#009f6c",
         "activityBarBadge.foreground": "#e7e7e7",
-        "statusBar.background": "#2b081e",
-        "statusBar.foreground": "#e7e7e7",
-        "statusBarItem.hoverBackground": "#56103c",
-        "titleBar.inactiveBackground": "#2b081e99",
-        "titleBar.inactiveForeground": "#e7e7e799"
+        "statusBar.background": "#ffbc2d",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#f9aa00",
+        "titleBar.inactiveBackground": "#ffbc2d99",
+        "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#2b081e"
+    "peacock.color": "#ffbc2d"
 }

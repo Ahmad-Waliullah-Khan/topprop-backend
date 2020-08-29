@@ -37,6 +37,20 @@ export class Contest extends Base {
     })
     status: CONTEST_STATUSES;
 
+    @property({
+        type: 'boolean',
+        required: false,
+        default: false,
+    })
+    ended: boolean;
+
+    @property({
+        type: 'date',
+        required: false,
+        default: null,
+    })
+    endedAt: Date | null;
+
     @belongsTo(() => Player)
     playerId: number;
 

@@ -71,8 +71,8 @@ export const API_ENDPOINTS = {
         RESEND_CONFIRM_TOKEN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/resend-confirm-token`,
         CONFIRM_ACCOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/confirm-account`,
         CONTESTS: {
-            MY: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contests/my`,
-            CONTENDER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contests/contender`,
+            OWN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contests/own`,
+            IAM_CONTENDER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contests/iam-contender`,
         },
         CONTENDER: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/contender`,
