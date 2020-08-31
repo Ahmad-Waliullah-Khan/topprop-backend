@@ -1,6 +1,7 @@
-import { belongsTo, model, property } from '@loopback/repository';
+import { belongsTo, model, property, hasMany } from '@loopback/repository';
 import { Base } from '.';
 import { Team } from './team.model';
+import { PlayerResult } from './player-result.model';
 
 @model()
 export class Player extends Base {
@@ -259,6 +260,9 @@ export class Player extends Base {
 
     @belongsTo(() => Team)
     teamId: number;
+
+    @hasMany(() => PlayerResult)
+    playerResults: PlayerResult[];
 
     constructor(data?: Partial<Player>) {
         super(data);

@@ -8,3 +8,4 @@ export * from './user.repository';
 export * from './contender.repository';
 export * from './bet.repository';
 export * from './gain.repository';
+export * from './player-result.repository';

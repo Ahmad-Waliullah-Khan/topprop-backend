@@ -5,7 +5,8 @@ import {
 } from '@loopback/authentication';
 import { AuthorizationComponent } from '@loopback/authorization';
 import { BootMixin } from '@loopback/boot';
-import { addExtension, ApplicationConfig } from '@loopback/core';
+import { addExtension, ApplicationConfig, createBindingFromClass } from '@loopback/core';
+import { CronComponent } from '@loopback/cron';
 import { RepositoryMixin } from '@loopback/repository';
 import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
@@ -16,6 +17,7 @@ import {
     PassportFacebookTokenAuthProvider,
     PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
+import { FakeResultsCron } from './cron-jobs';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 import { IRawRequest } from './utils/interfaces';
@@ -87,6 +89,10 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         this.component(AuthenticationComponent);
         this.component(AuthorizationComponent);
 
+        this.component(CronComponent);
+
+        const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
+        this.add(fakeResultsCronBinding);
         // Set up default home page
         // this.static('/', path.join(__dirname, '../public'));
 

@@ -75,7 +75,7 @@ export class UserController {
         const validUsername = await this.userService.validUsername(body.username);
         if (!validUsername) throw new HttpErrors.BadRequest(USER_MESSAGES.USERNAME_ALREADY_USED);
 
-        body.hash = await this.userService.setPassword(body.password);
+        body.hash = await this.userService.setPassword(body.password as string);
         if (isEqual(body.email, process.env.ADMIN_EMAIL)) {
             body.permissions = this.userService.assignDefaultPermissions(true);
             body.role = this.userService.assignDefaultRole(true);
@@ -87,6 +87,7 @@ export class UserController {
             //TODO: HARDCODED FIELD BECAUSE OF MVP PURPOSES
             body.accountConfirmedAt = moment().toDate();
         }
+
         delete body.password;
         delete body.confirmPassword;
         const user = await this.userRepository.create(body);
