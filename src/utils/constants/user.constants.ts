@@ -25,6 +25,7 @@ export const PERMISSIONS = {
     },
     CONTESTS: {
         VIEW_ALL_CONTESTS: 'viewAllContests',
+        VIEW_ALL_CONTESTS_TOTAL: 'viewAllContestsTotal',
         VIEW_ANY_CONTEST: 'viewAnyContest',
         CREATE_ANY_CONTEST: 'createAnyContest',
         UPDATE_ANY_CONTEST: 'updateAnyContest',

@@ -15,7 +15,7 @@ export interface ICustomUserProfile extends UserProfile {
 // }
 
 export class SignupUserRequest extends User {
-    constructor(public password: string, public confirmPassword: string) {
+    constructor(public password?: string, public confirmPassword?: string) {
         super();
     }
 }

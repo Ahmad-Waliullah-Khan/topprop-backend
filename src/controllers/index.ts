@@ -28,3 +28,5 @@ export * from './user/user.controller';
 export * from './wallet/wallet.controller';
 // export * from './gain-user.controller';
 // export * from './gain-contender.controller';
+export * from './player-result-player.controller';
+export * from './player-player-result.controller';
