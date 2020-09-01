@@ -13,7 +13,7 @@ export class FakeResultsCron extends CronJob {
         @repository('ContenderRepository') private contenderRepository: ContenderRepository,
     ) {
         super({
-            cronTime: '0 * * * * *', // Every minute
+            cronTime: '0 0 * * * *', // Every hour
             name: 'fake-results',
             onTick: async () => {
                 const contests = await this.contestRepository.find({
