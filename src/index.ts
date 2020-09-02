@@ -1,9 +1,12 @@
 //* LOAD ENV VARIABLES AT THE VERY BEGINNING
 require('dotenv').config();
+import { CronBindings } from '@loopback/cron';
 import chalk from 'chalk';
+import { isEqual } from 'lodash';
 import 'module-alias/register';
 import { ApplicationConfig, TopPropBackendApplication } from './application';
-import { UserService } from './services';
+import { ContestPayoutService, PlayerService, UserService } from './services';
+import { CRON_JOBS } from './utils/constants';
 
 export * from './application';
 
@@ -27,12 +30,23 @@ export async function main(options: ApplicationConfig = {}) {
 
     // const teamService = await app.service(TeamService).getValue(app);
     // await teamService._init();
-    // const playerService = await app.service(PlayerService).getValue(app);
-    // await playerService._init();
+    const playerService = await app.service(PlayerService).getValue(app);
+    await playerService._init();
 
     //*GAMES
     // const gameService = await app.service(GameService).getValue(app);
     // await gameService._init();
+
+    const contestPayoutService = await app.service(ContestPayoutService).getValue(app);
+    contestPayoutService.createDefaults();
+
+    const component = await app.get(CronBindings.COMPONENT);
+    const cronJobs = await component.getJobs();
+    for (let index = 0; index < cronJobs.length; index++) {
+        const job = cronJobs[index];
+        if (isEqual(job.name, CRON_JOBS.FAKE_RESULTS_CRON) && !isEqual(process.env.RUN_FAKE_RESULTS_CRON, 'true'))
+            job.stop();
+    }
 
     return app;
 }
