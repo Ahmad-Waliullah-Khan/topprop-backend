@@ -6,3 +6,9 @@ export interface IContestRequest extends Contest {
     toRiskAmount?: number;
     toWinAmount?: number;
 }
+export interface ICalculateToWinRequest {
+    toRiskAmount: number;
+    fantasyPoints: number;
+    playerId: number;
+    inverse?: boolean;
+}

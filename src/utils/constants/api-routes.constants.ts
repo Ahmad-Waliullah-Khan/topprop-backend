@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
         CONTENDERS: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/{id}/contenders`,
         },
+        CALCULATE_TO_WIN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/calculate/to-win`,
     },
     GAMES: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}`,

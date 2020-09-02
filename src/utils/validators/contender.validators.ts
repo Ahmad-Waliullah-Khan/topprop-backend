@@ -65,4 +65,14 @@ export const CONTENDER_VALIDATORS = {
             enum: `Type must be one of these options: ${values(CONTEST_TYPES).join(', ')}.`,
         },
     },
+
+    //* ONLY FOR THE CALCULATE TO WIN
+    inverse: {
+        type: Boolean,
+        required: true,
+        message: {
+            required: 'Inverse is required.',
+            type: 'Inverse must be a true or false.',
+        },
+    },
 };

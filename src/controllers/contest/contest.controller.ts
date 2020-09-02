@@ -6,11 +6,16 @@ import { del, get, getModelSchemaRef, HttpErrors, param, post, requestBody } fro
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
-import { WalletService } from '@src/services';
+import { ContestPayoutService, WalletService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IContestRequest, ICustomUserProfile } from '@src/utils/interfaces';
+import {
+    ICalculateToWinRequest,
+    ICommonHttpResponse,
+    IContestRequest,
+    ICustomUserProfile,
+} from '@src/utils/interfaces';
 import { COMMON_MESSAGES } from '@src/utils/messages';
 import { CONTENDER_VALIDATORS, CONTEST_VALIDATORS } from '@src/utils/validators';
 import { isEmpty } from 'lodash';
@@ -21,6 +26,7 @@ export class ContestController {
         @repository(ContestRepository)
         public contestRepository: ContestRepository,
         @service() private walletService: WalletService,
+        @service() private contestPayoutService: ContestPayoutService,
     ) {}
 
     @authenticate('jwt')
@@ -198,5 +204,45 @@ export class ContestController {
     })
     async deleteById(@param.path.number('id') id: number): Promise<void> {
         await this.contestRepository.deleteById(id);
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.CONTESTS.CALCULATE_TO_WIN, {
+        responses: {
+            '200': {
+                description: 'Contest model count',
+                content: { 'application/json': { schema: CountSchema } },
+            },
+        },
+    })
+    async calculateToWin(
+        @requestBody()
+        body: ICalculateToWinRequest,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<number>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const funds = await this.walletService.userBalance(+currentUser[securityId]);
+        console.log(funds);
+
+        const validationSchema = {
+            playerId: CONTEST_VALIDATORS.playerId,
+            fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
+            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
+            inverse: CONTENDER_VALIDATORS.inverse,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const toWin = await this.contestPayoutService.calculateToWin(
+            body.playerId,
+            body.fantasyPoints,
+            body.toRiskAmount,
+            body.inverse,
+        );
+        return { data: toWin };
     }
 }
