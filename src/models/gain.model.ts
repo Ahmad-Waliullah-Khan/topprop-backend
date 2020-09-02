@@ -21,6 +21,12 @@ export class Gain extends Base {
     })
     amount: number;
 
+    @property({
+        type: 'string',
+        required: false,
+    })
+    notes?: string;
+
     @belongsTo(() => User)
     userId: number;
 

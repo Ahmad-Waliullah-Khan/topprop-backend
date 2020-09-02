@@ -21,6 +21,25 @@ export class Contender extends Base {
     winner: boolean;
 
     @property({
+        type: 'date',
+        required: false,
+        default: null,
+    })
+    wonAt: Date | null;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    tied: boolean;
+    @property({
+        type: 'date',
+        required: false,
+        default: null,
+    })
+    tiedAt: Date | null;
+
+    @property({
         type: 'boolean',
         default: false,
         required: true,
