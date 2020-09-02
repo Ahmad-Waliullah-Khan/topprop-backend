@@ -10,3 +10,4 @@ export * from './contender.model';
 export * from './bet.model';
 export * from './gain.model';
 export * from './player-result.model';
+export * from './contest-payout.model';
