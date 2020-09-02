@@ -1,7 +1,7 @@
-import { belongsTo, model, property, hasMany } from '@loopback/repository';
+import { belongsTo, hasMany, model, property } from '@loopback/repository';
 import { Base } from '.';
-import { Team } from './team.model';
 import { PlayerResult } from './player-result.model';
+import { Team } from './team.model';
 
 @model()
 export class Player extends Base {
@@ -31,7 +31,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc2: number;
+    points0: number;
 
     @property({
         type: 'number',
@@ -40,7 +40,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc3: number;
+    points2: number;
 
     @property({
         type: 'number',
@@ -49,7 +49,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc4: number;
+    points4: number;
 
     @property({
         type: 'number',
@@ -58,7 +58,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc5: number;
+    points6: number;
 
     @property({
         type: 'number',
@@ -67,7 +67,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc6: number;
+    points8: number;
 
     @property({
         type: 'number',
@@ -76,7 +76,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc7: number;
+    points10: number;
 
     @property({
         type: 'number',
@@ -85,7 +85,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc8: number;
+    points12: number;
 
     @property({
         type: 'number',
@@ -94,7 +94,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc9: number;
+    points14: number;
 
     @property({
         type: 'number',
@@ -103,7 +103,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc10: number;
+    points16: number;
 
     @property({
         type: 'number',
@@ -112,7 +112,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc11: number;
+    points18: number;
 
     @property({
         type: 'number',
@@ -121,7 +121,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc12: number;
+    points20: number;
 
     @property({
         type: 'number',
@@ -130,7 +130,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc13: number;
+    points22: number;
 
     @property({
         type: 'number',
@@ -139,7 +139,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc14: number;
+    points24: number;
 
     @property({
         type: 'number',
@@ -148,7 +148,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc15: number;
+    points26: number;
 
     @property({
         type: 'number',
@@ -157,7 +157,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc16: number;
+    points28: number;
 
     @property({
         type: 'number',
@@ -166,7 +166,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc17: number;
+    points30: number;
 
     @property({
         type: 'number',
@@ -175,7 +175,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc18: number;
+    points32: number;
 
     @property({
         type: 'number',
@@ -184,7 +184,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc19: number;
+    points34: number;
 
     @property({
         type: 'number',
@@ -193,7 +193,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc20: number;
+    points36: number;
 
     @property({
         type: 'number',
@@ -202,7 +202,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc21: number;
+    points38: number;
 
     @property({
         type: 'number',
@@ -211,7 +211,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc22: number;
+    points40: number;
 
     @property({
         type: 'number',
@@ -220,7 +220,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc23: number;
+    points42: number;
 
     @property({
         type: 'number',
@@ -229,7 +229,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc24: number;
+    points44: number;
 
     @property({
         type: 'number',
@@ -238,7 +238,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc25: number;
+    points46: number;
 
     @property({
         type: 'number',
@@ -247,7 +247,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc26: number;
+    points48: number;
 
     @property({
         type: 'number',
@@ -256,7 +256,7 @@ export class Player extends Base {
             dataType: 'decimal',
         },
     })
-    bc27: number;
+    points50: number;
 
     @belongsTo(() => Team)
     teamId: number;
