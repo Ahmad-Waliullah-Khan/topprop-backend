@@ -124,7 +124,7 @@ describe('Wallet Controller', () => {
             await client.get(`${usersBaseAPI}/${1000}/wallet`).set('Authorization', adminAuthToken1).expect(404);
         });
         it('Should fail fetching wallet for a user who does not have stripe account', async () => {
-            await client.get(`${usersBaseAPI}/${adminId1}/wallet`).set('Authorization', adminAuthToken1).expect(404);
+            await client.get(`${usersBaseAPI}/${adminId1}/wallet`).set('Authorization', adminAuthToken1).expect(200);
         });
         it('Should fetch wallet for a test user to get the default payment method', async () => {
             let walletResponse = await client

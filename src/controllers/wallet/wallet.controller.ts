@@ -37,7 +37,7 @@ export class WalletController {
             if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
             const user = await this.userRepository.findById(id);
 
-            if (!user._customerToken) throw new HttpErrors.NotFound(WALLET_MESSAGES.MISSING_WALLET);
+            if (!user._customerToken) return { data: null };
 
             let customer = await this.stripeService.stripe.customers.retrieve(user._customerToken);
 
