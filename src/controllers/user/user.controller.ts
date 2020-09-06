@@ -8,7 +8,7 @@ import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { JwtService } from '@src/services';
 import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
@@ -96,6 +96,7 @@ export class UserController {
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
+            isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
         this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, { user });
@@ -144,6 +145,7 @@ export class UserController {
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
+            isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
         return { data: token };
@@ -188,6 +190,7 @@ export class UserController {
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
+            isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
         return { data: token };
@@ -224,6 +227,7 @@ export class UserController {
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
+            isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
         return { data: token };
     }
@@ -259,6 +263,7 @@ export class UserController {
             email: user.email,
             username: user.username,
             [securityId]: user.id.toString(),
+            isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
         return { data: token };
     }
