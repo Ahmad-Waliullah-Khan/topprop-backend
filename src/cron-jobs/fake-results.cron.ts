@@ -21,8 +21,8 @@ export class FakeResultsCron extends CronJob {
         @repository('GainRepository') private gainRepository: GainRepository,
     ) {
         super({
-            cronTime: '0 * * * * *', // Every hour
-            // cronTime: '0 0 * * * *', // Every hour
+            // cronTime: '0 * * * * *', // Every minute
+            cronTime: '0 0 * * * *', // Every hour
             name: CRON_JOBS.FAKE_RESULTS_CRON,
             onTick: async () => {
                 const contests = await this.contestRepository.find({
