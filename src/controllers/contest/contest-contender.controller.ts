@@ -77,7 +77,7 @@ export class ContestContenderController {
             // contestId: CONTENDER_VALIDATORS.contestId,
             contenderId: CONTENDER_VALIDATORS.contenderId,
             type: CONTENDER_VALIDATORS.type,
-            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(100),
+            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
             toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
         };
 
