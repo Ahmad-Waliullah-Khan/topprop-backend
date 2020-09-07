@@ -37,11 +37,11 @@ export const CONTEST_VALIDATORS = {
     fantasyPoints: {
         type: Number,
         required: true,
-        length: { min: 0 },
+        length: { min: 1, max: 45 },
         message: {
             required: 'Fantasy points is required.',
             type: 'Fantasy points must be a number.',
-            length: 'Fantasy points must be greater or equal to zero.',
+            length: 'Fantasy points must be between 0 and 45.',
         },
     },
     scoring: {
