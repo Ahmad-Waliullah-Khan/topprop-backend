@@ -1,6 +1,6 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { Filter, repository } from '@loopback/repository';
+import { Count, Filter, repository, Where } from '@loopback/repository';
 import { get, getModelSchemaRef, param } from '@loopback/rest';
 import { Contender } from '@src/models';
 import { ContenderRepository } from '@src/repositories';
@@ -41,5 +41,21 @@ export class UserContenderController {
         if (filter) defaultFilter = merge(defaultFilter, filter);
 
         return { data: await this.contenderRepository.find(defaultFilter) };
+    }
+    @authenticate('jwt')
+    @authorize({
+        voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTENDERS.COUNT_CONTENDERS)],
+    })
+    @get(API_ENDPOINTS.USERS.CONTENDER.CRUD)
+    async countMine(
+        @param.path.number('id') id: number,
+        @param.query.object('where') where?: Where<Contender>,
+    ): Promise<ICommonHttpResponse<Count>> {
+        let defaultWhere: Where<Contender> = {
+            contenderId: id,
+        };
+        if (where) defaultWhere = merge(defaultWhere, where);
+
+        return { data: await this.contenderRepository.count(defaultWhere) };
     }
 }
