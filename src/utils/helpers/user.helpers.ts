@@ -45,6 +45,8 @@ export class UserHelpers {
                 PERMISSIONS.CONTESTS.UPDATE_ANY_CONTEST,
                 PERMISSIONS.CONTESTS.COUNT_CONTESTS,
                 PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS_TOTAL,
+                //*STATS
+                PERMISSIONS.CONTESTS.VIEW_CONVERSION_STATISTIC,
             );
             gainPermissions.push(PERMISSIONS.GAINS.VIEW_ALL_GAINS, PERMISSIONS.GAINS.COUNT_GAINS);
             gamePermissions.push(

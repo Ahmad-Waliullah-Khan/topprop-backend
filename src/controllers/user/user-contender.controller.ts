@@ -42,11 +42,12 @@ export class UserContenderController {
 
         return { data: await this.contenderRepository.find(defaultFilter) };
     }
+
     @authenticate('jwt')
     @authorize({
         voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTENDERS.COUNT_CONTENDERS)],
     })
-    @get(API_ENDPOINTS.USERS.CONTENDER.CRUD)
+    @get(API_ENDPOINTS.USERS.CONTENDER.COUNT)
     async countMine(
         @param.path.number('id') id: number,
         @param.query.object('where') where?: Where<Contender>,

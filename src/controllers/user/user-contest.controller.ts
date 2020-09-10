@@ -4,10 +4,10 @@ import { Filter, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, param } from '@loopback/rest';
 import { Contest } from '@src/models';
 import { ContenderRepository, ContestRepository, UserRepository } from '@src/repositories';
-import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
+import { API_ENDPOINTS, CONTEST_STATUSES, PERMISSIONS } from '@src/utils/constants';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { merge } from 'lodash';
+import { isEqual, merge } from 'lodash';
 
 export class UserContestController {
     constructor(
@@ -78,6 +78,35 @@ export class UserContestController {
         const data = await this.contestRepository.find(defaultFilter);
 
         return { data };
+    }
+
+    //STATISTICS
+    @authenticate('jwt')
+    @authorize({
+        voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_CONVERSION_STATISTIC)],
+    })
+    @get(API_ENDPOINTS.USERS.CONTESTS.STATISTICS.CONVERSION)
+    async leadStatus(
+        @param.path.number('id') id: number,
+        // @param.query.object('filter') filter?: Filter<Contest>,
+    ): Promise<ICommonHttpResponse<number>> {
+        let conversion = 0;
+
+        if (!(await this.userRepository.exists(id))) return { data: conversion };
+
+        const contenders = await this.contenderRepository.find({
+            where: { contenderId: id },
+            include: [{ relation: 'contest' }],
+        });
+
+        const contendersMatched = contenders.filter(contender =>
+            isEqual(contender.contest?.status, CONTEST_STATUSES.CLOSED),
+        );
+
+        if (contenders.length && contendersMatched.length)
+            conversion = 100 * (contendersMatched.length / contenders.length);
+
+        return { data: conversion };
     }
 
     // @post('/users/{id}/contests', {
