@@ -1,8 +1,8 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { Filter, repository } from '@loopback/repository';
+import { Filter, repository, Where } from '@loopback/repository';
 import { get, getModelSchemaRef, param } from '@loopback/rest';
-import { Contest } from '@src/models';
+import { Contender, Contest } from '@src/models';
 import { ContenderRepository, ContestRepository, UserRepository } from '@src/repositories';
 import { API_ENDPOINTS, CONTEST_STATUSES, PERMISSIONS } from '@src/utils/constants';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -86,16 +86,18 @@ export class UserContestController {
         voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_CONVERSION_STATISTIC)],
     })
     @get(API_ENDPOINTS.USERS.CONTESTS.STATISTICS.CONVERSION)
-    async leadStatus(
+    async conversion(
         @param.path.number('id') id: number,
-        // @param.query.object('filter') filter?: Filter<Contest>,
+        @param.query.object('where') where?: Where<Contender>,
     ): Promise<ICommonHttpResponse<number>> {
         let conversion = 0;
 
         if (!(await this.userRepository.exists(id))) return { data: conversion };
+        let defaultWhere: Where<Contender> = { contenderId: id };
+        if (where) defaultWhere = merge(defaultWhere, where);
 
         const contenders = await this.contenderRepository.find({
-            where: { contenderId: id },
+            where: defaultWhere,
             include: [{ relation: 'contest' }],
         });
 
