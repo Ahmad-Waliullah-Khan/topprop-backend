@@ -12,6 +12,8 @@ export class PlayerService {
     ) {}
 
     async _init() {
+        await this.playerRepository.updateAll({ available: false });
+        console.log(`All players unavailable`);
         for (let index = 0; index < NFL_PLAYERS.length; index++) {
             const nflPlayer = NFL_PLAYERS[index];
             const team = await this.teamRepository.findOne({ where: { abbr: nflPlayer.team } });
@@ -19,39 +21,71 @@ export class PlayerService {
                 const player = await this.playerRepository.findOne({
                     where: { name: nflPlayer.name, position: nflPlayer.position, teamId: team.id },
                 });
-                if (player)
-                    console.log(chalk.greenBright(`Player: ${nflPlayer.name} for team: ${team.name} already exists`));
-                else {
+                if (player) {
+                    await this.playerRepository.updateById(player.id, {
+                        available: true,
+                        name: nflPlayer.name,
+                        position: nflPlayer.position,
+                        teamId: team.id,
+                        points0: 100 * nflPlayer.points0,
+                        points2: 100 * nflPlayer.points2,
+                        points4: 100 * nflPlayer.points4,
+                        points6: 100 * nflPlayer.points6,
+                        points8: 100 * nflPlayer.points8,
+                        points10: 100 * nflPlayer.points10,
+                        points12: 100 * nflPlayer.points12,
+                        points14: 100 * nflPlayer.points14,
+                        points16: 100 * nflPlayer.points16,
+                        points18: 100 * nflPlayer.points18,
+                        points20: 100 * nflPlayer.points20,
+                        points22: 100 * nflPlayer.points22,
+                        points24: 100 * nflPlayer.points24,
+                        points26: 100 * nflPlayer.points26,
+                        points28: 100 * nflPlayer.points28,
+                        points30: 100 * nflPlayer.points30,
+                        points32: 100 * nflPlayer.points32,
+                        points34: 100 * nflPlayer.points34,
+                        points36: 100 * nflPlayer.points36,
+                        points38: 100 * nflPlayer.points38,
+                        points40: 100 * nflPlayer.points40,
+                        points42: 100 * nflPlayer.points42,
+                        points44: 100 * nflPlayer.points44,
+                        points46: 100 * nflPlayer.points46,
+                        points48: 100 * nflPlayer.points48,
+                        points50: 100 * nflPlayer.points50,
+                    });
+                    console.log(chalk.greenBright(`Player: ${nflPlayer.name} updated for team: ${team.name}`));
+                } else {
                     await this.playerRepository.create({
                         name: nflPlayer.name,
                         position: nflPlayer.position,
                         teamId: team.id,
-                        points0: nflPlayer.points0 as number,
-                        points2: nflPlayer.points2 as number,
-                        points4: nflPlayer.points4 as number,
-                        points6: nflPlayer.points6 as number,
-                        points8: nflPlayer.points8 as number,
-                        points10: nflPlayer.points10 as number,
-                        points12: nflPlayer.points12 as number,
-                        points14: nflPlayer.points14 as number,
-                        points16: nflPlayer.points16 as number,
-                        points18: nflPlayer.points18 as number,
-                        points20: nflPlayer.points20 as number,
-                        points22: nflPlayer.points22 as number,
-                        points24: nflPlayer.points24 as number,
-                        points26: nflPlayer.points26 as number,
-                        points28: nflPlayer.points28 as number,
-                        points30: nflPlayer.points30 as number,
-                        points32: nflPlayer.points32 as number,
-                        points34: nflPlayer.points34 as number,
-                        points36: nflPlayer.points36 as number,
-                        points38: nflPlayer.points38 as number,
-                        points40: nflPlayer.points40 as number,
-                        points42: nflPlayer.points42 as number,
-                        points44: nflPlayer.points44 as number,
-                        points46: nflPlayer.points46 as number,
-                        points48: nflPlayer.points48 as number,
-                        points50: nflPlayer.points50 as number,
+                        points0: 100 * nflPlayer.points0,
+                        points2: 100 * nflPlayer.points2,
+                        points4: 100 * nflPlayer.points4,
+                        points6: 100 * nflPlayer.points6,
+                        points8: 100 * nflPlayer.points8,
+                        points10: 100 * nflPlayer.points10,
+                        points12: 100 * nflPlayer.points12,
+                        points14: 100 * nflPlayer.points14,
+                        points16: 100 * nflPlayer.points16,
+                        points18: 100 * nflPlayer.points18,
+                        points20: 100 * nflPlayer.points20,
+                        points22: 100 * nflPlayer.points22,
+                        points24: 100 * nflPlayer.points24,
+                        points26: 100 * nflPlayer.points26,
+                        points28: 100 * nflPlayer.points28,
+                        points30: 100 * nflPlayer.points30,
+                        points32: 100 * nflPlayer.points32,
+                        points34: 100 * nflPlayer.points34,
+                        points36: 100 * nflPlayer.points36,
+                        points38: 100 * nflPlayer.points38,
+                        points40: 100 * nflPlayer.points40,
+                        points42: 100 * nflPlayer.points42,
+                        points44: 100 * nflPlayer.points44,
+                        points46: 100 * nflPlayer.points46,
+                        points48: 100 * nflPlayer.points48,
+                        points50: 100 * nflPlayer.points50,
                     });
                     console.log(chalk.greenBright(`Player: ${nflPlayer.name} created for team: ${team.name}`));
                 }

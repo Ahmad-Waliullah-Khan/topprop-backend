@@ -19,6 +19,12 @@ export class Player extends Base {
     name: string;
 
     @property({
+        type: 'boolean',
+        default: true,
+    })
+    available: boolean;
+
+    @property({
         type: 'string',
         required: true,
     })
