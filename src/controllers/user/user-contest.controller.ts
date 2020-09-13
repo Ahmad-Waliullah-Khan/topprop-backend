@@ -108,7 +108,7 @@ export class UserContestController {
         if (contenders.length && contendersMatched.length)
             conversion = 100 * (contendersMatched.length / contenders.length);
 
-        return { data: conversion };
+        return { data: +conversion.toFixed(2) };
     }
 
     // @post('/users/{id}/contests', {
