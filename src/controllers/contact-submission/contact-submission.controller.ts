@@ -1,10 +1,12 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
+import { service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { ContactSubmission } from '@src/models';
+import { ContactSubmission, User } from '@src/models';
 import { ContactSubmissionRepository } from '@src/repositories';
-import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
+import { UserService } from '@src/services';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
@@ -17,6 +19,7 @@ export class ContactSubmissionController {
     constructor(
         @repository(ContactSubmissionRepository)
         public contactSubmissionRepository: ContactSubmissionRepository,
+        @service() private userService: UserService,
     ) {}
 
     @authenticate('jwt')
@@ -233,12 +236,24 @@ export class ContactSubmissionController {
         if (!(await this.contactSubmissionRepository.exists(id)))
             throw new HttpErrors.NotFound(CONTACT_SUBMISSION_MESSAGES.CONTACT_SUBMISSION_NOT_FOUND);
 
-        const contactSubmission = await this.contactSubmissionRepository.findById(id);
+        const contactSubmission = await this.contactSubmissionRepository.findById(id, {
+            include: [{ relation: 'user' }],
+        });
         if (contactSubmission.repliedAt && contactSubmission.reply)
             throw new HttpErrors.NotAcceptable(CONTACT_SUBMISSION_MESSAGES.CONTACT_SUBMISSION_ALREADY_REPLIED);
         contactSubmission.reply = body.message;
         contactSubmission.repliedAt = moment().toDate();
+        this.userService.sendEmail(contactSubmission.user as User, EMAIL_TEMPLATES.CONTACT_SUBMISSION_REPLIED, {
+            user: contactSubmission.user as User,
+            message: contactSubmission.message,
+            messageDate: moment(contactSubmission.createdAt).format('MM/DD/YYYY'),
+            messageTime: moment(contactSubmission.createdAt).format('hh:mm a'),
+            reply: contactSubmission.reply,
+            replyDate: moment(contactSubmission.repliedAt).format('MM/DD/YYYY'),
+            replyTime: moment(contactSubmission.repliedAt).format('hh:mm a'),
+        });
 
+        delete contactSubmission.user;
         return { data: await this.contactSubmissionRepository.save(contactSubmission) };
     }
 
