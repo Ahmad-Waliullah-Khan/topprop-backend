@@ -16,7 +16,7 @@ export const PERMISSIONS = {
     },
     CONTENDERS: {
         VIEW_ALL_CONTENDERS: 'viewAllContenders',
-        // VIEW_ANY_CONTENDER: 'viewAnyContender',
+        VIEW_ANY_CONTENDER: 'viewAnyContender',
         CREATE_ANY_CONTENDER: 'createAnyContender',
         // UPDATE_ANY_CONTENDER: 'updateAnyContender',
         // DELETE_ANY_CONTENDER: 'deleteAnyContender',

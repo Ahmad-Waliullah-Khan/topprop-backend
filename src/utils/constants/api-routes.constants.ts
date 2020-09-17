@@ -8,6 +8,7 @@ export const API_RESOURCES = {
     BETS: 'bets',
     CONTACT_SUBMISSIONS: 'contact-submissions',
     CONTESTS: 'contests',
+    CONTENDERS: 'contenders',
     GAINS: 'gains',
     GAMES: 'games',
     USERS: 'users',
@@ -26,6 +27,11 @@ export const API_ENDPOINTS = {
         READ: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTACT_SUBMISSIONS}/{id}/read`,
         UNREAD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTACT_SUBMISSIONS}/{id}/unread`,
         USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTACT_SUBMISSIONS}/{id}/user`,
+    },
+    CONTENDERS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTENDERS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTENDERS}/{id}`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTENDERS}/count`,
     },
     CONTESTS: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}`,
