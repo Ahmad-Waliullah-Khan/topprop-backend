@@ -1,7 +1,7 @@
 import { bind, /* inject, */ BindingScope } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { ContestPayoutRepository, PlayerRepository } from '@src/repositories';
-import { DEFAULT_CONTEST_PAYOUTS } from '@src/utils/constants';
+import { CONTEST_TYPES, DEFAULT_CONTEST_PAYOUTS } from '@src/utils/constants';
 import { isEqual } from 'lodash';
 
 @bind({ scope: BindingScope.TRANSIENT })
@@ -38,6 +38,7 @@ export class ContestPayoutService {
         fantasyPoints: number,
         riskAmount: number,
         inverse = false,
+        type: CONTEST_TYPES,
     ): Promise<number> {
         let toWin = 0;
         const player = await this.playerRepo.findById(playerId);
@@ -58,6 +59,7 @@ export class ContestPayoutService {
                 lookForPercentage = +avgPointsFields.toFixed();
             }
 
+            if (isEqual(type, CONTEST_TYPES.UNDER)) lookForPercentage = 100 - lookForPercentage;
             const contestPayout = await this.contestPayoutRepo.findOne({
                 where: { percentLikelihood: +lookForPercentage.toFixed() },
             });

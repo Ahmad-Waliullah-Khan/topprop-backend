@@ -224,13 +224,13 @@ export class ContestController {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
         const funds = await this.walletService.userBalance(+currentUser[securityId]);
-        console.log(funds);
 
         const validationSchema = {
             playerId: CONTEST_VALIDATORS.playerId,
             fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
             toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
             inverse: CONTENDER_VALIDATORS.inverse,
+            type: CONTENDER_VALIDATORS.type,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
@@ -242,6 +242,7 @@ export class ContestController {
             body.fantasyPoints,
             body.toRiskAmount,
             body.inverse,
+            body.type,
         );
         return { data: toWin };
     }

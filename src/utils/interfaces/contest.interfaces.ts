@@ -11,4 +11,5 @@ export interface ICalculateToWinRequest {
     fantasyPoints: number;
     playerId: number;
     inverse?: boolean;
+    type: CONTEST_TYPES;
 }
