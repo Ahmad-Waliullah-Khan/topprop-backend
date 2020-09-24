@@ -72,12 +72,15 @@ export class FakeResultsCron extends CronJob {
                                 });
                                 console.log(`Gain created on contest tied`);
                             }
-                            if (isEqual(contender.type, CONTEST_TYPES.OVER) && results.points > fantasyPoints) {
+                            if (
+                                (isEqual(contender.type, CONTEST_TYPES.OVER) && results.points > fantasyPoints) ||
+                                (isEqual(contender.type, CONTEST_TYPES.UNDER) && results.points < fantasyPoints)
+                            ) {
                                 await this.contenderRepository.updateById(contender.id, {
                                     winner: true,
                                     wonAt: moment().toDate(),
                                 });
-                                console.log(`Contender winner updated.`);
+                                console.log(`Contender winner updated: ${contender.contenderId}`);
                                 await this.gainRepository.create({
                                     contenderId: contender.id,
                                     userId: contender.contenderId,
