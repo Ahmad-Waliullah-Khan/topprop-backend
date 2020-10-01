@@ -57,6 +57,7 @@ export const PERMISSIONS = {
         DELETE_ANY_PLAYER: 'deleteAnyPlayer',
         // ARCHIVE_ANY_PLAYER: 'archiveAnyPlayer',
         COUNT_PLAYERS: 'countPlayers',
+        IMPORT_PLAYERS: 'importPlayers',
     },
     USERS: {
         VIEW_ALL_USERS: 'viewAllUsers',
