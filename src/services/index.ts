@@ -7,3 +7,4 @@ export * from './player.service';
 export * from './game.service';
 export * from './wallet.service';
 export * from './contest-payout.service';
+export * from './multi-party-form.service';

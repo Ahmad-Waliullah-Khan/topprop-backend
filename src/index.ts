@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import { isEqual } from 'lodash';
 import 'module-alias/register';
 import { ApplicationConfig, TopPropBackendApplication } from './application';
-import { ContestPayoutService, PlayerService, UserService } from './services';
+import { ContestPayoutService, UserService } from './services';
 import { CRON_JOBS } from './utils/constants';
 
 export * from './application';
@@ -30,8 +30,8 @@ export async function main(options: ApplicationConfig = {}) {
 
     // const teamService = await app.service(TeamService).getValue(app);
     // await teamService._init();
-    const playerService = await app.service(PlayerService).getValue(app);
-    await playerService._init();
+    // const playerService = await app.service(PlayerService).getValue(app);
+    // await playerService._init();
 
     //*GAMES
     // const gameService = await app.service(GameService).getValue(app);

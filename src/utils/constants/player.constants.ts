@@ -1,4 +1,37 @@
-export const NFL_PLAYERS = [
+import { IImportedPlayer } from '../interfaces';
+export enum DEFAULT_CSV_FILE_PLAYERS_HEADERS {
+    NAME = 'name',
+    POINTS_0 = 'points0',
+    POINTS_2 = 'points2',
+    POINTS_4 = 'points4',
+    POINTS_6 = 'points6',
+    POINTS_8 = 'points8',
+    POINTS_10 = 'points10',
+    POINTS_12 = 'points12',
+    POINTS_14 = 'points14',
+    POINTS_16 = 'points16',
+    POINTS_18 = 'points18',
+    POINTS_20 = 'points20',
+    POINTS_22 = 'points22',
+    POINTS_24 = 'points24',
+    POINTS_26 = 'points26',
+    POINTS_28 = 'points28',
+    POINTS_30 = 'points30',
+    POINTS_32 = 'points32',
+    POINTS_34 = 'points34',
+    POINTS_36 = 'points36',
+    POINTS_38 = 'points38',
+    POINTS_40 = 'points40',
+    POINTS_42 = 'points42',
+    POINTS_44 = 'points44',
+    POINTS_46 = 'points46',
+    POINTS_48 = 'points48',
+    POINTS_50 = 'points50',
+    POSITION = 'position',
+    TEAM = 'team',
+}
+
+export const NFL_PLAYERS: IImportedPlayer[] = [
     {
         name: 'Patrick Mahomes',
         points0: 0.99,

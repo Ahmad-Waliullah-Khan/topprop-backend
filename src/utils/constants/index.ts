@@ -1,6 +1,7 @@
 export * from './api-routes.constants';
 export * from './contest-payouts.constants';
 export * from './contest.constants';
+export * from './files.constants';
 export * from './game.constants';
 export * from './misc.constants';
 export * from './notification.constants';
