@@ -60,15 +60,17 @@ export class PlayerController {
                 throw new HttpErrors.UnsupportedMediaType(FILE_MESSAGES.FILE_INVALID(allowedContentType));
             }
 
-            await this.playerRepository.updateAll({ available: false });
-            console.log(`All players unavailable`);
             const errors: string[] = [];
             const promises: Promise<void>[] = [];
 
             const csvStream = csv().fromStream(createReadStream(playersFile.path));
 
-            csvStream.on('header', (header: string[]) => {
+            csvStream.on('header', async (header: string[]) => {
                 if (!this.validHeaders(header)) errors.push('Invalid CSV Header');
+                else {
+                    await this.playerRepository.updateAll({ available: false });
+                    console.log(`All players unavailable`);
+                }
             });
 
             csvStream.on('error', error => {
@@ -392,39 +394,7 @@ export class PlayerController {
     }
     private validHeaders(headers: string[]): boolean {
         const defaultHeaders = values(DEFAULT_CSV_FILE_PLAYERS_HEADERS);
-        if (
-            isEqual(headers.sort(), defaultHeaders.sort())
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.NAME) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.TEAM) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POSITION) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_0) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_2) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_4) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_6) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_8) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_10) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_12) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_14) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_16) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_18) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_20) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_22) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_24) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_26) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_28) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_30) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_32) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_34) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_36) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_38) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_40) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_42) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_44) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_46) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_48) !== -1 &&
-            // headers.indexOf(DEFAULT_CSV_FILE_PLAYERS_HEADERS.POINTS_50) !== -1
-        )
-            return true;
+        if (isEqual(headers.sort(), defaultHeaders.sort())) return true;
         return false;
     }
 }
