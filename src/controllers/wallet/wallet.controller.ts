@@ -1,8 +1,8 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
+import { inject, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { get, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { get, HttpErrors, param, patch, post, Request, requestBody, RestBindings } from '@loopback/rest';
 import { User } from '@src/models';
 import { TopUpRepository, UserRepository } from '@src/repositories';
 import { StripeService, WalletService } from '@src/services';
@@ -29,7 +29,7 @@ export class WalletController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_WALLET)] })
-    @get(API_ENDPOINTS.USERS.WALLET.FETCH_WALLET_INFO)
+    @get(API_ENDPOINTS.USERS.WALLET.CRUD)
     async fetchWalletInfo(
         @param.path.number('id') id: typeof User.prototype.id,
     ): Promise<ICommonHttpResponse | undefined> {
@@ -352,5 +352,16 @@ export class WalletController {
         const totalNetAmount = await this.walletService.userBalance(id);
 
         return { data: totalNetAmount };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.CREATE_WALLET)] })
+    @post(API_ENDPOINTS.USERS.WALLET.CRUD)
+    async createWallet(@inject(RestBindings.Http.REQUEST) req: Request): Promise<void> {
+        // console.log(req.ip);
+        console.log(req.connection.remoteAddress);
+        console.log(req.ip);
+        console.log(req.ips);
+        return;
     }
 }
