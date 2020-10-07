@@ -69,6 +69,8 @@ export class UserHelpers {
                 PERMISSIONS.USERS.CREATE_PAYMENT_METHODS,
                 PERMISSIONS.USERS.UPDATE_PAYMENT_METHODS,
                 PERMISSIONS.USERS.VIEW_PAYMENT_METHODS,
+                PERMISSIONS.USERS.CREATE_WALLET,
+                PERMISSIONS.USERS.UPDATE_WALLET,
             );
             teamPermissions.push(
                 PERMISSIONS.TEAMS.COUNT_TEAMS,

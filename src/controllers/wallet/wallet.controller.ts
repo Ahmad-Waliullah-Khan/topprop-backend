@@ -6,10 +6,15 @@ import { get, HttpErrors, param, patch, post, Request, requestBody, RestBindings
 import { User } from '@src/models';
 import { TopUpRepository, UserRepository } from '@src/repositories';
 import { StripeService, WalletService } from '@src/services';
-import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
+import { API_ENDPOINTS, DEFAULT_CAPABILITIES, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IWalletAddFundReqData, IWalletAddPaymentMethodReqData } from '@src/utils/interfaces';
+import {
+    ICommonHttpResponse,
+    IWalletAddFundReqData,
+    IWalletAddPaymentMethodReqData,
+    IWalletCreateRequest,
+} from '@src/utils/interfaces';
 import { USER_MESSAGES, WALLET_MESSAGES } from '@src/utils/messages';
 import { WALLET_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
@@ -357,11 +362,88 @@ export class WalletController {
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.CREATE_WALLET)] })
     @post(API_ENDPOINTS.USERS.WALLET.CRUD)
-    async createWallet(@inject(RestBindings.Http.REQUEST) req: Request): Promise<void> {
-        // console.log(req.ip);
-        console.log(req.connection.remoteAddress);
-        console.log(req.ip);
-        console.log(req.ips);
-        return;
+    async createWallet(
+        @inject(RestBindings.Http.REQUEST) req: Request,
+        @param.path.number('id') id: typeof User.prototype.id,
+    ): Promise<ICommonHttpResponse | undefined> {
+        // await this.stripeService.stripe.accounts.del('acct_1HZKxZAQZyfg8Jtp');
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        let user = await this.userRepository.findById(id);
+
+        if (user._connectToken) throw new HttpErrors.NotFound(WALLET_MESSAGES.WALLET_ALREADY_CREATED);
+
+        const defaultStripeAccountData: Stripe.AccountCreateParams = {
+            type: 'custom',
+            country: 'US',
+            email: user.email,
+            business_type: 'individual',
+            business_profile: {
+                url: 'https://topprop.io',
+            },
+            requested_capabilities: DEFAULT_CAPABILITIES,
+            tos_acceptance: {
+                date: Math.floor(Date.now() / 1000),
+                ip: req.ip,
+            },
+            settings: {
+                payouts: {
+                    schedule: { interval: 'manual' },
+                },
+            },
+            individual: { email: user.email },
+        };
+        try {
+            const connectAccount = await this.stripeService.stripe.accounts.create(defaultStripeAccountData);
+            user._connectToken = connectAccount.id;
+            await this.userRepository.save(user);
+            return { message: 'Wallet created.' };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.UPDATE_WALLET)] })
+    @patch(API_ENDPOINTS.USERS.WALLET.CRUD)
+    async validateWallet(
+        @inject(RestBindings.Http.REQUEST) req: Request,
+        @param.path.number('id') id: typeof User.prototype.id,
+        @requestBody() body: IWalletCreateRequest,
+    ): Promise<ICommonHttpResponse | undefined> {
+        const validationSchema = {
+            address: WALLET_VALIDATORS.address,
+            dob: WALLET_VALIDATORS.dob,
+            firstName: WALLET_VALIDATORS.firstName,
+            lastName: WALLET_VALIDATORS.lastName,
+            idNumber: WALLET_VALIDATORS.idNumber,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.NotFound(WALLET_MESSAGES.INVALID_WALLET);
+
+        let defaultStripeAccountData: Stripe.AccountUpdateParams = {
+            individual: {
+                address: body.address,
+                dob: body.dob,
+                first_name: body.firstName,
+                last_name: body.lastName,
+                id_number: body.idNumber,
+            },
+        };
+
+        try {
+            await this.stripeService.stripe.accounts.update(user._connectToken, defaultStripeAccountData);
+            return { message: 'Wallet validated.' };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
     }
 }

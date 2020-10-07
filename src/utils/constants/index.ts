@@ -8,3 +8,4 @@ export * from './notification.constants';
 export * from './player.constants';
 export * from './team.constants';
 export * from './user.constants';
+export * from './wallet.constants';

@@ -77,6 +77,7 @@ export const PERMISSIONS = {
         CALCULATE_WALLET_NET_FUNDS: 'calculateWalletNetFunds',
         //STRIPE CONNECT
         CREATE_WALLET: 'createWallet',
+        UPDATE_WALLET: 'updateWallet',
     },
     TEAMS: {
         VIEW_ALL_TEAMS: 'viewAllTeams',
