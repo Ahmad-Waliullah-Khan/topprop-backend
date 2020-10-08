@@ -14,7 +14,7 @@ export class StripeWebhookController {
 
     private stripeWebhookPaymentRefundedSecretSign = isEqual(process.env.NODE_ENV, 'local')
         ? this.testStripeWebhookSecret
-        : (process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED as string);
+        : (process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED_SECRET_SIGN as string);
 
     private stripeWebhookVerificationFileUpdatedSecretSign = isEqual(process.env.NODE_ENV, 'local')
         ? this.testStripeWebhookSecret
@@ -26,8 +26,10 @@ export class StripeWebhookController {
         // @service() private emailService: EmailService,
         @service() private stripeService: StripeService,
     ) {
-        if (!process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED)
+        if (!process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED_SECRET_SIGN)
             throw new Error(`Must provide stripe webhook payment refunded sign env`);
+        if (!process.env.STRIPE_WEBHOOK_VERIFICATION_FILE_UPDATED_SECRET_SIGN)
+            throw new Error(`Must provide stripe webhook verification file upload sign env`);
     }
 
     private async signEvent(
