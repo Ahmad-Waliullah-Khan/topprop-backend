@@ -18,4 +18,10 @@ export interface IMappedField {
 
 export enum FILE_NAMES {
     PLAYERS = 'players',
+    VERIFICATION_FILE = 'verification-file',
+}
+
+export enum VERIFICATION_FILE_SIDES {
+    BACK = 'back',
+    FRONT = 'front',
 }

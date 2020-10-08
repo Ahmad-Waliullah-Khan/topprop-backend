@@ -2,23 +2,31 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { get, HttpErrors, param, patch, post, Request, requestBody, RestBindings } from '@loopback/rest';
+import { del, get, HttpErrors, param, patch, post, Request, requestBody, RestBindings } from '@loopback/rest';
 import { User } from '@src/models';
 import { TopUpRepository, UserRepository } from '@src/repositories';
-import { StripeService, WalletService } from '@src/services';
-import { API_ENDPOINTS, DEFAULT_CAPABILITIES, PERMISSIONS } from '@src/utils/constants';
+import { MultiPartyFormService, StripeService, WalletService } from '@src/services';
+import {
+    API_ENDPOINTS,
+    DEFAULT_CAPABILITIES,
+    FILE_NAMES,
+    PERMISSIONS,
+    VERIFICATION_FILE_SIDES,
+} from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IWalletAddFundReqData,
     IWalletAddPaymentMethodReqData,
+    IWalletAddPayoutMethodReqData,
     IWalletCreateRequest,
 } from '@src/utils/interfaces';
 import { USER_MESSAGES, WALLET_MESSAGES } from '@src/utils/messages';
 import { WALLET_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
-import { isEqual, merge } from 'lodash';
+import { readFileSync } from 'fs-extra';
+import { find, isEmpty, isEqual, merge } from 'lodash';
 import Stripe from 'stripe';
 import Schema from 'validate';
 
@@ -30,6 +38,7 @@ export class WalletController {
         private topUpRepository: TopUpRepository,
         @service() protected stripeService: StripeService,
         @service() protected walletService: WalletService,
+        @service() protected multipartyFormService: MultiPartyFormService,
     ) {}
 
     @authenticate('jwt')
@@ -46,6 +55,10 @@ export class WalletController {
 
             let customer = await this.stripeService.stripe.customers.retrieve(user._customerToken);
 
+            const connectAccount = user._connectToken
+                ? await this.stripeService.stripe.accounts.retrieve(user._connectToken)
+                : null;
+
             const paymentMethods: Stripe.PaymentMethod[] = [];
             for await (const paymentMethod of this.stripeService.stripe.paymentMethods.list({
                 customer: user._customerToken,
@@ -54,7 +67,7 @@ export class WalletController {
                 paymentMethods.push(paymentMethod);
             }
 
-            let data = merge(customer, { paymentMethods });
+            let data = merge(customer, { paymentMethods }, { connectAccount });
             return { data };
         } catch (error) {
             ErrorHandler.httpError(error);
@@ -392,6 +405,12 @@ export class WalletController {
                 },
             },
             individual: { email: user.email },
+            metadata: {
+                userId: user.id.toString(),
+                userFullName: user.fullName,
+                userEmail: user.email,
+                username: user.username,
+            },
         };
         try {
             const connectAccount = await this.stripeService.stripe.accounts.create(defaultStripeAccountData);
@@ -427,7 +446,7 @@ export class WalletController {
 
         const user = await this.userRepository.findById(id);
 
-        if (!user._connectToken) throw new HttpErrors.NotFound(WALLET_MESSAGES.INVALID_WALLET);
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
 
         let defaultStripeAccountData: Stripe.AccountUpdateParams = {
             individual: {
@@ -441,7 +460,194 @@ export class WalletController {
 
         try {
             await this.stripeService.stripe.accounts.update(user._connectToken, defaultStripeAccountData);
-            return { message: 'Wallet validated.' };
+            return { message: 'Wallet updated.' };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.CREATE_PAYOUT_METHODS)] })
+    @post(API_ENDPOINTS.USERS.WALLET.PAYOUT_METHODS.CRUD)
+    async createPayoutMethod(
+        @param.path.number('id') id: typeof User.prototype.id,
+        @requestBody()
+        body: IWalletAddPayoutMethodReqData,
+    ): Promise<ICommonHttpResponse<Stripe.BankAccount> | undefined> {
+        const validationSchema = {
+            payoutMethodToken: WALLET_VALIDATORS.payoutMethodToken,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        try {
+            const payoutMethod = await this.stripeService.stripe.accounts.createExternalAccount(user._connectToken, {
+                external_account: body.payoutMethodToken,
+                metadata: {
+                    userId: user.id.toString(),
+                    userFullName: user.fullName,
+                    userEmail: user.email,
+                    username: user.username,
+                },
+            });
+            return { data: payoutMethod as Stripe.BankAccount };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.UPDATE_PAYOUT_METHODS)] })
+    @patch(API_ENDPOINTS.USERS.WALLET.PAYOUT_METHODS.DEFAULT_PAYOUT_METHOD)
+    async setDefaultPayoutMethod(
+        @param.path.number('id') id: typeof User.prototype.id,
+        @param.path.string('payoutMethod') payoutMethod: string,
+    ): Promise<ICommonHttpResponse<Stripe.BankAccount> | undefined> {
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        try {
+            const payoutMethodUpdated = await this.stripeService.stripe.accounts.updateExternalAccount(
+                user._connectToken,
+                payoutMethod,
+                {
+                    default_for_currency: true,
+                },
+            );
+            return { message: 'Payout set as default.', data: payoutMethodUpdated as Stripe.BankAccount };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_PAYOUT_METHODS)] })
+    @del(API_ENDPOINTS.USERS.WALLET.PAYOUT_METHODS.BY_ID)
+    async detachPayoutMethod(
+        @param.path.number('id') id: typeof User.prototype.id,
+        @param.path.string('payoutMethod') payoutMethod: string,
+    ): Promise<ICommonHttpResponse | undefined> {
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        try {
+            const connectAccount = await this.stripeService.stripe.accounts.retrieve(user._connectToken);
+            if (!connectAccount.external_accounts?.data.length)
+                throw new HttpErrors.BadRequest(WALLET_MESSAGES.NO_PAYOUT_METHODS);
+
+            const defaultPayoutMethod = find(
+                connectAccount.external_accounts.data,
+                extAccount => extAccount.default_for_currency,
+            );
+            if (!defaultPayoutMethod || isEqual((defaultPayoutMethod as Stripe.BankAccount).id, payoutMethod))
+                throw new HttpErrors.BadRequest(`The default payout method cannot be removed.`);
+
+            await this.stripeService.stripe.accounts.deleteExternalAccount(user._connectToken, payoutMethod);
+            return { message: 'Payout removed.' };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.UPLOAD_VERIFICATION_FILES)] })
+    @post(API_ENDPOINTS.USERS.WALLET.VERIFICATION_FILE)
+    async uploadVerificationFile(
+        @param.path.number('id') id: typeof User.prototype.id,
+        @requestBody.file()
+        req: Request,
+    ): Promise<ICommonHttpResponse | undefined> {
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        try {
+            const { files, fields } = await this.multipartyFormService.getFilesAndFields(req, '10MB');
+
+            if (
+                isEmpty(fields) ||
+                !fields.side ||
+                (!isEqual(fields.side, VERIFICATION_FILE_SIDES.BACK) &&
+                    !isEqual(fields.side, VERIFICATION_FILE_SIDES.FRONT))
+            ) {
+                this.multipartyFormService.removeFiles(files);
+                throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_VERIFICATION_FILE_SIDE);
+            }
+            const side = fields.side;
+
+            if (isEmpty(files)) {
+                this.multipartyFormService.removeFiles(files);
+                throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_VERIFICATION_FILE);
+            }
+
+            const verificationFile = files[FILE_NAMES.VERIFICATION_FILE];
+            if (!verificationFile) {
+                this.multipartyFormService.removeFiles(files);
+                throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_VERIFICATION_FILE_SIDE);
+            }
+
+            const allowedContentType = 'image';
+
+            let fileContentType = verificationFile.headers['content-type'];
+
+            if (!this.multipartyFormService.isContentType(allowedContentType, fileContentType)) {
+                this.multipartyFormService.removeFiles(files);
+                throw new HttpErrors.UnsupportedMediaType(WALLET_MESSAGES.INVALID_VERIFICATION_FILE_TYPE);
+            }
+            const connectAccount = await this.stripeService.stripe.accounts.retrieve(user._connectToken);
+            if (
+                (isEqual(side, VERIFICATION_FILE_SIDES.BACK) &&
+                    connectAccount.individual?.verification?.document?.back) ||
+                (isEqual(side, VERIFICATION_FILE_SIDES.FRONT) &&
+                    connectAccount.individual?.verification?.document?.front)
+            ) {
+                this.multipartyFormService.removeFiles(files);
+                throw new HttpErrors.BadRequest(WALLET_MESSAGES.VERIFICATION_FILE_SIDE_ALREADY_PROVIDED);
+            }
+
+            const identityDocument = readFileSync(verificationFile.path);
+
+            const stripeVerificationFile = await this.stripeService.stripe.files.create(
+                {
+                    purpose: 'identity_document',
+                    file: {
+                        data: identityDocument,
+                        name: verificationFile.originalFilename,
+                        type: 'application/octet-stream',
+                    },
+                },
+                {
+                    stripeAccount: user._connectToken,
+                },
+            );
+            this.multipartyFormService.removeFiles(files);
+
+            await this.stripeService.stripe.accounts.updatePerson(
+                user._connectToken,
+                connectAccount.individual?.id as string,
+                {
+                    verification: {
+                        document: {
+                            [side]: stripeVerificationFile.id,
+                        },
+                    },
+                },
+            );
+            return {
+                message: `Verification file (${side}) uploaded and attached. Please be pending until the validation.`,
+            };
         } catch (error) {
             ErrorHandler.httpError(error);
         }

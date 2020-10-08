@@ -78,6 +78,10 @@ export const PERMISSIONS = {
         //STRIPE CONNECT
         CREATE_WALLET: 'createWallet',
         UPDATE_WALLET: 'updateWallet',
+        CREATE_PAYOUT_METHODS: 'createPayoutMethods',
+        UPDATE_PAYOUT_METHODS: 'updatePayoutMethods',
+        DELETE_PAYOUT_METHODS: 'deletePayoutMethods',
+        UPLOAD_VERIFICATION_FILES: 'uploadVerificationFiles',
     },
     TEAMS: {
         VIEW_ALL_TEAMS: 'viewAllTeams',

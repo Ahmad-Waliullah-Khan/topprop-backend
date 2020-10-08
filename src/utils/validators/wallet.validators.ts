@@ -34,6 +34,13 @@ export const WALLET_VALIDATORS = {
     //         required: 'Payout Token is a required param (payoutToken).',
     //     },
     // },
+    payoutMethodToken: {
+        type: String,
+        required: true,
+        message: {
+            required: 'Payout method token is a required param (payoutMethodToken).',
+        },
+    },
     paymentMethodToken: {
         type: String,
         required: true,
