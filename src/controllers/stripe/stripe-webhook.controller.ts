@@ -6,15 +6,19 @@ import { StripeService } from '@src/services';
 import { API_ENDPOINTS } from '@src/utils/constants';
 import { IRawRequest, ISignedEventData } from '@src/utils/interfaces';
 import chalk from 'chalk';
-import { isEqual } from 'lodash';
+import { isEqual, isNull } from 'lodash';
 import Stripe from 'stripe';
 
 export class StripeWebhookController {
     private testStripeWebhookSecret = 'whsec_9Ad6PLZq4K8v9z845OcocMESu7AMxetQ';
 
-    private stripeWebhookPaymentRefundedSecret = isEqual(process.env.NODE_ENV, 'local')
+    private stripeWebhookPaymentRefundedSecretSign = isEqual(process.env.NODE_ENV, 'local')
         ? this.testStripeWebhookSecret
         : (process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED as string);
+
+    private stripeWebhookVerificationFileUpdatedSecretSign = isEqual(process.env.NODE_ENV, 'local')
+        ? this.testStripeWebhookSecret
+        : (process.env.STRIPE_WEBHOOK_VERIFICATION_FILE_UPDATED_SECRET_SIGN as string);
 
     constructor(
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
@@ -78,7 +82,7 @@ export class StripeWebhookController {
         const signedEventData = await this.signEvent(
             stripeSign,
             req.rawBody,
-            this.stripeWebhookPaymentRefundedSecret,
+            this.stripeWebhookPaymentRefundedSecretSign,
             res,
         );
         if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'charge.refunded'))
@@ -95,6 +99,153 @@ export class StripeWebhookController {
         );
         topUpsUpdated.count &&
             console.log(chalk.greenBright(`Top up refunded with paymentIntentId: ${charge.payment_intent}`));
+    }
+
+    //VERIFICATION FILE UPDATED
+    @post(API_ENDPOINTS.STRIPE_WEBHOOKS.CONNECT_ACCOUNTS.VERIFICATION_FILE_UPDATED, {
+        responses: {
+            '200': {
+                description: 'Stripe Verification File updated POST success',
+            },
+        },
+    })
+    async verificationFileUpdated(
+        @inject(RestBindings.Http.RESPONSE) res: Response,
+        @inject(RestBindings.Http.REQUEST) req: IRawRequest,
+        @param.header.string('stripe-signature') stripeSign: string,
+        @requestBody()
+        body: any,
+    ) {
+        const signedEventData = await this.signEvent(
+            stripeSign,
+            req.rawBody,
+            this.stripeWebhookVerificationFileUpdatedSecretSign,
+            res,
+        );
+        if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'charge.refunded'))
+            return;
+
+        const eventData = signedEventData.event;
+        eventData.data.previous_attributes;
+        let previousAttrVerification =
+            eventData.data['previous_attributes'] &&
+            (eventData.data['previous_attributes'] as any)['individual'] &&
+            (eventData.data['previous_attributes'] as any)['individual'].verification;
+
+        let previousVerificationStatus =
+            eventData.data['previous_attributes'] &&
+            (eventData.data['previous_attributes'] as any)['individual'] &&
+            (eventData.data['previous_attributes'] as any)['individual'].verification &&
+            (eventData.data['previous_attributes'] as any)['individual'].verification.status;
+
+        let currentVerificationStatus =
+            (eventData.data.object as any)['individual'] &&
+            (eventData.data.object as any)['individual'].verification &&
+            (eventData.data.object as any)['individual'].verification.status;
+
+        let verification =
+            (eventData.data.object as any)['individual'] && (eventData.data.object as any)['individual'].verification;
+
+        let verificationDocument =
+            (eventData.data.object as any)['individual'] &&
+            (eventData.data.object as any)['individual'].verification &&
+            (eventData.data.object as any)['individual'].verification.document;
+
+        if (
+            isEqual(previousVerificationStatus, 'pending') &&
+            isEqual(currentVerificationStatus, 'unverified') &&
+            verificationDocument
+        ) {
+            let side = '';
+            let plural = false;
+            let stripeFileId = '';
+            let details = verificationDocument.details || verification.details;
+            if (verificationDocument.back && verificationDocument.front) {
+                stripeFileId = `${verificationDocument.front} and ${verificationDocument.back}`;
+                side = 'front and back';
+                plural = true;
+            }
+            if (verificationDocument.back && !verificationDocument.front) {
+                stripeFileId = verificationDocument.back;
+                side = 'back';
+            }
+            if (!verificationDocument.back && verificationDocument.front) {
+                stripeFileId = verificationDocument.front;
+                side = 'front';
+            }
+            // TODO: send email notification
+        }
+        if (
+            isEqual(previousVerificationStatus, 'pending') &&
+            isEqual(currentVerificationStatus, 'verified') &&
+            verificationDocument
+        ) {
+            let side = '';
+            let plural = false;
+            let stripeFileId = '';
+            if (verificationDocument.back && verificationDocument.front) {
+                stripeFileId = `${verificationDocument.front} and ${verificationDocument.back}`;
+                side = 'front and back';
+                plural = true;
+            }
+            if (verificationDocument.back && !verificationDocument.front) {
+                stripeFileId = verificationDocument.back;
+                side = 'back';
+            }
+            if (!verificationDocument.back && verificationDocument.front) {
+                stripeFileId = verificationDocument.front;
+                side = 'front';
+            }
+            // TODO: send email notification
+        }
+        if (
+            isEqual(previousVerificationStatus, 'unverified') &&
+            isEqual(currentVerificationStatus, 'verified') &&
+            verificationDocument
+        ) {
+            let side = '';
+            let plural = false;
+            let stripeFileId = '';
+            if (verificationDocument.back && verificationDocument.front) {
+                stripeFileId = `${verificationDocument.front} and ${verificationDocument.back}`;
+                side = 'front and back';
+                plural = true;
+            }
+            if (verificationDocument.back && !verificationDocument.front) {
+                stripeFileId = verificationDocument.back;
+                side = 'back';
+            }
+            if (!verificationDocument.back && verificationDocument.front) {
+                stripeFileId = verificationDocument.front;
+                side = 'front';
+            }
+            // TODO: send email notification
+        }
+        if (
+            isEqual(currentVerificationStatus, 'verified') &&
+            previousAttrVerification &&
+            previousAttrVerification.document
+        ) {
+            let side = '';
+            let plural = false;
+            let stripeFileId = '';
+            if (isNull(previousAttrVerification.document.back)) {
+                stripeFileId = verificationDocument.back;
+                side = 'back';
+            }
+            if (isNull(previousAttrVerification.document.front)) {
+                stripeFileId = verificationDocument.front;
+                side = 'front';
+            }
+
+            if (isNull(previousAttrVerification.document.front) && isNull(previousAttrVerification.document.back)) {
+                stripeFileId = `${verificationDocument.front} and ${verificationDocument.back}`;
+                side = 'front and back';
+                plural = true;
+            }
+
+            // TODO: send email notification
+        }
     }
 
     // @authorize(['*'])
