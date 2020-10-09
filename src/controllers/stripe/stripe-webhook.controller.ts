@@ -1,8 +1,9 @@
 import { Getter, inject, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import { repository, Where } from '@loopback/repository';
 import { param, post, requestBody, Response, RestBindings } from '@loopback/rest';
+import { User } from '@src/models';
 import { TopUpRepository, UserRepository } from '@src/repositories';
-import { EmailService, StripeService } from '@src/services';
+import { StripeService, UserService } from '@src/services';
 import { API_ENDPOINTS, EMAIL_TEMPLATES } from '@src/utils/constants';
 import { IRawRequest, ISignedEventData } from '@src/utils/interfaces';
 import chalk from 'chalk';
@@ -23,7 +24,7 @@ export class StripeWebhookController {
     constructor(
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
-        @service() private emailService: EmailService,
+        @service() private userService: UserService,
         @service() private stripeService: StripeService,
     ) {
         if (!process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED_SECRET_SIGN)
@@ -48,11 +49,21 @@ export class StripeWebhookController {
             event = this.stripeService.stripe.webhooks.constructEvent(rawBody, sign, secretSignKey);
             const objectData = event.data.object as { customer: string };
             const userRepository = await this.userRepositoryGetter();
-            const user = await userRepository.findOne({
-                where: {
+
+            let where: Where<User> = {};
+
+            if (event.account)
+                where = {
+                    _connectToken: event.account,
+                };
+
+            if (objectData.customer)
+                where = {
                     _customerToken: objectData.customer,
-                },
-            });
+                };
+
+            const user = await userRepository.findOne({ where });
+
             signedEventData = {
                 event,
                 user,
@@ -128,7 +139,6 @@ export class StripeWebhookController {
             return;
 
         const eventData = signedEventData.event;
-        eventData.data.previous_attributes;
         let previousAttrVerification =
             eventData.data['previous_attributes'] &&
             (eventData.data['previous_attributes'] as any)['individual'] &&
@@ -175,14 +185,12 @@ export class StripeWebhookController {
                 stripeFileId = verificationDocument.front;
                 side = 'front';
             }
-            this.emailService.sendEmail({
-                message: { to: signedEventData.user.email },
-                template: EMAIL_TEMPLATES.VERIFICATION_FILE_FAILED,
-                locals: {
-                    plural,
-                    side,
-                    details,
-                },
+
+            this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.VERIFICATION_FILE_FAILED, {
+                plural,
+                side,
+                details,
+                user: signedEventData.user,
             });
         }
         if (
@@ -206,13 +214,10 @@ export class StripeWebhookController {
                 stripeFileId = verificationDocument.front;
                 side = 'front';
             }
-            this.emailService.sendEmail({
-                message: { to: signedEventData.user.email },
-                template: EMAIL_TEMPLATES.VERIFICATION_FILE_DONE,
-                locals: {
-                    plural,
-                    side,
-                },
+            this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.VERIFICATION_FILE_DONE, {
+                plural,
+                side,
+                user: signedEventData.user,
             });
         }
         if (
@@ -236,13 +241,10 @@ export class StripeWebhookController {
                 stripeFileId = verificationDocument.front;
                 side = 'front';
             }
-            this.emailService.sendEmail({
-                message: { to: signedEventData.user.email },
-                template: EMAIL_TEMPLATES.VERIFICATION_FILE_DONE,
-                locals: {
-                    plural,
-                    side,
-                },
+            this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.VERIFICATION_FILE_DONE, {
+                plural,
+                side,
+                user: signedEventData.user,
             });
         }
         if (
@@ -268,13 +270,10 @@ export class StripeWebhookController {
                 plural = true;
             }
 
-            this.emailService.sendEmail({
-                message: { to: signedEventData.user.email },
-                template: EMAIL_TEMPLATES.VERIFICATION_FILE_DONE,
-                locals: {
-                    plural,
-                    side,
-                },
+            this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.VERIFICATION_FILE_DONE, {
+                plural,
+                side,
+                user: signedEventData.user,
             });
         }
     }
