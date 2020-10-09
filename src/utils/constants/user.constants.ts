@@ -81,6 +81,7 @@ export const PERMISSIONS = {
         CREATE_PAYOUT_METHODS: 'createPayoutMethods',
         UPDATE_PAYOUT_METHODS: 'updatePayoutMethods',
         DELETE_PAYOUT_METHODS: 'deletePayoutMethods',
+        DELETE_ALL_WALLETS: 'deleteAllWallets',
         UPLOAD_VERIFICATION_FILES: 'uploadVerificationFiles',
     },
     TEAMS: {

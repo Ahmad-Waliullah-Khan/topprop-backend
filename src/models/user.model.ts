@@ -50,13 +50,15 @@ export class User extends Entity {
 
     @property({
         type: 'string',
+        default: null,
     })
-    _customerToken: string;
+    _customerToken: string | null;
 
     @property({
         type: 'string',
+        default: null,
     })
-    _connectToken: string;
+    _connectToken: string | null;
 
     @property({
         type: 'date',
