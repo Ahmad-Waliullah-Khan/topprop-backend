@@ -652,4 +652,20 @@ export class WalletController {
             ErrorHandler.httpError(error);
         }
     }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_ALL_WALLETS)] })
+    @del(API_ENDPOINTS.USERS.WALLET.CRUD)
+    async deleteAllWallets(): Promise<ICommonHttpResponse | undefined> {
+        try {
+            for await (const account of this.stripeService.stripe.accounts.list({})) {
+                await this.stripeService.stripe.accounts.del(account.id);
+            }
+            await this.userRepository.updateAll({ _connectToken: null });
+
+            return { message: 'All accounts deleted.' };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
 }
