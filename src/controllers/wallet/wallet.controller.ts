@@ -607,14 +607,17 @@ export class WalletController {
                 throw new HttpErrors.UnsupportedMediaType(WALLET_MESSAGES.INVALID_VERIFICATION_FILE_TYPE);
             }
             const connectAccount = await this.stripeService.stripe.accounts.retrieve(user._connectToken);
+
             if (
                 (isEqual(side, VERIFICATION_FILE_SIDES.BACK) &&
-                    connectAccount.individual?.verification?.document?.back) ||
+                    connectAccount.individual?.verification?.document?.back &&
+                    isEqual(connectAccount.individual?.verification?.status, 'verified')) ||
                 (isEqual(side, VERIFICATION_FILE_SIDES.FRONT) &&
-                    connectAccount.individual?.verification?.document?.front)
+                    connectAccount.individual?.verification?.document?.front &&
+                    isEqual(connectAccount.individual?.verification?.status, 'verified'))
             ) {
                 this.multipartyFormService.removeFiles(files);
-                throw new HttpErrors.BadRequest(WALLET_MESSAGES.VERIFICATION_FILE_SIDE_ALREADY_PROVIDED);
+                throw new HttpErrors.BadRequest(WALLET_MESSAGES.VERIFICATION_FILE_SIDE_ALREADY_PROVIDED(side));
             }
 
             const identityDocument = readFileSync(verificationFile.path);

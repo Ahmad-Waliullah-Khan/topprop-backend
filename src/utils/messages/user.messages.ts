@@ -21,5 +21,7 @@ export const WALLET_MESSAGES = {
     INVALID_VERIFICATION_FILE_TYPE: `Invalid verification file type, must provide an image (PNG,JPEG).`,
     INVALID_VERIFICATION_FILE_SIDE: `Invalid verification file side, must be front or back.`,
     INVALID_VERIFICATION_FILE: `Must provide a verification file.`,
-    VERIFICATION_FILE_SIDE_ALREADY_PROVIDED: `Verification file for the provided side was already attached. Try the other side or wait until validation.`,
+    VERIFICATION_FILE_SIDE_ALREADY_PROVIDED: (side: string) =>
+        `The ${side} side verification file provided is already verified`,
+    ALREADY_VERIFIED: `The account is already verified.`,
 };
