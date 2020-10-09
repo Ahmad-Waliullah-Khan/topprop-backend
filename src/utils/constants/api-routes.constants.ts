@@ -107,10 +107,16 @@ export const API_ENDPOINTS = {
         },
         WALLET: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet`,
+            VERIFICATION_FILE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/verification-file`,
             PAYMENT_METHODS: {
                 CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods`,
                 DEFAULT_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/default`,
                 DETACH_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/detach`,
+            },
+            PAYOUT_METHODS: {
+                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payout-methods`,
+                DEFAULT_PAYOUT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payout-methods/{payoutMethod}/default`,
+                BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payout-methods/{payoutMethod}`,
             },
             FUNDS: {
                 ADD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/add`,
@@ -129,6 +135,9 @@ export const API_ENDPOINTS = {
     STRIPE_WEBHOOKS: {
         PAYMENTS: {
             REFUNDED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/payments/refunded`,
+        },
+        CONNECT_ACCOUNTS: {
+            VERIFICATION_FILE_UPDATED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/verification-file-updated`,
         },
     },
     TEAMS: {
