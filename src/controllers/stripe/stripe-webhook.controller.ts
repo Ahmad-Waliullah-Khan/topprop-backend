@@ -124,7 +124,7 @@ export class StripeWebhookController {
             this.stripeWebhookVerificationFileUpdatedSecretSign,
             res,
         );
-        if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'charge.refunded'))
+        if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'account.updated'))
             return;
 
         const eventData = signedEventData.event;

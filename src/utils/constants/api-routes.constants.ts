@@ -137,7 +137,7 @@ export const API_ENDPOINTS = {
             REFUNDED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/payments/refunded`,
         },
         CONNECT_ACCOUNTS: {
-            VERIFICATION_FILE_UPDATED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/verification-file-updated`,
+            VERIFICATION_FILE_UPDATED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/verification-file-updated`,
         },
     },
     TEAMS: {
