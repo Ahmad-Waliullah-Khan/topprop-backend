@@ -1,5 +1,6 @@
-import { isEqual } from 'lodash';
+import { find, isEqual } from 'lodash';
 import moment from 'moment';
+import { US_STATES_ABBREVIATIONS } from '../constants/wallet.constants';
 
 export class ValidatorHelpers {
     static comparePasswords = (val: string, schema: any): boolean => isEqual(schema.password, val);
@@ -69,4 +70,10 @@ export class ValidatorHelpers {
     //         validDeviceInfo = true;
     //     return validDeviceInfo;
     // };
+
+    static validWalletState = (value: string): boolean => {
+        let state = find(US_STATES_ABBREVIATIONS, state => isEqual(state.value, value));
+        if (state) return true;
+        return false;
+    };
 }
