@@ -2,8 +2,8 @@ import { Getter, inject, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { param, post, requestBody, Response, RestBindings } from '@loopback/rest';
 import { TopUpRepository, UserRepository } from '@src/repositories';
-import { StripeService } from '@src/services';
-import { API_ENDPOINTS } from '@src/utils/constants';
+import { EmailService, StripeService } from '@src/services';
+import { API_ENDPOINTS, EMAIL_TEMPLATES } from '@src/utils/constants';
 import { IRawRequest, ISignedEventData } from '@src/utils/interfaces';
 import chalk from 'chalk';
 import { isEqual, isNull } from 'lodash';
@@ -23,7 +23,7 @@ export class StripeWebhookController {
     constructor(
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
-        // @service() private emailService: EmailService,
+        @service() private emailService: EmailService,
         @service() private stripeService: StripeService,
     ) {
         if (!process.env.STRIPE_WEBHOOK_PAYMENTS_REFUNDED_SECRET_SIGN)
@@ -175,7 +175,15 @@ export class StripeWebhookController {
                 stripeFileId = verificationDocument.front;
                 side = 'front';
             }
-            // TODO: send email notification
+            this.emailService.sendEmail({
+                message: { to: signedEventData.user.email },
+                template: EMAIL_TEMPLATES.VERIFICATION_FILE_FAILED,
+                locals: {
+                    plural,
+                    side,
+                    details,
+                },
+            });
         }
         if (
             isEqual(previousVerificationStatus, 'pending') &&
@@ -198,7 +206,14 @@ export class StripeWebhookController {
                 stripeFileId = verificationDocument.front;
                 side = 'front';
             }
-            // TODO: send email notification
+            this.emailService.sendEmail({
+                message: { to: signedEventData.user.email },
+                template: EMAIL_TEMPLATES.VERIFICATION_FILE_DONE,
+                locals: {
+                    plural,
+                    side,
+                },
+            });
         }
         if (
             isEqual(previousVerificationStatus, 'unverified') &&
@@ -221,7 +236,14 @@ export class StripeWebhookController {
                 stripeFileId = verificationDocument.front;
                 side = 'front';
             }
-            // TODO: send email notification
+            this.emailService.sendEmail({
+                message: { to: signedEventData.user.email },
+                template: EMAIL_TEMPLATES.VERIFICATION_FILE_DONE,
+                locals: {
+                    plural,
+                    side,
+                },
+            });
         }
         if (
             isEqual(currentVerificationStatus, 'verified') &&
@@ -246,7 +268,14 @@ export class StripeWebhookController {
                 plural = true;
             }
 
-            // TODO: send email notification
+            this.emailService.sendEmail({
+                message: { to: signedEventData.user.email },
+                template: EMAIL_TEMPLATES.VERIFICATION_FILE_DONE,
+                locals: {
+                    plural,
+                    side,
+                },
+            });
         }
     }
 
