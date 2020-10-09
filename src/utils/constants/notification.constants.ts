@@ -23,6 +23,10 @@ export enum EMAIL_TEMPLATES {
     // SUBSCRIPTION_PAYMENT_FAILED = 'subscription-payment-failed',
     // SUBSCRIPTION_RE_ACTIVATED = 'subscription-re-activated',
     // DRIVER_INVITATION = 'driver-invitation',
+
+    VERIFICATION_FILE_FAILED = 'verification-file-failed',
+    VERIFICATION_FILE_DONE = 'verification-file-done',
+    VERIFICATION_FILE_PENDING = 'verification-file-pending',
 }
 
 // export enum PUSH_NOTIFICATIONS {
