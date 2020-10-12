@@ -15,6 +15,7 @@ export class UserHelpers {
         let userPermissions: string[] = [];
         let teamPermissions: string[] = [];
         let topUpPermissions: string[] = [];
+        let withdrawRequestPermissions: string[] = [];
 
         if (isAdmin) {
             forOwn(PERMISSIONS.BETS, (value, key) => betPermissions.push(value));
@@ -27,6 +28,7 @@ export class UserHelpers {
             forOwn(PERMISSIONS.USERS, (value, key) => userPermissions.push(value));
             forOwn(PERMISSIONS.TEAMS, (value, key) => teamPermissions.push(value));
             forOwn(PERMISSIONS.TOP_UPS, (value, key) => topUpPermissions.push(value));
+            forOwn(PERMISSIONS.WITHDRAW_REQUESTS, (value, key) => withdrawRequestPermissions.push(value));
         } else {
             contactSubmissionPermissions.push(
                 PERMISSIONS.CONTACT_SUBMISSIONS.CREATE_ANY_CONTACT_SUBMISSION,
@@ -83,6 +85,13 @@ export class UserHelpers {
             );
             topUpPermissions.push();
             betPermissions.push(PERMISSIONS.BETS.VIEW_ALL_BETS, PERMISSIONS.BETS.COUNT_BETS);
+
+            withdrawRequestPermissions.push(
+                PERMISSIONS.WITHDRAW_REQUESTS.CREATE_ANY_WITHDRAW_REQUESTS,
+                PERMISSIONS.WITHDRAW_REQUESTS.COUNT_WITHDRAW_REQUESTS,
+                PERMISSIONS.WITHDRAW_REQUESTS.VIEW_ALL_WITHDRAW_REQUESTS,
+                PERMISSIONS.WITHDRAW_REQUESTS.VIEW_ANY_WITHDRAW_REQUEST,
+            );
         }
         return defaultPermissions.concat(
             betPermissions,
@@ -95,6 +104,7 @@ export class UserHelpers {
             userPermissions,
             teamPermissions,
             topUpPermissions,
+            withdrawRequestPermissions,
         );
     }
 }

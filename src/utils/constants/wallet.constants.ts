@@ -252,3 +252,9 @@ export enum WALLET_VERIFICATION_FILE_SIDES {
 }
 
 export const DEFAULT_CAPABILITIES: Stripe.AccountCreateParams.RequestedCapability[] = ['transfers'];
+
+export enum WITHDRAW_REQUEST_STATUSES {
+    PENDING = 'pending',
+    DENIED = 'denied',
+    ACCEPTED = 'accepted',
+}

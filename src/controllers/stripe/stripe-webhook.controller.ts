@@ -21,6 +21,14 @@ export class StripeWebhookController {
         ? this.testStripeWebhookSecret
         : (process.env.STRIPE_WEBHOOK_VERIFICATION_FILE_UPDATED_SECRET_SIGN as string);
 
+    private stripeWebhookPayoutFailedSecretSign = isEqual(process.env.NODE_ENV, 'local')
+        ? this.testStripeWebhookSecret
+        : (process.env.STRIPE_WEBHOOK_PAYOUT_FAILED_SECRET_SIGN as string);
+
+    private stripeWebhookPayoutPaidSecretSign = isEqual(process.env.NODE_ENV, 'local')
+        ? this.testStripeWebhookSecret
+        : (process.env.STRIPE_WEBHOOK_PAYOUT_PAID_SECRET_SIGN as string);
+
     constructor(
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
@@ -139,6 +147,7 @@ export class StripeWebhookController {
             return;
 
         const eventData = signedEventData.event;
+        // eventData.data.previous_attributes;
         let previousAttrVerification =
             eventData.data['previous_attributes'] &&
             (eventData.data['previous_attributes'] as any)['individual'] &&
@@ -278,108 +287,57 @@ export class StripeWebhookController {
         }
     }
 
-    // @authorize(['*'])
-    // @post(API_ENDPOINTS.STRIPE_WEBHOOKS.INVOICES.PAYMENT_FAILED, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Stripe Payment Failed POST success',
-    //         },
-    //     },
-    // })
-    // async invoicesPaymentFailed(
-    //     @inject(RestBindings.Http.RESPONSE) res: Response,
-    //     @inject(RestBindings.Http.REQUEST) req: IRawRequest,
-    //     @param.header.string('stripe-signature') stripeSign: string,
-    //     @requestBody() body: any,
-    // ) {
-    //     const signedEventData = await this.signEvent(
-    //         stripeSign,
-    //         req.rawBody,
-    //         this.stripeWebhookPaymentFailedSecret,
-    //         res,
-    //     );
-    //     if (
-    //         !signedEventData.user ||
-    //         !signedEventData.event ||
-    //         !isEqual(signedEventData.event.type, 'payment_intent.payment_failed')
-    //     )
-    //         return; //* There is no user or event  or event type is not payment succeeded to send notification.
+    //FAILED PAYOUT
+    @post(API_ENDPOINTS.STRIPE_WEBHOOKS.CONNECT_ACCOUNTS.PAYOUTS.FAILED, {
+        responses: {
+            '200': {
+                description: 'Stripe Payout Failed Connect Account POST success',
+            },
+        },
+    })
+    async connectAccountPayoutFailed(
+        @inject(RestBindings.Http.RESPONSE) res: Response,
+        @inject(RestBindings.Http.REQUEST) req: IRawRequest,
+        @param.header.string('stripe-signature') stripeSign: string,
+        @requestBody() body: any,
+    ) {
+        const signedEventData = await this.signEvent(
+            stripeSign,
+            req.rawBody,
+            this.stripeWebhookPayoutFailedSecretSign,
+            res,
+        );
+        if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'payout.failed'))
+            return;
 
-    //     this.emailNotificationService.sendServiceSubscriptionPaymentFailed(signedEventData.user, signedEventData.event);
-    // }
-    // @authorize(['*'])
-    // @post(API_ENDPOINTS.STRIPE_WEBHOOKS.SUBSCRIPTIONS.SUBSCRIPTION_CANCELED, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Stripe Subscription Canceled POST success',
-    //         },
-    //     },
-    // })
-    // async subscriptionCanceled(
-    //     @inject(RestBindings.Http.RESPONSE) res: Response,
-    //     @inject(RestBindings.Http.REQUEST) req: IRawRequest,
-    //     @param.header.string('stripe-signature') stripeSign: string,
-    //     @requestBody() body: any,
-    // ) {
-    //     const signedEventData = await this.signEvent(
-    //         stripeSign,
-    //         req.rawBody,
-    //         this.stripeWebhookSubscriptionCanceledSecret,
-    //         res,
-    //     );
-    //     if (
-    //         !signedEventData.user ||
-    //         !signedEventData.event ||
-    //         !isEqual(signedEventData.event.type, 'customer.subscription.deleted')
-    //     )
-    //         return; //* There is no user or event  or event type is not payment succeeded to send notification.
+        const eventData = signedEventData.event;
+        console.log(eventData);
+    }
 
-    //     this.emailNotificationService.sendSubscriptionCanceledEmail(signedEventData.user, signedEventData.event);
-    // }
+    //PAID PAYOUT
+    @post(API_ENDPOINTS.STRIPE_WEBHOOKS.CONNECT_ACCOUNTS.PAYOUTS.PAID, {
+        responses: {
+            '200': {
+                description: 'Stripe Payout Paid Connect Account POST success',
+            },
+        },
+    })
+    async connectAccountPayoutPaid(
+        @inject(RestBindings.Http.RESPONSE) res: Response,
+        @inject(RestBindings.Http.REQUEST) req: IRawRequest,
+        @param.header.string('stripe-signature') stripeSign: string,
+        @requestBody() body: any,
+    ) {
+        const signedEventData = await this.signEvent(
+            stripeSign,
+            req.rawBody,
+            this.stripeWebhookPayoutPaidSecretSign,
+            res,
+        );
+        if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'payout.paid'))
+            return;
 
-    // @authorize(['*'])
-    // @post(API_ENDPOINTS.STRIPE_WEBHOOKS.SUBSCRIPTIONS.SUBSCRIPTION_UPDATED, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Stripe Subscription Updated POST success',
-    //         },
-    //     },
-    // })
-    // async subscriptionUpdated(
-    //     @inject(RestBindings.Http.RESPONSE) res: Response,
-    //     @inject(RestBindings.Http.REQUEST) req: IRawRequest,
-    //     @param.header.string('stripe-signature') stripeSign: string,
-    //     @requestBody() body: any,
-    // ) {
-    //     const signedEventData = await this.signEvent(
-    //         stripeSign,
-    //         req.rawBody,
-    //         this.stripeWebhookSubscriptionUpdatedSecret,
-    //         res,
-    //     );
-    //     if (
-    //         !signedEventData.user ||
-    //         !signedEventData.event ||
-    //         !isEqual(signedEventData.event.type, 'customer.subscription.updated')
-    //     )
-    //         return; //* There is no user or event  or event type is not payment succeeded to send notification.
-
-    //     if (!isEmpty(signedEventData.event.data.previous_attributes) && !isEmpty(signedEventData.event.data.object)) {
-    //         const subscription = signedEventData.event.data.object as ISubscription;
-    //         const prevAttributes = signedEventData.event.data.previous_attributes as Partial<ISubscription>;
-
-    //         const incompleteStatus: Stripe.Subscription.Status = 'incomplete';
-    //         const pastDueStatus: Stripe.Subscription.Status = 'past_due';
-    //         const activeStatus: Stripe.Subscription.Status = 'active';
-
-    //         if (
-    //             (isEqual(prevAttributes.status, pastDueStatus) || isEqual(prevAttributes.status, incompleteStatus)) &&
-    //             isEqual(subscription.status, activeStatus)
-    //         )
-    //             this.emailNotificationService.sendSubscriptionActiveAfterIncompleteEmail(
-    //                 signedEventData.user,
-    //                 signedEventData.event,
-    //             );
-    //     }
-    // }
+        const eventData = signedEventData.event;
+        console.log(eventData);
+    }
 }

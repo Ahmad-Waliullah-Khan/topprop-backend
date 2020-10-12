@@ -16,6 +16,7 @@ export const API_RESOURCES = {
     STRIPE_WEBHOOKS: 'stripe-webhooks',
     TEAMS: 'teams',
     TOP_UPS: 'top-ups',
+    WITHDRAW_REQUESTS: 'withdraw-requests',
 };
 
 export const API_ENDPOINTS = {
@@ -123,6 +124,9 @@ export const API_ENDPOINTS = {
                 RETRIEVE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/retrieve`,
                 CALCULATE_NET_AMOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/calculate-net-amount`,
             },
+            WITHDRAW_REQUESTS: {
+                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/withdraw-requests`,
+            },
         },
     },
     PLAYERS: {
@@ -138,6 +142,10 @@ export const API_ENDPOINTS = {
         },
         CONNECT_ACCOUNTS: {
             VERIFICATION_FILE_UPDATED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/verification-file-updated`,
+            PAYOUTS: {
+                PAID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/payouts/paid`,
+                FAILED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/payouts/failed`,
+            },
         },
     },
     TEAMS: {
@@ -154,5 +162,13 @@ export const API_ENDPOINTS = {
         BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}`,
         COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/count`,
         USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TOP_UPS}/{id}/user`,
+    },
+    WITHDRAW_REQUESTS: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}`,
+        BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/{id}`,
+        ACCEPT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/{id}/accept`,
+        DENY: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/{id}/deny`,
+        COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/count`,
+        USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/{id}/user`,
     },
 };
