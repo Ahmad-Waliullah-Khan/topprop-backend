@@ -306,11 +306,14 @@ export class StripeWebhookController {
             this.stripeWebhookPayoutFailedSecretSign,
             res,
         );
-        console.log(signedEventData.event);
         if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'payout.failed'))
             return;
 
-        const eventData = signedEventData.event;
+        const payout = signedEventData.event.data.object as Stripe.Payout;
+        this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_FAILED, {
+            details: payout.failure_message,
+            user: signedEventData.user,
+        });
     }
 
     //PAID PAYOUT
@@ -333,11 +336,11 @@ export class StripeWebhookController {
             this.stripeWebhookPayoutPaidSecretSign,
             res,
         );
-        console.log(signedEventData.event);
         if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'payout.paid'))
             return;
 
-        const eventData = signedEventData.event;
-        console.log(eventData);
+        this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_PAID, {
+            user: signedEventData.user,
+        });
     }
 }
