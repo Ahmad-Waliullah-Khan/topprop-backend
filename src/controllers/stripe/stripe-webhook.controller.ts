@@ -147,7 +147,6 @@ export class StripeWebhookController {
             return;
 
         const eventData = signedEventData.event;
-        // eventData.data.previous_attributes;
         let previousAttrVerification =
             eventData.data['previous_attributes'] &&
             (eventData.data['previous_attributes'] as any)['individual'] &&
