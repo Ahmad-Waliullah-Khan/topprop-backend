@@ -5,6 +5,7 @@ import { ContactSubmission } from './contact-submission.model';
 import { Contest } from './contest.model';
 import { Gain } from './gain.model';
 import { TopUp } from './top-up.model';
+import { WithdrawRequest } from './withdraw-request.model';
 
 @model({
     settings: {
@@ -130,6 +131,9 @@ export class User extends Entity {
 
     @hasMany(() => Gain)
     gains: Gain[];
+
+    @hasMany(() => WithdrawRequest)
+    withdrawRequests: WithdrawRequest[];
 
     constructor(data?: Partial<User>) {
         super(data);

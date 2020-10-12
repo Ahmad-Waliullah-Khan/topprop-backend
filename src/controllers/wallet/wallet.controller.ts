@@ -3,13 +3,14 @@ import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { del, get, HttpErrors, param, patch, post, Request, requestBody, RestBindings } from '@loopback/rest';
-import { User } from '@src/models';
+import { User, WithdrawRequest } from '@src/models';
 import { TopUpRepository, UserRepository } from '@src/repositories';
 import { MultiPartyFormService, StripeService, WalletService } from '@src/services';
 import {
     API_ENDPOINTS,
     DEFAULT_CAPABILITIES,
     FILE_NAMES,
+    MINIMUM_WITHDRAW_AMOUNT,
     PERMISSIONS,
     VERIFICATION_FILE_SIDES,
 } from '@src/utils/constants';
@@ -22,7 +23,7 @@ import {
     IWalletAddPayoutMethodReqData,
     IWalletCreateRequest,
 } from '@src/utils/interfaces';
-import { USER_MESSAGES, WALLET_MESSAGES } from '@src/utils/messages';
+import { USER_MESSAGES, WALLET_MESSAGES, WITHDRAW_REQUEST_MESSAGES } from '@src/utils/messages';
 import { WALLET_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
 import { readFileSync } from 'fs-extra';
@@ -401,7 +402,7 @@ export class WalletController {
             },
             settings: {
                 payouts: {
-                    schedule: { interval: 'manual' },
+                    schedule: { interval: 'daily', delay_days: 'minimum' },
                 },
             },
             individual: { email: user.email },
@@ -667,5 +668,39 @@ export class WalletController {
         } catch (error) {
             ErrorHandler.httpError(error);
         }
+    }
+    @authenticate('jwt')
+    @authorize({
+        voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.WITHDRAW_REQUESTS.CREATE_ANY_WITHDRAW_REQUESTS)],
+    })
+    @post(API_ENDPOINTS.USERS.WALLET.WITHDRAW_REQUESTS.CRUD)
+    async createWithdrawRequest(
+        @param.path.number('id') id: typeof User.prototype.id,
+        // @requestBody() body: Partial<WithdrawRequest>,
+    ): Promise<ICommonHttpResponse<WithdrawRequest>> {
+        // const validationSchema = {
+        //     amount: WALLET_VALIDATORS.amount(),
+        // };
+
+        // const validation = new Schema(validationSchema, { strip: true });
+        // const validationErrors = validation.validate(body);
+        // if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        const connectAccount = await this.stripeService.stripe.accounts.retrieve(user._connectToken);
+
+        if (!connectAccount.external_accounts?.data.length)
+            throw new HttpErrors.BadRequest(WALLET_MESSAGES.NO_PAYOUT_METHODS);
+
+        const totalNetAmount = await this.walletService.userBalance(id);
+
+        if (totalNetAmount < MINIMUM_WITHDRAW_AMOUNT)
+            throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT);
+        return { data: await this.userRepository.withdrawRequests(id).create({ amount: totalNetAmount }) };
     }
 }
