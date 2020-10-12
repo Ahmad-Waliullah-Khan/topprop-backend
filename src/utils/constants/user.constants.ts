@@ -98,6 +98,13 @@ export const PERMISSIONS = {
         // ARCHIVE_ANY_TOP_UP: 'archiveAnyTopUp',
         COUNT_TOP_UPS: 'countTopUps',
     },
+    WITHDRAW_REQUESTS: {
+        CREATE_ANY_WITHDRAW_REQUESTS: 'createAnyWithdrawRequests',
+        VIEW_ALL_WITHDRAW_REQUESTS: 'viewAllWithdrawRequests',
+        VIEW_ANY_WITHDRAW_REQUEST: 'viewAnyWithdrawRequest',
+        UPDATE_ANY_WITHDRAW_REQUEST: 'updateAnyWithdrawRequest',
+        COUNT_WITHDRAW_REQUESTS: 'countWithdrawRequests',
+    },
 };
 
 export enum ROLES {

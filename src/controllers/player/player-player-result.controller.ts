@@ -1,7 +1,7 @@
 import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody } from '@loopback/rest';
-import { Player, PlayerResult } from '../models';
-import { PlayerRepository } from '../repositories';
+import { Player, PlayerResult } from '@src/models';
+import { PlayerRepository } from '@src/repositories';
 
 export class PlayerPlayerResultController {
     constructor(@repository(PlayerRepository) protected playerRepository: PlayerRepository) {}

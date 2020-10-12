@@ -1,7 +1,7 @@
 import { repository } from '@loopback/repository';
-import { param, get, getModelSchemaRef } from '@loopback/rest';
-import { PlayerResult, Player } from '../models';
-import { PlayerResultRepository } from '../repositories';
+import { get, getModelSchemaRef, param } from '@loopback/rest';
+import { Player, PlayerResult } from '@src/models';
+import { PlayerResultRepository } from '@src/repositories';
 
 export class PlayerResultPlayerController {
     constructor(

@@ -1,4 +1,4 @@
-import { MINIMUM_BET_AMOUNT } from '../constants';
+import { MINIMUM_BET_AMOUNT, MINIMUM_WITHDRAW_AMOUNT } from '../constants';
 import { US_STATES_ABBREVIATIONS } from '../constants/wallet.constants';
 import { ValidatorHelpers } from '../helpers';
 
@@ -175,6 +175,19 @@ export const WALLET_VALIDATORS = {
         message: {
             required: `Id Number is required.`,
             type: `Id Number must be a number`,
+        },
+    },
+};
+
+export const WITHDRAW_REQUEST_VALIDATORS = {
+    amount: {
+        type: Number,
+        required: true,
+        size: { min: MINIMUM_WITHDRAW_AMOUNT },
+        message: {
+            type: 'Amount must be a number.',
+            required: 'Amount is required.',
+            size: `The minimum amount is 100 USD.`,
         },
     },
 };
