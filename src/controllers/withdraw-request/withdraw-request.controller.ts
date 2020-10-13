@@ -3,8 +3,8 @@ import { authorize } from '@loopback/authorization';
 import { service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, patch } from '@loopback/rest';
-import { User, WithdrawRequest } from '@src/models';
-import { WithdrawRequestRepository } from '@src/repositories';
+import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
+import { BetRepository, GainRepository, TopUpRepository, WithdrawRequestRepository } from '@src/repositories';
 import { StripeService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS, WITHDRAW_REQUEST_STATUSES } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
@@ -18,6 +18,12 @@ export class WithdrawRequestController {
     constructor(
         @repository(WithdrawRequestRepository)
         public withdrawRequestRepository: WithdrawRequestRepository,
+        @repository(BetRepository)
+        private betRepository: BetRepository,
+        @repository(GainRepository)
+        private gainRepository: GainRepository,
+        @repository(TopUpRepository)
+        private topUpRepository: TopUpRepository,
         @service() protected stripeService: StripeService,
     ) {}
 
@@ -151,7 +157,7 @@ export class WithdrawRequestController {
             if (!isEqual(withdraw.status, WITHDRAW_REQUEST_STATUSES.PENDING))
                 throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_STATUS(withdraw.status));
 
-            await this.stripeService.stripe.transfers.create({
+            const transfer = await this.stripeService.stripe.transfers.create({
                 amount: withdraw.amount,
                 destination: withdraw.user?._connectToken as string,
                 currency: 'usd',
@@ -183,6 +189,17 @@ export class WithdrawRequestController {
                 acceptedAt: moment().toDate(),
                 status: WITHDRAW_REQUEST_STATUSES.ACCEPTED,
             });
+
+            const transferUpdate: Partial<TopUp | Bet | Gain> = {
+                transferId: transfer.id,
+                transferred: true,
+                transferredAt: moment().toDate(),
+            };
+            const whereUpdate: Where<TopUp | Bet | Gain> = { userId: withdraw.userId, transferred: false, paid: false };
+
+            await this.topUpRepository.updateAll(transferUpdate, whereUpdate);
+            await this.betRepository.updateAll(transferUpdate, whereUpdate);
+            await this.gainRepository.updateAll(transferUpdate, whereUpdate);
 
             return { message: 'Withdraw accepted.' };
         } catch (error) {
