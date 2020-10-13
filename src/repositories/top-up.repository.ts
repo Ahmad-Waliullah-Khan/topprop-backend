@@ -1,5 +1,5 @@
-import { inject, Getter } from '@loopback/core';
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
 import { TopUp, TopUpRelations, User } from '../models';
