@@ -40,7 +40,13 @@ export class WithdrawRequest extends Base {
         type: 'number',
         required: true,
     })
-    amount: number;
+    netAmount: number;
+
+    @property({
+        type: 'number',
+        required: true,
+    })
+    brutAmount: number;
 
     @property({
         type: 'string',

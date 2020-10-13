@@ -28,9 +28,9 @@ export class StripeService {
     }
 
     calculateAppFee(amount: number): number {
-        let fees = amount * 0.029 + 30;
-        // if (returnValue % 1 === 0) return returnValue * TOP_PROP_FEES_MULTIPLIER;
-        // return Math.ceil(returnValue * TOP_PROP_FEES_MULTIPLIER);
+        let fees = Math.ceil(amount * 0.029 + 30);
+        // if (fees % 1 === 0) return fees * TOP_PROP_FEES_MULTIPLIER;
+        // return Math.ceil(fees * TOP_PROP_FEES_MULTIPLIER);
         return fees * TOP_PROP_FEES_MULTIPLIER;
     }
 

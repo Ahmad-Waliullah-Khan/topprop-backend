@@ -657,6 +657,23 @@ export class WalletController {
     }
 
     @authenticate('jwt')
+    @authorize({
+        voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.CALCULATE_WALLET_NET_FUNDS)],
+    })
+    @post(API_ENDPOINTS.USERS.WALLET.PAYOUTS.NET_AMOUNT)
+    async calculatePayoutsNetAmount(
+        @param.path.number('id') id: typeof User.prototype.id,
+    ): Promise<ICommonHttpResponse<number>> {
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        const usersBalance = await this.walletService.userBalance(id);
+
+        const amountAfterFees = this.stripeService.amountAfterFees(usersBalance);
+
+        return { data: amountAfterFees };
+    }
+
+    @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_ALL_WALLETS)] })
     @del(API_ENDPOINTS.USERS.WALLET.CRUD)
     async deleteAllWallets(): Promise<ICommonHttpResponse | undefined> {
