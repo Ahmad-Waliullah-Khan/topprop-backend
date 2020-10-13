@@ -30,7 +30,10 @@ export const WALLET_MESSAGES = {
 export const WITHDRAW_REQUEST_MESSAGES = {
     WITHDRAW_REQUEST_NOT_FOUND: `Withdraw request not found.`,
     LIMIT_EXCEEDED: `You have already a pending request. Please wait for our response or send us a message via the support page.`,
-    INVALID_WITHDRAW_AMOUNT: `The minimum amount to request a withdraw is $${MINIMUM_WITHDRAW_AMOUNT / 100}.`,
+    INVALID_WITHDRAW_AMOUNT: (currentAmount: number): string =>
+        `The minimum amount to request a withdraw is $${(MINIMUM_WITHDRAW_AMOUNT / 100).toFixed(
+            2,
+        )} after fees. Current amount after fees: $${(currentAmount / 100).toFixed(2)}`,
     INVALID_WITHDRAW_STATUS: (status: string) =>
         `The withdraw request must be pending to proceed, the actual status is: ${status}.`,
 };

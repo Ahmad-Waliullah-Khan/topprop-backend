@@ -158,7 +158,7 @@ export class WithdrawRequestController {
                 throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_STATUS(withdraw.status));
 
             const transfer = await this.stripeService.stripe.transfers.create({
-                amount: withdraw.amount,
+                amount: withdraw.netAmount,
                 destination: withdraw.user?._connectToken as string,
                 currency: 'usd',
                 description: `Transfer created for user ${withdraw.user?.username}`,

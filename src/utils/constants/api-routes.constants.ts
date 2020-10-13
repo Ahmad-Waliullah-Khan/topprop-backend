@@ -124,6 +124,9 @@ export const API_ENDPOINTS = {
                 RETRIEVE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/retrieve`,
                 CALCULATE_NET_AMOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/calculate-net-amount`,
             },
+            PAYOUTS: {
+                NET_AMOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payouts/net-amount`,
+            },
         },
         WITHDRAW_REQUESTS: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/withdraw-requests`,

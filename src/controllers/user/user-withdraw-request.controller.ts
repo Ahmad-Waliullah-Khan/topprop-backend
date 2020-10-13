@@ -59,11 +59,17 @@ export class UserWithdrawRequestController {
         if (!connectAccount.external_accounts?.data.length)
             throw new HttpErrors.BadRequest(WALLET_MESSAGES.NO_PAYOUT_METHODS);
 
-        const totalNetAmount = await this.walletService.userBalance(id);
+        const usersBalance = await this.walletService.userBalance(id);
+        const amountAfterFees = this.stripeService.amountAfterFees(usersBalance);
 
-        if (totalNetAmount < MINIMUM_WITHDRAW_AMOUNT)
-            throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT);
-        return { data: await this.userRepository.withdrawRequests(id).create({ amount: totalNetAmount }) };
+        if (amountAfterFees < MINIMUM_WITHDRAW_AMOUNT)
+            throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT(amountAfterFees));
+
+        return {
+            data: await this.userRepository
+                .withdrawRequests(id)
+                .create({ netAmount: amountAfterFees, brutAmount: usersBalance }),
+        };
     }
 
     /* @patch('/users/{id}/withdraw-requests', {
