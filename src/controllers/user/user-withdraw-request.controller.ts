@@ -1,12 +1,27 @@
-/* import { Count, CountSchema, Filter, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, getWhereSchemaFor, param, patch, post, requestBody } from '@loopback/rest';
-import { User, WithdrawRequest } from '../models';
-import { UserRepository } from '../repositories';
-
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { service } from '@loopback/core';
+import { Filter, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, post } from '@loopback/rest';
+import { User, WithdrawRequest } from '@src/models';
+import { UserRepository } from '@src/repositories';
+import { StripeService, WalletService } from '@src/services';
+import { API_ENDPOINTS, MINIMUM_WITHDRAW_AMOUNT, PERMISSIONS } from '@src/utils/constants';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse } from '@src/utils/interfaces';
+import { USER_MESSAGES, WALLET_MESSAGES, WITHDRAW_REQUEST_MESSAGES } from '@src/utils/messages';
 export class UserWithdrawRequestController {
-    constructor(@repository(UserRepository) protected userRepository: UserRepository) {}
+    constructor(
+        @repository(UserRepository) protected userRepository: UserRepository,
+        @service() private walletService: WalletService,
+        @service() private stripeService: StripeService,
+    ) {}
 
-    @get('/users/{id}/withdraw-requests', {
+    @authenticate('jwt')
+    @authorize({
+        voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.WITHDRAW_REQUESTS.VIEW_ALL_WITHDRAW_REQUESTS)],
+    })
+    @get(API_ENDPOINTS.USERS.WITHDRAW_REQUESTS.CRUD, {
         responses: {
             '200': {
                 description: 'Array of User has many WithdrawRequest',
@@ -21,37 +36,37 @@ export class UserWithdrawRequestController {
     async find(
         @param.path.number('id') id: number,
         @param.query.object('filter') filter?: Filter<WithdrawRequest>,
-    ): Promise<WithdrawRequest[]> {
-        return this.userRepository.withdrawRequests(id).find(filter);
+    ): Promise<ICommonHttpResponse<WithdrawRequest[]>> {
+        return { data: await this.userRepository.withdrawRequests(id).find(filter) };
     }
 
-    @post('/users/{id}/withdraw-requests', {
-        responses: {
-            '200': {
-                description: 'User model instance',
-                content: { 'application/json': { schema: getModelSchemaRef(WithdrawRequest) } },
-            },
-        },
+    @authenticate('jwt')
+    @authorize({
+        voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.WITHDRAW_REQUESTS.CREATE_ANY_WITHDRAW_REQUESTS)],
     })
-    async create(
+    @post(API_ENDPOINTS.USERS.WITHDRAW_REQUESTS.CRUD)
+    async createWithdrawRequest(
         @param.path.number('id') id: typeof User.prototype.id,
-        @requestBody({
-            content: {
-                'application/json': {
-                    schema: getModelSchemaRef(WithdrawRequest, {
-                        title: 'NewWithdrawRequestInUser',
-                        exclude: ['id'],
-                        optional: ['userId'],
-                    }),
-                },
-            },
-        })
-        withdrawRequest: Omit<WithdrawRequest, 'id'>,
-    ): Promise<WithdrawRequest> {
-        return this.userRepository.withdrawRequests(id).create(withdrawRequest);
+    ): Promise<ICommonHttpResponse<WithdrawRequest>> {
+        if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
+
+        const user = await this.userRepository.findById(id);
+
+        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        const connectAccount = await this.stripeService.stripe.accounts.retrieve(user._connectToken);
+
+        if (!connectAccount.external_accounts?.data.length)
+            throw new HttpErrors.BadRequest(WALLET_MESSAGES.NO_PAYOUT_METHODS);
+
+        const totalNetAmount = await this.walletService.userBalance(id);
+
+        if (totalNetAmount < MINIMUM_WITHDRAW_AMOUNT)
+            throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT);
+        return { data: await this.userRepository.withdrawRequests(id).create({ amount: totalNetAmount }) };
     }
 
-    @patch('/users/{id}/withdraw-requests', {
+    /* @patch('/users/{id}/withdraw-requests', {
         responses: {
             '200': {
                 description: 'User.WithdrawRequest PATCH success count',
@@ -87,6 +102,5 @@ export class UserWithdrawRequestController {
         @param.query.object('where', getWhereSchemaFor(WithdrawRequest)) where?: Where<WithdrawRequest>,
     ): Promise<Count> {
         return this.userRepository.withdrawRequests(id).delete(where);
-    }
+    } */
 }
- */
