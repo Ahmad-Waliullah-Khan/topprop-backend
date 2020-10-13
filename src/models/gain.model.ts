@@ -33,6 +33,42 @@ export class Gain extends Base {
     @belongsTo(() => Contender)
     contenderId: number;
 
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    transferred: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    transferId: string | null;
+
+    @property({
+        type: 'date',
+        default: () => null,
+    })
+    transferredAt?: Date | null;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    paid: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    payoutId: string | null;
+
+    @property({
+        type: 'date',
+        default: () => null,
+    })
+    paidAt?: Date | null;
+
     constructor(data?: Partial<Gain>) {
         super(data);
     }

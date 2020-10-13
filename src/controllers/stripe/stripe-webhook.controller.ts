@@ -1,13 +1,14 @@
 import { Getter, inject, service } from '@loopback/core';
 import { repository, Where } from '@loopback/repository';
 import { param, post, requestBody, Response, RestBindings } from '@loopback/rest';
-import { User } from '@src/models';
-import { TopUpRepository, UserRepository } from '@src/repositories';
+import { Bet, Gain, TopUp, User } from '@src/models';
+import { BetRepository, GainRepository, TopUpRepository, UserRepository } from '@src/repositories';
 import { StripeService, UserService } from '@src/services';
 import { API_ENDPOINTS, EMAIL_TEMPLATES } from '@src/utils/constants';
 import { IRawRequest, ISignedEventData } from '@src/utils/interfaces';
 import chalk from 'chalk';
 import { isEqual, isNull } from 'lodash';
+import moment from 'moment';
 import Stripe from 'stripe';
 
 export class StripeWebhookController {
@@ -32,6 +33,8 @@ export class StripeWebhookController {
     constructor(
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
+        @repository.getter('BetRepository') protected betRepositoryGetter: Getter<BetRepository>,
+        @repository.getter('GainRepository') protected gainRepositoryGetter: Getter<GainRepository>,
         @service() private userService: UserService,
         @service() private stripeService: StripeService,
     ) {
@@ -306,11 +309,47 @@ export class StripeWebhookController {
             this.stripeWebhookPayoutFailedSecretSign,
             res,
         );
-        console.log(signedEventData.event);
         if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'payout.failed'))
             return;
 
-        const eventData = signedEventData.event;
+        const betRepo = await this.betRepositoryGetter();
+        const gainRepo = await this.gainRepositoryGetter();
+        const topUpRepo = await this.topUpRepositoryGetter();
+
+        const payout = signedEventData.event.data.object as Stripe.Payout;
+
+        const revertUpdate: Partial<TopUp | Bet | Gain> = {
+            paid: false,
+            payoutId: null,
+            paidAt: null,
+            transferred: false,
+            transferId: null,
+            transferredAt: null,
+        };
+
+        const whereUpdate: Where<TopUp | Bet | Gain> = {
+            and: [
+                {
+                    or: [
+                        {
+                            paid: false,
+                        },
+                        { payoutId: payout.id, paid: true },
+                    ],
+                },
+                { transferred: true },
+                { userId: signedEventData.user.id },
+            ],
+        };
+
+        await betRepo.updateAll(revertUpdate, whereUpdate);
+        await gainRepo.updateAll(revertUpdate, whereUpdate);
+        await topUpRepo.updateAll(revertUpdate, whereUpdate);
+
+        this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_FAILED, {
+            details: payout.failure_message,
+            user: signedEventData.user,
+        });
     }
 
     //PAID PAYOUT
@@ -333,11 +372,29 @@ export class StripeWebhookController {
             this.stripeWebhookPayoutPaidSecretSign,
             res,
         );
-        console.log(signedEventData.event);
         if (!signedEventData.user || !signedEventData.event || !isEqual(signedEventData.event.type, 'payout.paid'))
             return;
 
-        const eventData = signedEventData.event;
-        console.log(eventData);
+        const betRepo = await this.betRepositoryGetter();
+        const gainRepo = await this.gainRepositoryGetter();
+        const topUpRepo = await this.topUpRepositoryGetter();
+
+        const payout = signedEventData.event.data.object as Stripe.Payout;
+
+        const paidUpdate: Partial<TopUp | Bet | Gain> = { paid: true, payoutId: payout.id, paidAt: moment().toDate() };
+
+        const whereUpdate: Where<TopUp | Bet | Gain> = {
+            paid: false,
+            transferred: true,
+            userId: signedEventData.user.id,
+        };
+
+        await betRepo.updateAll(paidUpdate, whereUpdate);
+        await gainRepo.updateAll(paidUpdate, whereUpdate);
+        await topUpRepo.updateAll(paidUpdate, whereUpdate);
+
+        this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_PAID, {
+            user: signedEventData.user,
+        });
     }
 }

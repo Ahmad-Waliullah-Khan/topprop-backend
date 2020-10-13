@@ -10,17 +10,17 @@ export class WalletService {
         //* RETRIEVE ALL TOP-UPS WHICH HAVE NOT BEEN PAID OUT
 
         const topUps = await this.userRepository.topUps(userId).find({
-            where: { paidOut: false, refunded: false },
+            where: { transferred: false, refunded: false },
             fields: { netAmount: true },
         });
         const bets = await this.userRepository.bets(userId).find({
+            where: { transferred: false },
             fields: { amount: true },
         });
         const gains = await this.userRepository.gains(userId).find({
+            where: { transferred: false },
             fields: { amount: true },
         });
-
-        //TODO WE SHOULD HAVE HERE ALSO THE WON COMPETITIONS
 
         const totalTopUpsAMount = topUps.reduce((total, current) => {
             return total + current.netAmount;

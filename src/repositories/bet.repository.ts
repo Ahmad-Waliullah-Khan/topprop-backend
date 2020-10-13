@@ -1,9 +1,10 @@
-import { DefaultCrudRepository, repository, BelongsToAccessor } from '@loopback/repository';
-import { Bet, BetRelations, User, Contender } from '../models';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
+import moment from 'moment';
 import { DbDataSource } from '../datasources';
-import { inject, Getter } from '@loopback/core';
-import { UserRepository } from './user.repository';
+import { Bet, BetRelations, Contender, User } from '../models';
 import { ContenderRepository } from './contender.repository';
+import { UserRepository } from './user.repository';
 
 export class BetRepository extends DefaultCrudRepository<Bet, typeof Bet.prototype.id, BetRelations> {
     public readonly user: BelongsToAccessor<User, typeof Bet.prototype.id>;
@@ -20,5 +21,15 @@ export class BetRepository extends DefaultCrudRepository<Bet, typeof Bet.prototy
         this.registerInclusionResolver('contender', this.contender.inclusionResolver);
         this.user = this.createBelongsToAccessorFor('user', userRepositoryGetter);
         this.registerInclusionResolver('user', this.user.inclusionResolver);
+
+        //* BEFORE SAVE HOOK
+        //* ASSIGN UPDATED AT
+        this.modelClass.observe('before save', async ctx => {
+            if (ctx.instance && !ctx.hookState.skipSetUpdateAt) {
+                ctx.instance.updatedAt = moment().toDate();
+                ctx.hookState.skipSetUpdateAt = true;
+            }
+            return;
+        });
     }
 }
