@@ -29,6 +29,8 @@ export enum EMAIL_TEMPLATES {
     VERIFICATION_FILE_PENDING = 'verification-file-pending',
     PAYOUT_FAILED = 'payout-failed',
     PAYOUT_PAID = 'payout-paid',
+    WITHDRAW_REQUEST_ACCEPTED = 'withdraw-request-accepted',
+    WITHDRAW_REQUEST_DENIED = 'withdraw-request-denied',
 }
 
 // export enum PUSH_NOTIFICATIONS {
