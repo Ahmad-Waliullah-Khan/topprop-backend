@@ -5,8 +5,8 @@ import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } f
 import { get, getModelSchemaRef, HttpErrors, param, patch } from '@loopback/rest';
 import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
 import { BetRepository, GainRepository, TopUpRepository, WithdrawRequestRepository } from '@src/repositories';
-import { StripeService } from '@src/services';
-import { API_ENDPOINTS, PERMISSIONS, WITHDRAW_REQUEST_STATUSES } from '@src/utils/constants';
+import { StripeService, UserService } from '@src/services';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, WITHDRAW_REQUEST_STATUSES } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
@@ -25,6 +25,7 @@ export class WithdrawRequestController {
         @repository(TopUpRepository)
         private topUpRepository: TopUpRepository,
         @service() protected stripeService: StripeService,
+        @service() protected userService: UserService,
     ) {}
 
     // @post(API_ENDPOINTS.WITHDRAW_REQUESTS.CRUD, {
@@ -201,6 +202,10 @@ export class WithdrawRequestController {
             await this.betRepository.updateAll(transferUpdate, whereUpdate);
             await this.gainRepository.updateAll(transferUpdate, whereUpdate);
 
+            this.userService.sendEmail(withdraw.user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_ACCEPTED, {
+                user: withdraw.user,
+            });
+
             return { message: 'Withdraw accepted.' };
         } catch (error) {
             ErrorHandler.httpError(error);
@@ -222,7 +227,7 @@ export class WithdrawRequestController {
         if (!(await this.withdrawRequestRepository.exists(id)))
             throw new HttpErrors.NotFound(WITHDRAW_REQUEST_MESSAGES.WITHDRAW_REQUEST_NOT_FOUND);
 
-        const withdraw = await this.withdrawRequestRepository.findById(id);
+        const withdraw = await this.withdrawRequestRepository.findById(id, { include: [{ relation: 'user' }] });
         if (!isEqual(withdraw.status, WITHDRAW_REQUEST_STATUSES.PENDING))
             throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_STATUS(withdraw.status));
 
@@ -230,6 +235,9 @@ export class WithdrawRequestController {
             deniedAt: moment().toDate(),
             deniedReason: 'Admin has denied the withdraw.',
             status: WITHDRAW_REQUEST_STATUSES.DENIED,
+        });
+        this.userService.sendEmail(withdraw.user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_DENIED, {
+            user: withdraw.user,
         });
 
         return { message: 'Withdraw denied.' };
