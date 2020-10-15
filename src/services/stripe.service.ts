@@ -35,6 +35,7 @@ export class StripeService {
     }
 
     amountAfterFees(amount: number): number {
-        return amount - this.calculateAppFee(amount);
+        let afterFees = amount - this.calculateAppFee(amount);
+        return afterFees <= 0 ? 0 : afterFees;
     }
 }
