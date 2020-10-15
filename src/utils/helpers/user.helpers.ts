@@ -77,6 +77,7 @@ export class UserHelpers {
                 PERMISSIONS.USERS.UPDATE_PAYOUT_METHODS,
                 PERMISSIONS.USERS.DELETE_PAYOUT_METHODS,
                 PERMISSIONS.USERS.UPLOAD_VERIFICATION_FILES,
+                PERMISSIONS.USERS.CALCULATE_WALLET_NET_FUNDS,
             );
             teamPermissions.push(
                 PERMISSIONS.TEAMS.COUNT_TEAMS,
