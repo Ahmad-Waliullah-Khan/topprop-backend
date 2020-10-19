@@ -169,12 +169,12 @@ export const WALLET_VALIDATORS = {
         },
     },
     idNumber: {
-        type: Number,
+        type: String,
         required: true,
-        // size: { min: 1, max: 31 },
+        match: /^\d$/,
         message: {
             required: `Id Number is required.`,
-            type: `Id Number must be a number`,
+            match: `Id Number must be a number`,
         },
     },
 };

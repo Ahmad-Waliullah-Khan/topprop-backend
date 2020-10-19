@@ -10,7 +10,7 @@ export interface IWalletAddFundReqData {
     amount: number;
     paymentMethod?: string;
 }
-export interface IWalletCreateRequest {
+export interface IWalletUpdateRequest {
     address: Stripe.AccountUpdateParams.Individual.Address;
     dob: Stripe.AccountUpdateParams.Individual.Dob;
     firstName: string;

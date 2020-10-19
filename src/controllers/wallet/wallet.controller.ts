@@ -20,7 +20,7 @@ import {
     IWalletAddFundReqData,
     IWalletAddPaymentMethodReqData,
     IWalletAddPayoutMethodReqData,
-    IWalletCreateRequest,
+    IWalletUpdateRequest,
 } from '@src/utils/interfaces';
 import { USER_MESSAGES, WALLET_MESSAGES } from '@src/utils/messages';
 import { WALLET_VALIDATORS } from '@src/utils/validators';
@@ -428,7 +428,7 @@ export class WalletController {
     async validateWallet(
         @inject(RestBindings.Http.REQUEST) req: Request,
         @param.path.number('id') id: typeof User.prototype.id,
-        @requestBody() body: IWalletCreateRequest,
+        @requestBody() body: IWalletUpdateRequest,
     ): Promise<ICommonHttpResponse | undefined> {
         const validationSchema = {
             address: WALLET_VALIDATORS.address,
