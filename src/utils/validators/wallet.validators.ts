@@ -171,7 +171,7 @@ export const WALLET_VALIDATORS = {
     idNumber: {
         type: String,
         required: true,
-        match: /^\d$/,
+        match: /^\d+$/,
         message: {
             required: `Id Number is required.`,
             match: `Id Number must be a number`,
