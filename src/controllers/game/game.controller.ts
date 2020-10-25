@@ -39,7 +39,7 @@ export class GameController {
     // }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.TEAMS.COUNT_TEAMS)] })
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.GAMES.COUNT_GAMES)] })
     @get(API_ENDPOINTS.GAMES.COUNT, {
         responses: {
             '200': {
@@ -53,7 +53,7 @@ export class GameController {
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.TEAMS.VIEW_ALL_TEAMS)] })
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.GAMES.VIEW_ALL_GAMES)] })
     @get(API_ENDPOINTS.GAMES.CRUD, {
         responses: {
             '200': {
@@ -96,7 +96,7 @@ export class GameController {
     // }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.TEAMS.VIEW_ANY_TEAM)] })
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.GAMES.VIEW_ANY_GAME)] })
     @get(API_ENDPOINTS.GAMES.BY_ID, {
         responses: {
             '200': {

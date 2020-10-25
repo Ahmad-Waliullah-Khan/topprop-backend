@@ -11,6 +11,7 @@ export const API_RESOURCES = {
     CONTENDERS: 'contenders',
     GAINS: 'gains',
     GAMES: 'games',
+    LEAGUE_DETAILS: 'league-details',
     USERS: 'users',
     PLAYERS: 'players',
     STRIPE_WEBHOOKS: 'stripe-webhooks',
@@ -46,11 +47,18 @@ export const API_ENDPOINTS = {
     },
     GAMES: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}`,
+        CURRENT_WEEK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/current-week`,
         BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/{id}`,
         COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/count`,
         TEAMS: {
             VISITOR: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/{id}/visitor-team`,
             HOME: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.GAMES}/{id}/home-team`,
+        },
+    },
+    LEAGUE_DETAILS: {
+        NFL: {
+            CURRENT_WEEK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_DETAILS}/nfl/current-week`,
+            CURRENT_SEASON: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_DETAILS}/nfl/current-season`,
         },
     },
     USERS: {
