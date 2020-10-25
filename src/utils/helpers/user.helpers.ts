@@ -11,6 +11,7 @@ export class UserHelpers {
         let contenderPermissions: string[] = [];
         let gainPermissions: string[] = [];
         let gamePermissions: string[] = [];
+        let nflDetailsPermissions: string[] = [];
         let playerPermissions: string[] = [];
         let userPermissions: string[] = [];
         let teamPermissions: string[] = [];
@@ -24,6 +25,7 @@ export class UserHelpers {
             forOwn(PERMISSIONS.CONTESTS, (value, key) => contestPermissions.push(value));
             forOwn(PERMISSIONS.GAINS, (value, key) => gainPermissions.push(value));
             forOwn(PERMISSIONS.GAMES, (value, key) => gamePermissions.push(value));
+            forOwn(PERMISSIONS.NFL_DETAILS, (value, key) => nflDetailsPermissions.push(value));
             forOwn(PERMISSIONS.PLAYERS, (value, key) => playerPermissions.push(value));
             forOwn(PERMISSIONS.USERS, (value, key) => userPermissions.push(value));
             forOwn(PERMISSIONS.TEAMS, (value, key) => teamPermissions.push(value));
@@ -55,6 +57,10 @@ export class UserHelpers {
                 PERMISSIONS.GAMES.VIEW_ALL_GAMES,
                 PERMISSIONS.GAMES.VIEW_ANY_GAME,
                 PERMISSIONS.GAMES.COUNT_GAMES,
+            );
+            nflDetailsPermissions.push(
+                PERMISSIONS.NFL_DETAILS.VIEW_SEASON_DETAILS,
+                PERMISSIONS.NFL_DETAILS.VIEW_WEEK_DETAILS,
             );
             playerPermissions.push(
                 PERMISSIONS.PLAYERS.COUNT_PLAYERS,
@@ -101,6 +107,7 @@ export class UserHelpers {
             contestPermissions,
             gainPermissions,
             gamePermissions,
+            nflDetailsPermissions,
             playerPermissions,
             userPermissions,
             teamPermissions,

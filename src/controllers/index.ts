@@ -11,6 +11,7 @@ export * from './contest/contest-user.controller';
 export * from './contest/contest.controller';
 export * from './game/game-team.controller';
 export * from './game/game.controller';
+export * from './league-details/nfl-details.controller';
 export * from './player/player-player-result.controller';
 // export * from './gain-user.controller';
 // export * from './gain-contender.controller';
