@@ -1,11 +1,11 @@
-import { service } from '@loopback/core';
-import { CronJob, cronJob } from '@loopback/cron';
-import { repository } from '@loopback/repository';
-import { GameRepository, TeamRepository } from '@src/repositories';
-import { SportsDataService } from '@src/services';
-import { CRON_JOBS, GAME_TYPES } from '@src/utils/constants';
+import {service} from '@loopback/core';
+import {CronJob, cronJob} from '@loopback/cron';
+import {repository} from '@loopback/repository';
+import {GameRepository, TeamRepository} from '@src/repositories';
+import {SportsDataService} from '@src/services';
+import {CRON_JOBS, GAME_TYPES} from '@src/utils/constants';
 import chalk from 'chalk';
-import { isEqual } from 'lodash';
+import {isEqual} from 'lodash';
 
 @cronJob()
 export class SyncGamesCron extends CronJob {
@@ -23,7 +23,9 @@ export class SyncGamesCron extends CronJob {
                     const season = await this.sportDataService.currentSeason();
                     const currentWeek = await this.sportDataService.currentWeek();
                     const seasonSchedule = await this.sportDataService.scheduleBySeason(season);
-                    const currentWeekSchedule = seasonSchedule.filter(game => isEqual(game.Week, currentWeek));
+                    const currentWeekSchedule = seasonSchedule.filter(
+                        game => isEqual(game.Week, currentWeek) && !isEqual(game.Status, 'Postponed'),
+                    );
 
                     for (let index = 0; index < currentWeekSchedule.length; index++) {
                         const remoteGame = currentWeekSchedule[index];
@@ -54,6 +56,8 @@ export class SyncGamesCron extends CronJob {
                                     type: GAME_TYPES.NFL,
                                     week: currentWeek,
                                     startTime: remoteGame.DateTime,
+                                    season: remoteGame.Season,
+                                    remoteId: remoteGame.GlobalGameID,
                                 });
                                 console.log(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} created`));
                             }
