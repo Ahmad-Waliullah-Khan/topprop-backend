@@ -46,6 +46,10 @@ export async function main(options: ApplicationConfig = {}) {
         const job = cronJobs[index];
         if (isEqual(job.name, CRON_JOBS.FAKE_RESULTS_CRON) && !isEqual(process.env.RUN_FAKE_RESULTS_CRON, 'true'))
             job.stop();
+        if (isEqual(job.name, CRON_JOBS.SYNC_TEAMS_CRON) && !isEqual(process.env.RUN_SYNC_TEAMS_CRON, 'true'))
+            job.stop();
+        if (isEqual(job.name, CRON_JOBS.SYNC_GAMES_CRON) && !isEqual(process.env.RUN_SYNC_GAMES_CRON, 'true'))
+            job.stop();
     }
 
     return app;

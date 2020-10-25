@@ -43,5 +43,6 @@
         "titleBar.inactiveBackground": "#ffbc2d99",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#ffbc2d"
+    "peacock.color": "#ffbc2d",
+    "cSpell.words": ["Headshot", "Rotoworld", "Timeframes", "Undrafted", "fantasydata"]
 }

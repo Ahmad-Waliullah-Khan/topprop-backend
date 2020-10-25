@@ -30,6 +30,19 @@ export class Game extends Base {
     })
     startTime: Date;
 
+    @property({
+        type: 'number',
+        required: false,
+        index: true,
+    })
+    remoteId: number;
+
+    @property({
+        type: 'number',
+        required: false,
+    })
+    season: number;
+
     @belongsTo(() => Team)
     homeTeamId: number;
 
