@@ -1,11 +1,11 @@
-import {service} from '@loopback/core';
-import {CronJob, cronJob} from '@loopback/cron';
-import {repository} from '@loopback/repository';
-import {GameRepository, TeamRepository} from '@src/repositories';
-import {SportsDataService} from '@src/services';
-import {CRON_JOBS, GAME_TYPES} from '@src/utils/constants';
+import { service } from '@loopback/core';
+import { CronJob, cronJob } from '@loopback/cron';
+import { repository } from '@loopback/repository';
+import { GameRepository, TeamRepository } from '@src/repositories';
+import { SportsDataService } from '@src/services';
+import { CRON_JOBS, GAME_TYPES } from '@src/utils/constants';
 import chalk from 'chalk';
-import {isEqual} from 'lodash';
+import { isEqual } from 'lodash';
 
 @cronJob()
 export class SyncGamesCron extends CronJob {

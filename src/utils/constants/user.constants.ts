@@ -43,11 +43,11 @@ export const PERMISSIONS = {
     GAMES: {
         VIEW_ALL_GAMES: 'viewAllGames',
         VIEW_ANY_GAME: 'viewAnyGame',
-        // CREATE_ANY_GAME: 'createAnyGame',
-        // UPDATE_ANY_GAME: 'updateAn/yGame',
-        // DELETE_ANY_GAME: 'deleteAnyGame',
-        // ARCHIVE_ANY_GAME: 'archiveAnyGame',
         COUNT_GAMES: 'countGames',
+    },
+    NFL_DETAILS: {
+        VIEW_WEEK_DETAILS: 'viewWeekDetails',
+        VIEW_SEASON_DETAILS: 'viewSeasonDetails',
     },
     PLAYERS: {
         VIEW_ALL_PLAYERS: 'viewAllPlayers',
