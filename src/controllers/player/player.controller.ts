@@ -1,11 +1,21 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
+import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post, Request, requestBody } from '@loopback/rest';
+import {
+    get,
+    getModelSchemaRef,
+    HttpErrors,
+    param,
+    post,
+    Request,
+    requestBody,
+    Response,
+    RestBindings,
+} from '@loopback/rest';
 import { Player } from '@src/models';
 import { PlayerRepository, TeamRepository } from '@src/repositories';
-import { EmailService, MultiPartyFormService } from '@src/services';
+import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
 import {
     API_ENDPOINTS,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
@@ -15,13 +25,15 @@ import {
 } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IImportedPlayer } from '@src/utils/interfaces';
+import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
 import { FILE_MESSAGES } from '@src/utils/messages';
 import chalk from 'chalk';
 import csv from 'csvtojson';
+import * as fastCsv from 'fast-csv';
 import { createReadStream } from 'fs-extra';
 import { isEmpty, isEqual, isNumber, values } from 'lodash';
 import moment from 'moment';
+
 export class PlayerController {
     constructor(
         @repository(PlayerRepository)
@@ -29,6 +41,7 @@ export class PlayerController {
         @repository(TeamRepository) private teamRepository: TeamRepository,
         @service() protected multipartyFormService: MultiPartyFormService,
         @service() private emailService: EmailService,
+        @service() private sportDataService: SportsDataService,
     ) {}
 
     @authenticate('jwt')
@@ -134,6 +147,82 @@ export class PlayerController {
     }
 
     @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.EXPORT_PLAYERS)] })
+    @post(API_ENDPOINTS.PLAYERS.EXPORT)
+    async exportRemotePlayers(@inject(RestBindings.Http.RESPONSE) res: Response): Promise<void> {
+        try {
+            let remotePlayers: IRemotePlayer[] = await this.sportDataService.availablePlayers();
+
+            const transformer = (player: IRemotePlayer) => {
+                return {
+                    name: player.Name || 'N/A',
+                    points0: 0,
+                    points2: 0,
+                    points4: 0,
+                    points6: 0,
+                    points8: 0,
+                    points10: 0,
+                    points12: 0,
+                    points14: 0,
+                    points16: 0,
+                    points18: 0,
+                    points20: 0,
+                    points22: 0,
+                    points24: 0,
+                    points26: 0,
+                    points28: 0,
+                    points30: 0,
+                    points32: 0,
+                    points34: 0,
+                    points36: 0,
+                    points38: 0,
+                    points40: 0,
+                    points42: 0,
+                    points44: 0,
+                    points46: 0,
+                    points48: 0,
+                    points50: 0,
+                    position: player.Position || 'N/A',
+                    team: player.Team || 'N/A',
+                    remoteTeamId: player.TeamID || 'N/A',
+                    remoteId: player.PlayerID || 'N/A',
+                    photoUrl: player.PhotoUrl || 'N/A',
+                };
+            };
+            let stream = fastCsv.format({
+                headers: true,
+                transform: transformer,
+            });
+            const filteredRemotePlayers = remotePlayers
+                .filter(
+                    player =>
+                        isEqual(player.Position, 'QB') ||
+                        isEqual(player.Position, 'RB') ||
+                        isEqual(player.Position, 'TE') ||
+                        isEqual(player.Position, 'WR'),
+                )
+                .filter(player => player.Team && player.TeamID);
+
+            for (let index = 0; index < filteredRemotePlayers.length; index++) {
+                const element = filteredRemotePlayers[index];
+                stream.write(element);
+            }
+            stream.end();
+
+            res.setHeader('Content-Disposition', `attachment; filename=players.csv`);
+            res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+            res.writeHead(200, {
+                'Content-Type': 'text/csv',
+            });
+
+            res.flushHeaders();
+            stream.pipe(res);
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.COUNT_PLAYERS)] })
     @get(API_ENDPOINTS.PLAYERS.COUNT, {
         responses: {
@@ -167,6 +256,33 @@ export class PlayerController {
     async find(@param.filter(Player) filter?: Filter<Player>): Promise<ICommonHttpResponse<Player[]>> {
         return { data: await this.playerRepository.find(filter) };
     }
+
+    // @authenticate('jwt')
+    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
+    // @get(API_ENDPOINTS.PLAYERS.GET_REMOTE, {
+    //     responses: {
+    //         '200': {
+    //             description: 'Array of Player model instances',
+    //             content: {
+    //                 'application/json': {
+    //                     schema: {
+    //                         type: 'array',
+    //                         items: getModelSchemaRef(Player, { includeRelations: true }),
+    //                     },
+    //                 },
+    //             },
+    //         },
+    //     },
+    // })
+    // async findRemote(@param.filter(Player) filter?: Filter<Player>): Promise<any | undefined> {
+    //     // try {
+    //     //     const now = moment().subtract(7, 'days').format(sportApiDateFormat);
+    //     //     const res = await this.sportDataService.sportDataClient.NFLv3StatsClient.getPlayerDetailsByAvailablePromise();
+    //     //     return res;
+    //     // } catch (error) {
+    //     //     ErrorHandler.httpError(error);
+    //     // }
+    // }
 
     // @patch(API_ENDPOINTS.PLAYERS.CRUD, {
     //     responses: {

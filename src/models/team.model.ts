@@ -16,6 +16,7 @@ export class Team extends Base {
         required: true,
     })
     league: string;
+
     @property({
         type: 'string',
         required: true,
@@ -33,6 +34,25 @@ export class Team extends Base {
         required: true,
     })
     name: string;
+
+    @property({
+        type: 'number',
+        required: false,
+        index: true,
+    })
+    remoteId: number;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    logoUrl: string;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    wordMarkUrl: string;
 
     @hasMany(() => Player)
     players: Player[];
