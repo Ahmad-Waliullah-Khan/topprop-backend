@@ -48,6 +48,7 @@ export const PERMISSIONS = {
     NFL_DETAILS: {
         VIEW_WEEK_DETAILS: 'viewWeekDetails',
         VIEW_SEASON_DETAILS: 'viewSeasonDetails',
+        VIEW_SCHEDULE_DETAILS: 'viewScheduleDetails',
     },
     PLAYERS: {
         VIEW_ALL_PLAYERS: 'viewAllPlayers',
