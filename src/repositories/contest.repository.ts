@@ -1,8 +1,9 @@
-import { Getter, inject } from '@loopback/core';
+import { Getter, inject, service } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
+import { SportsDataService } from '@src/services/sports-data.service';
 import { GAME_MESSAGES, PLAYER_MESSAGES, TEAM_MESSAGES } from '@src/utils/messages';
-import { isEqual } from 'lodash';
+import { find, isEqual } from 'lodash';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
 import { Contender, Contest, ContestRelations, Game, Player, User } from '../models';
@@ -26,6 +27,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
         @repository.getter('GameRepository') protected gameRepositoryGetter: Getter<GameRepository>,
         @repository.getter('ContenderRepository') protected contenderRepositoryGetter: Getter<ContenderRepository>,
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
+        @service() private sportsDataService: SportsDataService,
     ) {
         super(Contest, dataSource);
         this.creator = this.createBelongsToAccessorFor('creator', userRepositoryGetter);
@@ -56,16 +58,33 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
             }
             return;
         });
-        //* VALIDATE GAME EXISTENCE
+
+        //* VALIDATE GAME EXISTENCE & STATUS
         this.modelClass.observe('before save', async ctx => {
             if (ctx.instance && !ctx.hookState.skipGameValidation) {
                 const gameRepository = await this.gameRepositoryGetter();
                 if (!(await gameRepository.exists(ctx.instance.gameId)))
                     throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
+
+                const game = await gameRepository.findById(ctx.instance.gameId);
+                const season = await this.sportsDataService.currentSeason();
+                const currentWeek = await this.sportsDataService.currentWeek();
+                const schedule = await this.sportsDataService.scheduleBySeason(season);
+
+                const filteredSchedule = schedule.filter(remoteGame => isEqual(remoteGame.Week, currentWeek));
+
+                const remoteGame = find(filteredSchedule, remoteGame =>
+                    isEqual(remoteGame.GlobalGameID, game.remoteId),
+                );
+                if (!remoteGame) throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
+                if (!isEqual(remoteGame.Status, 'Scheduled'))
+                    throw new HttpErrors.BadRequest(GAME_MESSAGES.INVALID_GAME_STATUS(remoteGame.Status));
+
                 ctx.hookState.skipGameValidation = true;
             }
             return;
         });
+
         //* VALIDATE IF PLAYER BELONG TO ANY OF THE TEAMS
         this.modelClass.observe('before save', async ctx => {
             if (ctx.instance && !ctx.hookState.skipTeamPlayerValidation) {

@@ -1,8 +1,10 @@
-import { Getter, inject } from '@loopback/core';
+import { Getter, inject, service } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
+import { SportsDataService } from '@src/services/sports-data.service';
 import { CONTEST_STATUSES } from '@src/utils/constants';
-import { CONTENDER_MESSAGES } from '@src/utils/messages';
+import { CONTENDER_MESSAGES, GAME_MESSAGES } from '@src/utils/messages';
+import { find, isEqual } from 'lodash';
 import moment from 'moment';
 import { DbDataSource } from '../datasources';
 import { Contender, ContenderRelations, Contest, User } from '../models';
@@ -23,6 +25,7 @@ export class ContenderRepository extends DefaultCrudRepository<
         @repository.getter('ContestRepository') protected contestRepositoryGetter: Getter<ContestRepository>,
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('BetRepository') protected betRepositoryGetter: Getter<BetRepository>,
+        @service() private sportsDataService: SportsDataService,
     ) {
         super(Contender, dataSource);
         this.contender = this.createBelongsToAccessorFor('contender', userRepositoryGetter);
@@ -36,6 +39,30 @@ export class ContenderRepository extends DefaultCrudRepository<
             if (ctx.instance && !ctx.hookState.skipSetUpdateAt) {
                 ctx.instance.updatedAt = moment().toDate();
                 ctx.hookState.skipSetUpdateAt = true;
+            }
+            return;
+        });
+
+        //* VERIFY GAME STATUS
+        this.modelClass.observe('before save', async ctx => {
+            if (ctx.instance && !ctx.hookState.skipGameStatusValidation) {
+                const contestRepo = await this.contestRepositoryGetter();
+                const contest = await contestRepo.findById(ctx.instance.contestId, { include: [{ relation: 'game' }] });
+
+                const season = await this.sportsDataService.currentSeason();
+                const currentWeek = await this.sportsDataService.currentWeek();
+                const schedule = await this.sportsDataService.scheduleBySeason(season);
+
+                const filteredSchedule = schedule.filter(remoteGame => isEqual(remoteGame.Week, currentWeek));
+
+                const remoteGame = find(filteredSchedule, remoteGame =>
+                    isEqual(remoteGame.GlobalGameID, contest.game?.remoteId),
+                );
+                if (!remoteGame) throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
+                if (!isEqual(remoteGame.Status, 'Scheduled'))
+                    throw new HttpErrors.BadRequest(GAME_MESSAGES.INVALID_GAME_STATUS(remoteGame.Status));
+
+                ctx.hookState.skipGameStatusValidation = true;
             }
             return;
         });
