@@ -28,6 +28,9 @@ export interface IImportedPlayer {
     points50: number;
     position: string;
     team: string;
+    remoteTeamId: number;
+    remoteId: number;
+    photoUrl: string;
 }
 
 export interface IRemotePlayer {

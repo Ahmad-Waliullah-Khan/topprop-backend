@@ -13,10 +13,22 @@ export class Player extends Base {
     id: number;
 
     @property({
+        type: 'number',
+        required: false,
+    })
+    remoteId: number;
+
+    @property({
         type: 'string',
         required: true,
     })
     name: string;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    photoUrl: string;
 
     @property({
         type: 'boolean',

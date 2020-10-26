@@ -1,4 +1,5 @@
-import { /* inject, */ BindingScope, injectable } from '@loopback/core';
+import { BindingScope, injectable } from '@loopback/core';
+import { sportApiDateFormat } from '@src/utils/constants';
 import {
     IDailyFantasyPointsData,
     IRemoteGame,
@@ -9,6 +10,8 @@ import {
 } from '@src/utils/interfaces';
 //@ts-ignore
 import fdClientModule from 'fantasydata-node-client';
+import moment from 'moment';
+
 const keys = {
     NFLv3ScoresClient: process.env.NFL_SCORES_API_KEY as string,
     NFLv3StatsClient: process.env.NFL_SCORES_API_KEY as string,
@@ -49,8 +52,12 @@ export class SportsDataService {
     }
 
     //*STATS
-    async fantasyPointsByDate(date: string): Promise<IDailyFantasyPointsData[]> {
-        return JSON.parse(await this.sportDataClient.NFLv3StatsClient.getDailyFantasyScoringPromise(date));
+    async fantasyPointsByDate(momentInst: moment.Moment): Promise<IDailyFantasyPointsData[]> {
+        return JSON.parse(
+            await this.sportDataClient.NFLv3StatsClient.getDailyFantasyScoringPromise(
+                momentInst.format(sportApiDateFormat),
+            ),
+        );
     }
 }
 
