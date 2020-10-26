@@ -59,6 +59,8 @@ export const API_ENDPOINTS = {
         NFL: {
             CURRENT_WEEK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_DETAILS}/nfl/current-week`,
             CURRENT_SEASON: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_DETAILS}/nfl/current-season`,
+            SCHEDULE_BY_SEASON: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_DETAILS}/nfl/schedule/{season}`,
+            SCHEDULE_BY_WEEK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_DETAILS}/nfl/schedule/{season}/{week}`,
         },
     },
     USERS: {
