@@ -1,4 +1,3 @@
-import { IImportedPlayer } from '../interfaces';
 export enum DEFAULT_CSV_FILE_PLAYERS_HEADERS {
     NAME = 'name',
     POINTS_0 = 'points0',
@@ -31,7 +30,7 @@ export enum DEFAULT_CSV_FILE_PLAYERS_HEADERS {
     TEAM = 'team',
 }
 
-export const NFL_PLAYERS: IImportedPlayer[] = [
+export const NFL_PLAYERS /* : IImportedPlayer[] */ = [
     {
         name: 'Patrick Mahomes',
         points0: 0.99,

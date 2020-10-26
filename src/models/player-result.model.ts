@@ -14,6 +14,9 @@ export class PlayerResult extends Base {
     @property({
         type: 'number',
         required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
     points: number;
 

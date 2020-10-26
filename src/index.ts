@@ -44,11 +44,13 @@ export async function main(options: ApplicationConfig = {}) {
     const cronJobs = await component.getJobs();
     for (let index = 0; index < cronJobs.length; index++) {
         const job = cronJobs[index];
-        if (isEqual(job.name, CRON_JOBS.FAKE_RESULTS_CRON) && !isEqual(process.env.RUN_FAKE_RESULTS_CRON, 'true'))
-            job.stop();
+        // if (isEqual(job.name, CRON_JOBS.FAKE_RESULTS_CRON) && !isEqual(process.env.RUN_FAKE_RESULTS_CRON, 'true'))
+        //     job.stop();
         if (isEqual(job.name, CRON_JOBS.SYNC_TEAMS_CRON) && !isEqual(process.env.RUN_SYNC_TEAMS_CRON, 'true'))
             job.stop();
         if (isEqual(job.name, CRON_JOBS.SYNC_GAMES_CRON) && !isEqual(process.env.RUN_SYNC_GAMES_CRON, 'true'))
+            job.stop();
+        if (isEqual(job.name, CRON_JOBS.PLAYER_RESULTS_CRON) && !isEqual(process.env.RUN_PLAYER_RESULTS_CRON, 'true'))
             job.stop();
     }
 
