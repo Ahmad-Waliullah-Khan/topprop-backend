@@ -61,6 +61,7 @@ export class UserHelpers {
             nflDetailsPermissions.push(
                 PERMISSIONS.NFL_DETAILS.VIEW_SEASON_DETAILS,
                 PERMISSIONS.NFL_DETAILS.VIEW_WEEK_DETAILS,
+                PERMISSIONS.NFL_DETAILS.VIEW_SCHEDULE_DETAILS,
             );
             playerPermissions.push(
                 PERMISSIONS.PLAYERS.COUNT_PLAYERS,
