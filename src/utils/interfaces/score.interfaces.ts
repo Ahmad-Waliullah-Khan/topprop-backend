@@ -74,3 +74,19 @@ export interface IRemoteScore {
     NeutralVenue: boolean;
     StadiumDetails: IStadiumDetails;
 }
+export interface IDailyFantasyPointsData {
+    PlayerID: number;
+    Name: string;
+    Team: string;
+    Position: string;
+    FantasyPoints: number;
+    FantasyPointsPPR: number;
+    FantasyPointsFanDuel: number;
+    FantasyPointsDraftKings: number;
+    FantasyPointsYahoo: number;
+    HasStarted: boolean;
+    IsInProgress: boolean;
+    IsOver: boolean;
+    Date: string;
+    FantasyPointsFantasyDraft: null;
+}

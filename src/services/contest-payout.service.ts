@@ -36,7 +36,7 @@ export class ContestPayoutService {
     async calculateToWin(
         playerId: number,
         fantasyPoints: number,
-        riskAmount: number,
+        riskAmount: number = 0,
         inverse = false,
         type: CONTEST_TYPES,
     ): Promise<number> {

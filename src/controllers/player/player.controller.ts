@@ -14,10 +14,11 @@ import {
     RestBindings,
 } from '@loopback/rest';
 import { Player } from '@src/models';
-import { PlayerRepository, TeamRepository } from '@src/repositories';
+import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
 import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
 import {
     API_ENDPOINTS,
+    CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
     EMAIL_TEMPLATES,
     FILE_NAMES,
@@ -39,6 +40,7 @@ export class PlayerController {
         @repository(PlayerRepository)
         private playerRepository: PlayerRepository,
         @repository(TeamRepository) private teamRepository: TeamRepository,
+        @repository(ContestRepository) private contestRepository: ContestRepository,
         @service() protected multipartyFormService: MultiPartyFormService,
         @service() private emailService: EmailService,
         @service() private sportDataService: SportsDataService,
@@ -52,6 +54,7 @@ export class PlayerController {
         req: Request,
     ): Promise<void> {
         try {
+            // await this.playerRepository.updateAll({ available: true });
             const { files, fields } = await this.multipartyFormService.getFilesAndFields(req, '25MB');
 
             // if (isEmpty(fields) || !fields.type) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYERS_FILE_INVALID_TYPE);
@@ -80,10 +83,6 @@ export class PlayerController {
 
             csvStream.on('header', async (header: string[]) => {
                 if (!this.validHeaders(header)) errors.push('Invalid CSV Header');
-                else {
-                    await this.playerRepository.updateAll({ available: false });
-                    console.log(`All players unavailable`);
-                }
             });
 
             csvStream.on('error', error => {
@@ -118,6 +117,7 @@ export class PlayerController {
                     return;
                 }
                 try {
+                    await this.playerRepository.updateAll({ available: false });
                     await Promise.all(promises);
                     this.emailService.sendEmail({
                         template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
@@ -127,6 +127,27 @@ export class PlayerController {
                             importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
                         },
                     });
+
+                    //* HANDLE UNAVAILABLE PLAYERS
+                    const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
+                    const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
+
+                    const contests = await this.contestRepository.find({
+                        where: {
+                            and: [
+                                { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
+                                { playerId: { inq: unavailablePlayerIds } },
+                            ],
+                        },
+                    });
+
+                    for (let index = 0; index < contests.length; index++) {
+                        const contest = contests[index];
+                        contest.status = CONTEST_STATUSES.CLOSED;
+                        contest.ended = true;
+                        contest.endedAt = moment().toDate();
+                        await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
+                    }
                 } catch (error) {
                     errors.push(err.message);
                     console.error(`Error upserting players. Error:`, error);
@@ -166,7 +187,7 @@ export class PlayerController {
                         isEqual(player.Position, 'TE') ||
                         isEqual(player.Position, 'WR'),
                 )
-                .filter(player => player.Team && player.TeamID);
+                .filter(player => player.Team && player.TeamID && isEqual(player.Status, 'Active'));
 
             const sortedRemotePlayers = sortBy(filteredRemotePlayers, ['Name']);
 
@@ -422,6 +443,8 @@ export class PlayerController {
         if (
             player.team &&
             player.name &&
+            player.remoteId &&
+            player.photoUrl &&
             player.position &&
             isNumber(+player.points0) &&
             player.points0 &&
@@ -481,7 +504,7 @@ export class PlayerController {
     }
     private validHeaders(headers: string[]): boolean {
         const defaultHeaders = values(DEFAULT_CSV_FILE_PLAYERS_HEADERS);
-        if (isEqual(headers.sort(), defaultHeaders.sort())) return true;
+        if (isEqual(headers.map(x => x).sort(), defaultHeaders.sort())) return true;
         return false;
     }
 

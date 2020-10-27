@@ -28,6 +28,9 @@ export enum DEFAULT_CSV_FILE_PLAYERS_HEADERS {
     POINTS_50 = 'points50',
     POSITION = 'position',
     TEAM = 'team',
+    REMOTE_TEAM_ID = 'remoteTeamId',
+    REMOTE_ID = 'remoteId',
+    PHOTO_URL = 'photoUrl',
 }
 
 export const NFL_PLAYERS /* : IImportedPlayer[] */ = [
