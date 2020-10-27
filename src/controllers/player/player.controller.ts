@@ -14,10 +14,11 @@ import {
     RestBindings,
 } from '@loopback/rest';
 import { Player } from '@src/models';
-import { PlayerRepository, TeamRepository } from '@src/repositories';
+import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
 import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
 import {
     API_ENDPOINTS,
+    CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
     EMAIL_TEMPLATES,
     FILE_NAMES,
@@ -39,6 +40,7 @@ export class PlayerController {
         @repository(PlayerRepository)
         private playerRepository: PlayerRepository,
         @repository(TeamRepository) private teamRepository: TeamRepository,
+        @repository(ContestRepository) private contestRepository: ContestRepository,
         @service() protected multipartyFormService: MultiPartyFormService,
         @service() private emailService: EmailService,
         @service() private sportDataService: SportsDataService,
@@ -127,6 +129,25 @@ export class PlayerController {
                             importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
                         },
                     });
+
+                    //* HANDLE UNAVAILABLE PLAYERS
+                    const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
+                    const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
+
+                    const contests = await this.contestRepository.find({
+                        where: {
+                            and: [
+                                { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
+                                { playerId: { inq: unavailablePlayerIds } },
+                            ],
+                        },
+                    });
+
+                    for (let index = 0; index < contests.length; index++) {
+                        const contest = contests[index];
+                        contest.status = CONTEST_STATUSES.CLOSED;
+                        await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
+                    }
                 } catch (error) {
                     errors.push(err.message);
                     console.error(`Error upserting players. Error:`, error);
@@ -166,7 +187,7 @@ export class PlayerController {
                         isEqual(player.Position, 'TE') ||
                         isEqual(player.Position, 'WR'),
                 )
-                .filter(player => player.Team && player.TeamID);
+                .filter(player => player.Team && player.TeamID && isEqual(player.Status, 'Active'));
 
             const sortedRemotePlayers = sortBy(filteredRemotePlayers, ['Name']);
 
@@ -422,6 +443,8 @@ export class PlayerController {
         if (
             player.team &&
             player.name &&
+            player.remoteId &&
+            player.photoUrl &&
             player.position &&
             isNumber(+player.points0) &&
             player.points0 &&
