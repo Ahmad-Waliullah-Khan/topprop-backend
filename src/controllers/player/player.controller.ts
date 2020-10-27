@@ -176,7 +176,7 @@ export class PlayerController {
             }
             stream.end();
 
-            res.setHeader('Content-Disposition', `attachment; filename=default-players.csv`);
+            res.setHeader('Content-Disposition', `attachment; filename=remote-players.csv`);
             res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
             res.writeHead(200, {
                 'Content-Type': 'text/csv',
