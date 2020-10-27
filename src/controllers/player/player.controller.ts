@@ -31,7 +31,7 @@ import chalk from 'chalk';
 import csv from 'csvtojson';
 import * as fastCsv from 'fast-csv';
 import { createReadStream } from 'fs-extra';
-import { isEmpty, isEqual, isNumber, values } from 'lodash';
+import { isEmpty, isEqual, isNumber, sortBy, values } from 'lodash';
 import moment from 'moment';
 
 export class PlayerController {
@@ -151,48 +151,13 @@ export class PlayerController {
     @post(API_ENDPOINTS.PLAYERS.EXPORT)
     async exportRemotePlayers(@inject(RestBindings.Http.RESPONSE) res: Response): Promise<void> {
         try {
-            let remotePlayers: IRemotePlayer[] = await this.sportDataService.availablePlayers();
+            const remotePlayers: IRemotePlayer[] = await this.sportDataService.availablePlayers();
 
-            const transformer = (player: IRemotePlayer) => {
-                return {
-                    name: player.Name || 'N/A',
-                    points0: 0,
-                    points2: 0,
-                    points4: 0,
-                    points6: 0,
-                    points8: 0,
-                    points10: 0,
-                    points12: 0,
-                    points14: 0,
-                    points16: 0,
-                    points18: 0,
-                    points20: 0,
-                    points22: 0,
-                    points24: 0,
-                    points26: 0,
-                    points28: 0,
-                    points30: 0,
-                    points32: 0,
-                    points34: 0,
-                    points36: 0,
-                    points38: 0,
-                    points40: 0,
-                    points42: 0,
-                    points44: 0,
-                    points46: 0,
-                    points48: 0,
-                    points50: 0,
-                    position: player.Position || 'N/A',
-                    team: player.Team || 'N/A',
-                    remoteTeamId: player.TeamID || 'N/A',
-                    remoteId: player.PlayerID || 'N/A',
-                    photoUrl: player.PhotoUrl || 'N/A',
-                };
-            };
-            let stream = fastCsv.format({
+            const stream = fastCsv.format({
                 headers: true,
-                transform: transformer,
+                transform: this.playersCsvTransformer,
             });
+
             const filteredRemotePlayers = remotePlayers
                 .filter(
                     player =>
@@ -203,13 +168,15 @@ export class PlayerController {
                 )
                 .filter(player => player.Team && player.TeamID);
 
-            for (let index = 0; index < filteredRemotePlayers.length; index++) {
-                const element = filteredRemotePlayers[index];
+            const sortedRemotePlayers = sortBy(filteredRemotePlayers, ['Name']);
+
+            for (let index = 0; index < sortedRemotePlayers.length; index++) {
+                const element = sortedRemotePlayers[index];
                 stream.write(element);
             }
             stream.end();
 
-            res.setHeader('Content-Disposition', `attachment; filename=players.csv`);
+            res.setHeader('Content-Disposition', `attachment; filename=default-players.csv`);
             res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
             res.writeHead(200, {
                 'Content-Type': 'text/csv',
@@ -516,5 +483,42 @@ export class PlayerController {
         const defaultHeaders = values(DEFAULT_CSV_FILE_PLAYERS_HEADERS);
         if (isEqual(headers.sort(), defaultHeaders.sort())) return true;
         return false;
+    }
+
+    private playersCsvTransformer(player: IRemotePlayer) {
+        return {
+            name: player.Name || 'N/A',
+            points0: 0,
+            points2: 0,
+            points4: 0,
+            points6: 0,
+            points8: 0,
+            points10: 0,
+            points12: 0,
+            points14: 0,
+            points16: 0,
+            points18: 0,
+            points20: 0,
+            points22: 0,
+            points24: 0,
+            points26: 0,
+            points28: 0,
+            points30: 0,
+            points32: 0,
+            points34: 0,
+            points36: 0,
+            points38: 0,
+            points40: 0,
+            points42: 0,
+            points44: 0,
+            points46: 0,
+            points48: 0,
+            points50: 0,
+            position: player.Position || 'N/A',
+            team: player.Team || 'N/A',
+            remoteTeamId: player.TeamID || 'N/A',
+            remoteId: player.PlayerID || 'N/A',
+            photoUrl: player.PhotoUrl || 'N/A',
+        };
     }
 }
