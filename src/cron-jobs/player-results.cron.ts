@@ -48,6 +48,16 @@ export class PlayerResultsCron extends CronJob {
                                 endedAt: moment().toDate(),
                             });
                             console.log(`Contest marked as unmatched.`);
+
+                            const contender = contest.contenders[0];
+
+                            await this.gainRepository.create({
+                                amount: +contender.toRiskAmount,
+                                notes: `Contest unmatched`,
+                                contenderId: contender.id,
+                                userId: contender.contenderId,
+                            });
+                            console.log(`Gain created on contest unmatched`);
                         }
                         if (isEqual(contest.status, CONTEST_STATUSES.MATCHED)) {
                             const foundScoreResult = find(filteredFantasyScoringResults, score =>
