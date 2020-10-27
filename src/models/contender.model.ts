@@ -32,6 +32,13 @@ export class Contender extends Base {
         default: false,
     })
     tied: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    tiedReason: string | null;
+
     @property({
         type: 'date',
         required: false,

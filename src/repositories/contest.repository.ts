@@ -8,6 +8,7 @@ import moment from 'moment';
 import { DbDataSource } from '../datasources';
 import { Contender, Contest, ContestRelations, Game, Player, User } from '../models';
 import { ContenderRepository } from './contender.repository';
+import { GainRepository } from './gain.repository';
 import { GameRepository } from './game.repository';
 import { PlayerRepository } from './player.repository';
 import { UserRepository } from './user.repository';
@@ -27,6 +28,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
         @repository.getter('GameRepository') protected gameRepositoryGetter: Getter<GameRepository>,
         @repository.getter('ContenderRepository') protected contenderRepositoryGetter: Getter<ContenderRepository>,
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
+        @repository.getter('GainRepository') protected gainRepositoryGetter: Getter<GainRepository>,
         @service() private sportsDataService: SportsDataService,
     ) {
         super(Contest, dataSource);
@@ -61,7 +63,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
 
         //* VALIDATE GAME EXISTENCE & STATUS
         this.modelClass.observe('before save', async ctx => {
-            if (ctx.instance && !ctx.hookState.skipGameValidation) {
+            if (ctx.instance && !ctx.options.skipGameValidation && !ctx.hookState.skipGameValidation) {
                 const gameRepository = await this.gameRepositoryGetter();
                 if (!(await gameRepository.exists(ctx.instance.gameId)))
                     throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
@@ -128,6 +130,33 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                     { fromContest: true },
                 );
                 ctx.hookState.skipInitialContenderCreation = true;
+            }
+            return;
+        });
+        //* MANAGE REFUNDS IF CONTESt CLOSED & WHEN IMPORT PLAYERS
+        this.modelClass.observe('after save', async ctx => {
+            if (ctx.instance && ctx.options.refundBets && !ctx.hookState.skipRefundBetsByPlayersImport) {
+                const contest = await this.findById(ctx.instance.id, { include: [{ relation: 'contenders' }] });
+                const contenderRepo = await this.contenderRepositoryGetter();
+                const gainRepo = await this.gainRepositoryGetter();
+                for (let index = 0; index < contest.contenders.length; index++) {
+                    const contender = contest.contenders[index];
+
+                    await contenderRepo.updateById(contender.id, {
+                        tied: true,
+                        tiedAt: moment().toDate(),
+                        tiedReason: `Player unavailable.`,
+                    });
+                    console.log(`Contender tied updated.`);
+                    await gainRepo.create({
+                        amount: +contender.toRiskAmount,
+                        notes: `Contest tied. Player unavailable.`,
+                        contenderId: contender.id,
+                        userId: contender.contenderId,
+                    });
+                    console.log(`Gain created on contest tied by player unavailable.`);
+                }
+                ctx.hookState.skipRefundBetsByPlayersImport = true;
             }
             return;
         });
