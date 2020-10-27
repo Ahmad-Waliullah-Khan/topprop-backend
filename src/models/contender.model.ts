@@ -31,6 +31,25 @@ export class Contender extends Base {
         type: 'boolean',
         default: false,
     })
+    canceled: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    canceledReason: string | null;
+
+    @property({
+        type: 'date',
+        required: false,
+        default: null,
+    })
+    canceledAt: Date | null;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
     tied: boolean;
 
     @property({

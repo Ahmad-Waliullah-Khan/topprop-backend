@@ -143,9 +143,9 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                     const contender = contest.contenders[index];
 
                     await contenderRepo.updateById(contender.id, {
-                        tied: true,
-                        tiedAt: moment().toDate(),
-                        tiedReason: `Player unavailable.`,
+                        canceled: true,
+                        canceledAt: moment().toDate(),
+                        canceledReason: `Player unavailable.`,
                     });
                     console.log(`Contender tied updated.`);
                     await gainRepo.create({
