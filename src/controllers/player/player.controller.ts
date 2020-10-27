@@ -54,6 +54,7 @@ export class PlayerController {
         req: Request,
     ): Promise<void> {
         try {
+            // await this.playerRepository.updateAll({ available: true });
             const { files, fields } = await this.multipartyFormService.getFilesAndFields(req, '25MB');
 
             // if (isEmpty(fields) || !fields.type) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYERS_FILE_INVALID_TYPE);
@@ -82,10 +83,6 @@ export class PlayerController {
 
             csvStream.on('header', async (header: string[]) => {
                 if (!this.validHeaders(header)) errors.push('Invalid CSV Header');
-                else {
-                    await this.playerRepository.updateAll({ available: false });
-                    console.log(`All players unavailable`);
-                }
             });
 
             csvStream.on('error', error => {
@@ -120,6 +117,7 @@ export class PlayerController {
                     return;
                 }
                 try {
+                    await this.playerRepository.updateAll({ available: false });
                     await Promise.all(promises);
                     this.emailService.sendEmail({
                         template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
@@ -146,6 +144,8 @@ export class PlayerController {
                     for (let index = 0; index < contests.length; index++) {
                         const contest = contests[index];
                         contest.status = CONTEST_STATUSES.CLOSED;
+                        contest.ended = true;
+                        contest.endedAt = moment().toDate();
                         await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
                     }
                 } catch (error) {
@@ -504,7 +504,7 @@ export class PlayerController {
     }
     private validHeaders(headers: string[]): boolean {
         const defaultHeaders = values(DEFAULT_CSV_FILE_PLAYERS_HEADERS);
-        if (isEqual(headers.sort(), defaultHeaders.sort())) return true;
+        if (isEqual(headers.map(x => x).sort(), defaultHeaders.sort())) return true;
         return false;
     }
 
