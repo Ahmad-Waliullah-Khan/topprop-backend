@@ -41,6 +41,8 @@ export class ContestPayoutService {
         type: CONTEST_TYPES,
     ): Promise<number> {
         let toWin = 0;
+        if (fantasyPoints > 50) return toWin;
+
         const player = await this.playerRepo.findById(playerId);
         if (player) {
             let lookForPercentage = 0;
