@@ -16,7 +16,7 @@ export class SyncGamesCron extends CronJob {
     ) {
         super({
             // cronTime: '0 * * * * *', // Every minute
-            cronTime: '0 15 * * * *', // Every day at 23 hrs
+            cronTime: '0 35 * * * *', // Every day at 23 hrs
             name: CRON_JOBS.SYNC_GAMES_CRON,
             onTick: async () => {
                 try {
