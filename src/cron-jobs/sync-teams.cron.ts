@@ -14,7 +14,7 @@ export class SyncTeamsCron extends CronJob {
     ) {
         super({
             // cronTime: '0 * * * * *', // Every minute
-            cronTime: '0 0 23 * * *', // Every day at 23 hrs
+            cronTime: '0 45 * * * *', // Every hour at 45th minute
             name: CRON_JOBS.SYNC_TEAMS_CRON,
             onTick: async () => {
                 try {

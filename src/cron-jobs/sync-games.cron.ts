@@ -16,12 +16,13 @@ export class SyncGamesCron extends CronJob {
     ) {
         super({
             // cronTime: '0 * * * * *', // Every minute
-            cronTime: '0 35 * * * *', // Every day at 23 hrs
+            cronTime: '0 30 * * * *', // Every hour at 30th minute
             name: CRON_JOBS.SYNC_GAMES_CRON,
             onTick: async () => {
                 try {
                     const season = await this.sportDataService.currentSeason();
                     const currentWeek = await this.sportDataService.currentWeek();
+
                     const seasonSchedule = await this.sportDataService.scheduleBySeason(season);
                     const currentWeekSchedule = seasonSchedule.filter(
                         game => isEqual(game.Week, currentWeek) && !isEqual(game.Status, 'Postponed'),
