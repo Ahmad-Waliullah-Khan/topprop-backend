@@ -2,17 +2,7 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import {
-    get,
-    getModelSchemaRef,
-    HttpErrors,
-    param,
-    post,
-    Request,
-    requestBody,
-    Response,
-    RestBindings,
-} from '@loopback/rest';
+import { get, getModelSchemaRef, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
 import { Player } from '@src/models';
 import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
 import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
@@ -21,19 +11,17 @@ import {
     CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
     EMAIL_TEMPLATES,
-    FILE_NAMES,
     PERMISSIONS,
 } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
-import { FILE_MESSAGES } from '@src/utils/messages';
+import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
-import csv from 'csvtojson';
 import * as fastCsv from 'fast-csv';
-import { createReadStream } from 'fs-extra';
-import { isEmpty, isEqual, isNumber, sortBy, values } from 'lodash';
+import { isEqual, isNumber, sortBy, values } from 'lodash';
 import moment from 'moment';
+import Schema, { SchemaDefinition } from 'validate';
 
 export class PlayerController {
     constructor(
@@ -46,126 +34,244 @@ export class PlayerController {
         @service() private sportDataService: SportsDataService,
     ) {}
 
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.IMPORT_PLAYERS)] })
-    @post(API_ENDPOINTS.PLAYERS.IMPORT)
-    async create(
-        @requestBody.file()
-        req: Request,
+    // @authenticate('jwt')
+    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.IMPORT_PLAYERS)] })
+    @post(API_ENDPOINTS.PLAYERS.GOOGLE_SHEETS_IMPORT)
+    async googleSheetsImport(
+        @inject(RestBindings.Http.RESPONSE) res: Response,
+        @param.header.string('g-sheets-auth-header') gSheetsAuthHeader: string,
+        @requestBody() body: { data: IImportedPlayer[] },
     ): Promise<void> {
+        res.sendStatus(200);
+
+        if (!gSheetsAuthHeader || !isEqual(gSheetsAuthHeader, process.env.GOOGLE_APP_SCRIPT_AUTH_HEADER)) return;
+        const promises: Promise<void>[] = [];
+        const validationSchema: SchemaDefinition = {
+            name: IMPORTED_PLAYER_VALIDATORS.name,
+            position: IMPORTED_PLAYER_VALIDATORS.position,
+            team: IMPORTED_PLAYER_VALIDATORS.team,
+            remoteTeamId: IMPORTED_PLAYER_VALIDATORS.remoteTeamId,
+            remoteId: IMPORTED_PLAYER_VALIDATORS.remoteId,
+            photoUrl: IMPORTED_PLAYER_VALIDATORS.photoUrl,
+            points0: IMPORTED_PLAYER_VALIDATORS.points(0),
+            points2: IMPORTED_PLAYER_VALIDATORS.points(2),
+            points4: IMPORTED_PLAYER_VALIDATORS.points(4),
+            points6: IMPORTED_PLAYER_VALIDATORS.points(6),
+            points8: IMPORTED_PLAYER_VALIDATORS.points(8),
+            points10: IMPORTED_PLAYER_VALIDATORS.points(10),
+            points12: IMPORTED_PLAYER_VALIDATORS.points(12),
+            points14: IMPORTED_PLAYER_VALIDATORS.points(14),
+            points16: IMPORTED_PLAYER_VALIDATORS.points(16),
+            points18: IMPORTED_PLAYER_VALIDATORS.points(18),
+            points20: IMPORTED_PLAYER_VALIDATORS.points(20),
+            points22: IMPORTED_PLAYER_VALIDATORS.points(22),
+            points24: IMPORTED_PLAYER_VALIDATORS.points(24),
+            points26: IMPORTED_PLAYER_VALIDATORS.points(26),
+            points28: IMPORTED_PLAYER_VALIDATORS.points(28),
+            points30: IMPORTED_PLAYER_VALIDATORS.points(30),
+            points32: IMPORTED_PLAYER_VALIDATORS.points(32),
+            points34: IMPORTED_PLAYER_VALIDATORS.points(34),
+            points36: IMPORTED_PLAYER_VALIDATORS.points(36),
+            points38: IMPORTED_PLAYER_VALIDATORS.points(38),
+            points40: IMPORTED_PLAYER_VALIDATORS.points(40),
+            points42: IMPORTED_PLAYER_VALIDATORS.points(42),
+            points44: IMPORTED_PLAYER_VALIDATORS.points(44),
+            points46: IMPORTED_PLAYER_VALIDATORS.points(46),
+            points48: IMPORTED_PLAYER_VALIDATORS.points(48),
+            points50: IMPORTED_PLAYER_VALIDATORS.points(50),
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        let errorFound = false;
+
+        for (let index = 0; index < body.data.length; index++) {
+            const player = body.data[index];
+            const validationErrors = validation.validate(player);
+            if (validationErrors.length) {
+                errorFound = true;
+                this.emailService.sendEmail({
+                    template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
+                    message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+                    locals: {
+                        targetResources: 'Players - Google Sheets',
+                        importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+                        errors: validationErrors.map((error: any) => `Error at row: ${index + 1} - ${error.message}`),
+                    },
+                });
+                break;
+            } else promises.push(this.upsertPlayer(player));
+        }
+
+        //* IF ERROR FOUND, SKIP THE REST OF THE IMPORTING
+        if (errorFound) return;
+
         try {
-            // await this.playerRepository.updateAll({ available: true });
-            const { files, fields } = await this.multipartyFormService.getFilesAndFields(req, '25MB');
+            await this.playerRepository.updateAll({ available: false });
+            await Promise.all(promises);
+            this.emailService.sendEmail({
+                template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
+                message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+                locals: {
+                    targetResources: 'Players - Google Sheets',
+                    importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+                },
+            });
 
-            // if (isEmpty(fields) || !fields.type) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYERS_FILE_INVALID_TYPE);
+            //* HANDLE UNAVAILABLE PLAYERS
+            const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
+            const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
 
-            if (isEmpty(files)) throw new HttpErrors.BadRequest(FILE_MESSAGES.FILE_MISSING);
+            const contests = await this.contestRepository.find({
+                where: {
+                    and: [
+                        { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
+                        { playerId: { inq: unavailablePlayerIds } },
+                    ],
+                },
+            });
 
-            const playersFile = files[FILE_NAMES.PLAYERS];
-            if (!playersFile) {
-                this.multipartyFormService.removeFiles(files);
-                throw new HttpErrors.BadRequest(FILE_MESSAGES.FILE_MISSING);
+            for (let index = 0; index < contests.length; index++) {
+                const contest = contests[index];
+                contest.status = CONTEST_STATUSES.CLOSED;
+                contest.ended = true;
+                contest.endedAt = moment().toDate();
+                await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
             }
-
-            const allowedContentType = 'text/csv';
-
-            let fileContentType = playersFile.headers['content-type'];
-
-            if (!this.multipartyFormService.isContentType(allowedContentType, fileContentType)) {
-                this.multipartyFormService.removeFiles(files);
-                throw new HttpErrors.UnsupportedMediaType(FILE_MESSAGES.FILE_INVALID(allowedContentType));
-            }
-
-            const errors: string[] = [];
-            const promises: Promise<void>[] = [];
-
-            const csvStream = csv().fromStream(createReadStream(playersFile.path));
-
-            csvStream.on('header', async (header: string[]) => {
-                if (!this.validHeaders(header)) errors.push('Invalid CSV Header');
-            });
-
-            csvStream.on('error', error => {
-                errors.push(error.message);
-            });
-
-            csvStream.on('data', data => {
-                if (errors.length) return;
-
-                const stringifiedData = data.toString('utf8');
-                const parsedData: IImportedPlayer = JSON.parse(stringifiedData);
-
-                if (!this.validPlayer(parsedData)) errors.push(stringifiedData);
-                else promises.push(this.upsertPlayer(parsedData));
-            });
-
-            csvStream.on('done', async err => {
-                this.multipartyFormService.removeFiles(files);
-
-                if (err) errors.push(err.message);
-
-                if (errors.length) {
-                    this.emailService.sendEmail({
-                        template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
-                        message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-                        locals: {
-                            targetResources: 'Players',
-                            importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-                            errors,
-                        },
-                    });
-                    return;
-                }
-                try {
-                    await this.playerRepository.updateAll({ available: false });
-                    await Promise.all(promises);
-                    this.emailService.sendEmail({
-                        template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
-                        message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-                        locals: {
-                            targetResources: 'Players',
-                            importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-                        },
-                    });
-
-                    //* HANDLE UNAVAILABLE PLAYERS
-                    const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
-                    const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
-
-                    const contests = await this.contestRepository.find({
-                        where: {
-                            and: [
-                                { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
-                                { playerId: { inq: unavailablePlayerIds } },
-                            ],
-                        },
-                    });
-
-                    for (let index = 0; index < contests.length; index++) {
-                        const contest = contests[index];
-                        contest.status = CONTEST_STATUSES.CLOSED;
-                        contest.ended = true;
-                        contest.endedAt = moment().toDate();
-                        await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
-                    }
-                } catch (error) {
-                    errors.push(err.message);
-                    console.error(`Error upserting players. Error:`, error);
-                    this.emailService.sendEmail({
-                        template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
-                        message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-                        locals: {
-                            targetResources: 'Players',
-                            importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-                            errors,
-                        },
-                    });
-                }
-            });
         } catch (error) {
-            ErrorHandler.httpError(error);
+            console.error(`Error upserting players from google sheets. Error:`, error);
+            this.emailService.sendEmail({
+                template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
+                message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+                locals: {
+                    targetResources: 'Players - Google Sheets',
+                    importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+                    errors: [error.message || 'Unknown Error. Try again.'],
+                },
+            });
         }
     }
+
+    //!!DEPRECATED
+    // @authenticate('jwt')
+    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.IMPORT_PLAYERS)] })
+    // @post(API_ENDPOINTS.PLAYERS.IMPORT)
+    // async create(
+    //     @requestBody.file()
+    //     req: Request,
+    // ): Promise<void> {
+    //     try {
+    //         // await this.playerRepository.updateAll({ available: true });
+    //         const { files, fields } = await this.multipartyFormService.getFilesAndFields(req, '25MB');
+
+    //         // if (isEmpty(fields) || !fields.type) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYERS_FILE_INVALID_TYPE);
+
+    //         if (isEmpty(files)) throw new HttpErrors.BadRequest(FILE_MESSAGES.FILE_MISSING);
+
+    //         const playersFile = files[FILE_NAMES.PLAYERS];
+    //         if (!playersFile) {
+    //             this.multipartyFormService.removeFiles(files);
+    //             throw new HttpErrors.BadRequest(FILE_MESSAGES.FILE_MISSING);
+    //         }
+
+    //         const allowedContentType = 'text/csv';
+
+    //         let fileContentType = playersFile.headers['content-type'];
+
+    //         if (!this.multipartyFormService.isContentType(allowedContentType, fileContentType)) {
+    //             this.multipartyFormService.removeFiles(files);
+    //             throw new HttpErrors.UnsupportedMediaType(FILE_MESSAGES.FILE_INVALID(allowedContentType));
+    //         }
+
+    //         const errors: string[] = [];
+    //         const promises: Promise<void>[] = [];
+
+    //         const csvStream = csv().fromStream(createReadStream(playersFile.path));
+
+    //         csvStream.on('header', async (header: string[]) => {
+    //             if (!this.validHeaders(header)) errors.push('Invalid CSV Header');
+    //         });
+
+    //         csvStream.on('error', error => {
+    //             errors.push(error.message);
+    //         });
+
+    //         csvStream.on('data', data => {
+    //             if (errors.length) return;
+
+    //             const stringifiedData = data.toString('utf8');
+    //             const parsedData: IImportedPlayer = JSON.parse(stringifiedData);
+
+    //             if (!this.validPlayer(parsedData)) errors.push(stringifiedData);
+    //             else promises.push(this.upsertPlayer(parsedData));
+    //         });
+
+    //         csvStream.on('done', async err => {
+    //             this.multipartyFormService.removeFiles(files);
+
+    //             if (err) errors.push(err.message);
+
+    //             if (errors.length) {
+    //                 this.emailService.sendEmail({
+    //                     template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
+    //                     message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+    //                     locals: {
+    //                         targetResources: 'Players',
+    //                         importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+    //                         errors,
+    //                     },
+    //                 });
+    //                 return;
+    //             }
+    //             try {
+    //                 await this.playerRepository.updateAll({ available: false });
+    //                 await Promise.all(promises);
+    //                 this.emailService.sendEmail({
+    //                     template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
+    //                     message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+    //                     locals: {
+    //                         targetResources: 'Players',
+    //                         importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+    //                     },
+    //                 });
+
+    //                 //* HANDLE UNAVAILABLE PLAYERS
+    //                 const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
+    //                 const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
+
+    //                 const contests = await this.contestRepository.find({
+    //                     where: {
+    //                         and: [
+    //                             { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
+    //                             { playerId: { inq: unavailablePlayerIds } },
+    //                         ],
+    //                     },
+    //                 });
+
+    //                 for (let index = 0; index < contests.length; index++) {
+    //                     const contest = contests[index];
+    //                     contest.status = CONTEST_STATUSES.CLOSED;
+    //                     contest.ended = true;
+    //                     contest.endedAt = moment().toDate();
+    //                     await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
+    //                 }
+    //             } catch (error) {
+    //                 errors.push(err.message);
+    //                 console.error(`Error upserting players. Error:`, error);
+    //                 this.emailService.sendEmail({
+    //                     template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
+    //                     message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+    //                     locals: {
+    //                         targetResources: 'Players',
+    //                         importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+    //                         errors,
+    //                     },
+    //                 });
+    //             }
+    //         });
+    //     } catch (error) {
+    //         ErrorHandler.httpError(error);
+    //     }
+    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.EXPORT_PLAYERS)] })

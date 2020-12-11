@@ -92,4 +92,13 @@ describe('Player Controller', () => {
             expect(res.body.data[0]).to.be.have.property('team');
         });
     });
+    describe('POST Method - Google Sheets Import Simulation', async () => {
+        it(`Should reach the server with the provided players' data `, async () => {
+            await client
+                .post(`${playersBaseAPI}/google-sheets/import`)
+                .set('g-sheets-auth-header', 'auth-header')
+                .send({ data: [] })
+                .expect(200);
+        });
+    });
 });
