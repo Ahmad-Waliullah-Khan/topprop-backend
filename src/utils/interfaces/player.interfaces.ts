@@ -31,6 +31,7 @@ export interface IImportedPlayer {
     remoteTeamId: number;
     remoteId: number;
     photoUrl: string;
+    available: boolean;
 }
 
 export interface IRemotePlayer {
