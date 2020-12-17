@@ -86,6 +86,7 @@ export class PlayerController {
 
         for (let index = 0; index < body.data.length; index++) {
             const player = body.data[index];
+            if (!player.available) continue;
             const validationErrors = validation.validate(player);
             if (validationErrors.length) {
                 errorFound = true;
