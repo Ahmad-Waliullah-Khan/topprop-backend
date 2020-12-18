@@ -168,7 +168,7 @@ export class PlayerResultsCron extends CronJob {
                         }
                     }
                     //* IF FINISHED GAME IDS, MARK THOSE GAMES AS FINISHED TOO
-                    if (finishedGameIds) {
+                    if (finishedGameIds.length) {
                         await this.gameRepository.updateAll({ finished: true }, { id: { inq: finishedGameIds } });
                         console.log(chalk.greenBright(`Finished games marked as finished.`));
                     }
