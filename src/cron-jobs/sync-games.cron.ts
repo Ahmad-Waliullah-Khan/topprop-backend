@@ -42,6 +42,7 @@ export class SyncGamesCron extends CronJob {
                                     homeTeamId: homeTeam.id,
                                     type: GAME_TYPES.NFL,
                                     week: currentWeek,
+                                    finished: false,
                                 },
                             });
                             if (game)
