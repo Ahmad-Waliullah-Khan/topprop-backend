@@ -20,13 +20,11 @@ export class SyncGamesCron extends CronJob {
             name: CRON_JOBS.SYNC_GAMES_CRON,
             onTick: async () => {
                 try {
-                    const season = await this.sportDataService.currentSeason();
+                    // const season = await this.sportDataService.currentSeason();
                     const currentWeek = await this.sportDataService.currentWeek();
 
-                    const seasonSchedule = await this.sportDataService.scheduleBySeason(season);
-                    const currentWeekSchedule = seasonSchedule.filter(
-                        game => isEqual(game.Week, currentWeek) && !isEqual(game.Status, 'Postponed'),
-                    );
+                    const seasonSchedule = await this.sportDataService.currentWeekSchedule();
+                    const currentWeekSchedule = seasonSchedule.filter(game => isEqual(game.Status, 'Scheduled'));
 
                     for (let index = 0; index < currentWeekSchedule.length; index++) {
                         const remoteGame = currentWeekSchedule[index];

@@ -12,7 +12,7 @@ import {
 import { SportsDataService } from '@src/services';
 import { CONTEST_SCORING_OPTIONS, CONTEST_STATUSES, CONTEST_TYPES, CRON_JOBS } from '@src/utils/constants';
 import chalk from 'chalk';
-import { find, isEqual, isNull } from 'lodash';
+import { find, isEqual } from 'lodash';
 import moment from 'moment';
 
 @cronJob()
@@ -32,25 +32,15 @@ export class PlayerResultsCron extends CronJob {
             onTick: async () => {
                 try {
                     // console.log(`*****************************RUN PLAYERS RESULTS CRON*****************************`);
-                    const season = await this.sportsDataService.currentSeason();
-                    const currentWeek = await this.sportsDataService.currentWeek();
-
-                    const seasonSchedule = await this.sportsDataService.scheduleBySeason(season);
-                    const finishedRemoteGames = seasonSchedule.filter(
-                        game =>
-                            isEqual(game.Week, currentWeek) &&
-                            !isEqual(game.Status, 'Postponed') &&
-                            !isEqual(game.Status, 'Scheduled') &&
-                            !isNull(game.Status),
+                    const currentWeekSchedule = await this.sportsDataService.currentWeekSchedule();
+                    const finishedRemoteGames = currentWeekSchedule.filter(
+                        game => isEqual(game.Status, 'Final') || isEqual(game.Status, 'F/OT'),
                     );
-
-                    if (!finishedRemoteGames.length)
-                        return console.log(`No games finished yet for week: ${currentWeek}`);
 
                     const finishedRemoteGameIds = finishedRemoteGames.map(remoteGame => remoteGame.GlobalGameID);
 
                     const finishedGames = await this.gameRepository.find({
-                        where: { remoteId: { inq: finishedRemoteGameIds } },
+                        where: { remoteId: { inq: finishedRemoteGameIds }, finished: false },
                     });
                     const finishedGameIds = finishedGames.map(game => game.id);
 
@@ -176,6 +166,11 @@ export class PlayerResultsCron extends CronJob {
                                 }
                             }
                         }
+                    }
+                    //* IF FINISHED GAME IDS, MARK THOSE GAMES AS FINISHED TOO
+                    if (finishedGameIds) {
+                        await this.gameRepository.updateAll({ finished: true }, { id: { inq: finishedGameIds } });
+                        console.log(chalk.greenBright(`Finished games marked as finished.`));
                     }
                 } catch (error) {
                     console.error(chalk.redBright(`Error on player results cron. Error: `, error));
