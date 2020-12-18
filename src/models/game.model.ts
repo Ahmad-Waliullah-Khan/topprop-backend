@@ -43,6 +43,12 @@ export class Game extends Base {
     })
     season: number;
 
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    finished: boolean;
+
     @belongsTo(() => Team)
     homeTeamId: number;
 

@@ -10,6 +10,7 @@ import {
 } from '@src/utils/interfaces';
 //@ts-ignore
 import fdClientModule from 'fantasydata-node-client';
+import { isEqual, isNull } from 'lodash';
 import moment from 'moment';
 
 const keys = {
@@ -58,6 +59,19 @@ export class SportsDataService {
                 momentInst.format(sportApiDateFormat),
             ),
         );
+    }
+
+    //*HELPERS
+    async currentWeekSchedule(): Promise<IRemoteGame[]> {
+        try {
+            const season = await this.currentSeason();
+            const currentWeek = await this.currentWeek();
+
+            const seasonSchedule = await this.scheduleBySeason(season);
+            return seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, currentWeek));
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 }
 
