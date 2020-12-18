@@ -1,7 +1,7 @@
 export enum CONTEST_SCORING_OPTIONS {
     STD = 'standard',
     PPR = 'ppr',
-    HALF_PPR = 'half-prr',
+    HALF_PPR = 'half-ppr',
 }
 
 export enum CONTEST_STATUSES {
