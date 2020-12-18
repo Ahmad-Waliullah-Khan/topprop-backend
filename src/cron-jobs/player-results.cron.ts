@@ -3,16 +3,16 @@ import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import { PlayerResult } from '@src/models';
 import {
-    BetRepository,
     ContenderRepository,
     ContestRepository,
     GainRepository,
+    GameRepository,
     PlayerResultRepository,
 } from '@src/repositories';
 import { SportsDataService } from '@src/services';
 import { CONTEST_SCORING_OPTIONS, CONTEST_STATUSES, CONTEST_TYPES, CRON_JOBS } from '@src/utils/constants';
 import chalk from 'chalk';
-import { find, isEqual } from 'lodash';
+import { find, isEqual, isNull } from 'lodash';
 import moment from 'moment';
 
 @cronJob()
@@ -21,7 +21,7 @@ export class PlayerResultsCron extends CronJob {
         @repository('PlayerResultRepository') private playerResultRepository: PlayerResultRepository,
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('ContenderRepository') private contenderRepository: ContenderRepository,
-        @repository('BetRepository') private betRepository: BetRepository,
+        @repository('GameRepository') private gameRepository: GameRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @service() private sportsDataService: SportsDataService,
     ) {
@@ -32,15 +32,56 @@ export class PlayerResultsCron extends CronJob {
             onTick: async () => {
                 try {
                     // console.log(`*****************************RUN PLAYERS RESULTS CRON*****************************`);
+                    const season = await this.sportsDataService.currentSeason();
+                    const currentWeek = await this.sportsDataService.currentWeek();
+
+                    const seasonSchedule = await this.sportsDataService.scheduleBySeason(season);
+                    const finishedRemoteGames = seasonSchedule.filter(
+                        game =>
+                            isEqual(game.Week, currentWeek) &&
+                            !isEqual(game.Status, 'Postponed') &&
+                            !isEqual(game.Status, 'Scheduled') &&
+                            !isNull(game.Status),
+                    );
+
+                    if (!finishedRemoteGames.length)
+                        return console.log(`No games finished yet for week: ${currentWeek}`);
+
+                    const finishedRemoteGameIds = finishedRemoteGames.map(remoteGame => remoteGame.GlobalGameID);
+
+                    const finishedGames = await this.gameRepository.find({
+                        where: { remoteId: { inq: finishedRemoteGameIds } },
+                    });
+                    const finishedGameIds = finishedGames.map(game => game.id);
+
                     const fantasyScoringResults = await this.sportsDataService.fantasyPointsByDate(moment());
                     const filteredFantasyScoringResults = fantasyScoringResults.filter(result => result.IsOver);
 
                     const contests = await this.contestRepository.find({
-                        where: { ended: false, status: { nin: [CONTEST_STATUSES.CLOSED, CONTEST_STATUSES.UNMATCHED] } },
-                        include: [{ relation: 'contenders' }, { relation: 'player' }],
+                        where: {
+                            gameId: { inq: finishedGameIds },
+                            ended: false,
+                            status: { nin: [CONTEST_STATUSES.CLOSED, CONTEST_STATUSES.UNMATCHED] },
+                        },
+                        include: [{ relation: 'contenders' }, { relation: 'player' }, { relation: 'game' }],
                     });
                     for (let index = 0; index < contests.length; index++) {
                         const contest = contests[index];
+
+                        // const remoteGame = find(finishedRemoteGames, remoteGame =>
+                        //     isEqual(remoteGame.GlobalGameID, contest.game?.remoteId),
+                        // );
+                        // if (
+                        //     !remoteGame ||
+                        //     isEqual(remoteGame.Status, 'Scheduled') ||
+                        //     isEqual(remoteGame.Status, 'Postponed') ||
+                        //     isNull(remoteGame.Status)
+                        // ) {
+                        //     console.log(
+                        //         `Skipping contest definition. ${remoteGame?.AwayTeam} @ ${remoteGame?.HomeTeam} ==> Status: ${remoteGame?.Status} `,
+                        //     );
+                        //     continue;
+                        // }
                         if (isEqual(contest.status, CONTEST_STATUSES.OPEN)) {
                             await this.contestRepository.updateById(contest.id, {
                                 status: CONTEST_STATUSES.UNMATCHED,
