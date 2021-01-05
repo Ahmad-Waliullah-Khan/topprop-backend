@@ -11,7 +11,7 @@ import {
 import { SportsDataService } from '@src/services';
 import { CONTEST_SCORING_OPTIONS, CONTEST_STATUSES, CONTEST_TYPES, CRON_JOBS } from '@src/utils/constants';
 import chalk from 'chalk';
-import { find, isEqual, isNull } from 'lodash';
+import { find, isEqual } from 'lodash';
 import moment from 'moment';
 
 @cronJob()
@@ -25,14 +25,11 @@ export class PlayerResultsCron extends CronJob {
         @service() private sportsDataService: SportsDataService,
     ) {
         super({
-            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : '0 */30 * * * *',
+            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : '0 */15 * * * *',
             name: CRON_JOBS.PLAYER_RESULTS_CRON,
             onTick: async () => {
                 try {
                     // console.log(`*****************************RUN PLAYERS RESULTS CRON*****************************`);
-                    const seasonSchedule = await this.sportsDataService.scheduleBySeason(2020);
-                    let test = seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, 15));
-
                     const currentWeekSchedule = await this.sportsDataService.currentWeekSchedule();
                     const finishedRemoteGames = currentWeekSchedule.filter(
                         game => isEqual(game.Status, 'Final') || isEqual(game.Status, 'F/OT'),
@@ -84,7 +81,6 @@ export class PlayerResultsCron extends CronJob {
                                 isEqual(score.PlayerID, contest.player?.remoteId),
                             );
                             if (foundScoreResult) {
-                                // let results: PlayerResult | null = null;
                                 let points: number = isEqual(contest.scoring, CONTEST_SCORING_OPTIONS.STD)
                                     ? foundScoreResult.FantasyPoints
                                     : isEqual(contest.scoring, CONTEST_SCORING_OPTIONS.PPR)
@@ -100,6 +96,7 @@ export class PlayerResultsCron extends CronJob {
                                     status: CONTEST_STATUSES.CLOSED,
                                     ended: true,
                                     endedAt: moment().toDate(),
+                                    retryFetchResults: false,
                                 });
                                 console.log(`Contest marked as closed.`);
 
