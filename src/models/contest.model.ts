@@ -25,6 +25,24 @@ export class Contest extends Base {
     fantasyPoints: number;
 
     @property({
+        type: 'number',
+        default: 0,
+    })
+    fetchResultsAttempts: number;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    fetchResultsAttemptsExceeded: boolean;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    retryFetchResults: boolean;
+
+    @property({
         type: 'string',
         required: true,
     })

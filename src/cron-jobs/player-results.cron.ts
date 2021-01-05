@@ -1,7 +1,6 @@
 import { service } from '@loopback/core';
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
-import { PlayerResult } from '@src/models';
 import {
     ContenderRepository,
     ContestRepository,
@@ -12,7 +11,7 @@ import {
 import { SportsDataService } from '@src/services';
 import { CONTEST_SCORING_OPTIONS, CONTEST_STATUSES, CONTEST_TYPES, CRON_JOBS } from '@src/utils/constants';
 import chalk from 'chalk';
-import { find, isEqual } from 'lodash';
+import { find, isEqual, isNull } from 'lodash';
 import moment from 'moment';
 
 @cronJob()
@@ -26,12 +25,14 @@ export class PlayerResultsCron extends CronJob {
         @service() private sportsDataService: SportsDataService,
     ) {
         super({
-            cronTime: '0 * * * * *', // Every minute
-            // cronTime: '0 */30 * * * *', // Every 30 min
+            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : '0 */30 * * * *',
             name: CRON_JOBS.PLAYER_RESULTS_CRON,
             onTick: async () => {
                 try {
                     // console.log(`*****************************RUN PLAYERS RESULTS CRON*****************************`);
+                    const seasonSchedule = await this.sportsDataService.scheduleBySeason(2020);
+                    let test = seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, 15));
+
                     const currentWeekSchedule = await this.sportsDataService.currentWeekSchedule();
                     const finishedRemoteGames = currentWeekSchedule.filter(
                         game => isEqual(game.Status, 'Final') || isEqual(game.Status, 'F/OT'),
@@ -52,26 +53,14 @@ export class PlayerResultsCron extends CronJob {
                             gameId: { inq: finishedGameIds },
                             ended: false,
                             status: { nin: [CONTEST_STATUSES.CLOSED, CONTEST_STATUSES.UNMATCHED] },
+                            fetchResultsAttemptsExceeded: false,
                         },
                         include: [{ relation: 'contenders' }, { relation: 'player' }, { relation: 'game' }],
                     });
                     for (let index = 0; index < contests.length; index++) {
                         const contest = contests[index];
 
-                        // const remoteGame = find(finishedRemoteGames, remoteGame =>
-                        //     isEqual(remoteGame.GlobalGameID, contest.game?.remoteId),
-                        // );
-                        // if (
-                        //     !remoteGame ||
-                        //     isEqual(remoteGame.Status, 'Scheduled') ||
-                        //     isEqual(remoteGame.Status, 'Postponed') ||
-                        //     isNull(remoteGame.Status)
-                        // ) {
-                        //     console.log(
-                        //         `Skipping contest definition. ${remoteGame?.AwayTeam} @ ${remoteGame?.HomeTeam} ==> Status: ${remoteGame?.Status} `,
-                        //     );
-                        //     continue;
-                        // }
+                        let markGameAsFinished = true;
                         if (isEqual(contest.status, CONTEST_STATUSES.OPEN)) {
                             await this.contestRepository.updateById(contest.id, {
                                 status: CONTEST_STATUSES.UNMATCHED,
@@ -94,83 +83,127 @@ export class PlayerResultsCron extends CronJob {
                             const foundScoreResult = find(filteredFantasyScoringResults, score =>
                                 isEqual(score.PlayerID, contest.player?.remoteId),
                             );
-                            let results: PlayerResult | null = null;
                             if (foundScoreResult) {
+                                // let results: PlayerResult | null = null;
                                 let points: number = isEqual(contest.scoring, CONTEST_SCORING_OPTIONS.STD)
                                     ? foundScoreResult.FantasyPoints
                                     : isEqual(contest.scoring, CONTEST_SCORING_OPTIONS.PPR)
                                     ? foundScoreResult.FantasyPointsPPR
                                     : foundScoreResult.FantasyPointsFanDuel;
 
-                                results = await this.playerResultRepository.create({
+                                const results = await this.playerResultRepository.create({
                                     playerId: contest.playerId,
                                     points,
                                 });
                                 console.log(`Result created.`);
-                            }
+                                await this.contestRepository.updateById(contest.id, {
+                                    status: CONTEST_STATUSES.CLOSED,
+                                    ended: true,
+                                    endedAt: moment().toDate(),
+                                });
+                                console.log(`Contest marked as closed.`);
 
-                            await this.contestRepository.updateById(contest.id, {
-                                status: CONTEST_STATUSES.CLOSED,
-                                ended: true,
-                                endedAt: moment().toDate(),
-                            });
-                            console.log(`Contest marked as closed.`);
-
-                            const fantasyPoints = +contest.fantasyPoints;
-                            //* DEFINE WINNER AND LOOSER
-                            for (let index = 0; index < contest.contenders.length; index++) {
-                                const contender = contest.contenders[index];
-                                //* TIED IF FANTASY POINTS AND RESULTS POINTS ARE EQUAL OR NOT FANTASY SCORE FOUND
-                                if (isEqual(results && results.points, fantasyPoints) || !foundScoreResult) {
-                                    await this.contenderRepository.updateById(contender.id, {
-                                        tied: true,
-                                        tiedAt: moment().toDate(),
-                                        tiedReason: !foundScoreResult ? `Fantasy score not found` : null,
-                                    });
-                                    console.log(`Contender tied updated.`);
-                                    await this.gainRepository.create({
-                                        amount: +contender.toRiskAmount,
-                                        notes: !foundScoreResult
-                                            ? `Contest tied. Fantasy score not found.`
-                                            : `Contest tied.`,
-                                        contenderId: contender.id,
-                                        userId: contender.contenderId,
-                                    });
-                                    console.log(`Gain created on contest tied`);
+                                const fantasyPoints = +contest.fantasyPoints;
+                                //* DEFINE WINNER AND LOOSER
+                                for (let index = 0; index < contest.contenders.length; index++) {
+                                    const contender = contest.contenders[index];
+                                    //* TIED IF FANTASY POINTS AND RESULTS POINTS ARE EQUAL
+                                    if (isEqual(results.points, fantasyPoints)) {
+                                        await this.contenderRepository.updateById(contender.id, {
+                                            tied: true,
+                                            tiedAt: moment().toDate(),
+                                            tiedReason: 'Fantasy points are the same of the contest',
+                                        });
+                                        console.log(`Contender tied updated.`);
+                                        await this.gainRepository.create({
+                                            amount: +contender.toRiskAmount,
+                                            notes: `Contest tied.`,
+                                            contenderId: contender.id,
+                                            userId: contender.contenderId,
+                                        });
+                                        console.log(`Gain created on contest tied`);
+                                    }
+                                    if (
+                                        (isEqual(contender.type, CONTEST_TYPES.OVER) &&
+                                            results &&
+                                            results.points > fantasyPoints) ||
+                                        (isEqual(contender.type, CONTEST_TYPES.UNDER) &&
+                                            results &&
+                                            results.points < fantasyPoints)
+                                    ) {
+                                        await this.contenderRepository.updateById(contender.id, {
+                                            winner: true,
+                                            wonAt: moment().toDate(),
+                                        });
+                                        console.log(`Contender winner updated: ${contender.contenderId}`);
+                                        await this.gainRepository.create({
+                                            contenderId: contender.id,
+                                            userId: contender.contenderId,
+                                            amount: +contender.toRiskAmount,
+                                        });
+                                        console.log(`Gain created on contest won. Return initial bet.`);
+                                        await this.gainRepository.create({
+                                            contenderId: contender.id,
+                                            userId: contender.contenderId,
+                                            amount: +contender.toWinAmount,
+                                        });
+                                        console.log(`Gain created on contest won. Win amount.`);
+                                    }
                                 }
-                                if (
-                                    (isEqual(contender.type, CONTEST_TYPES.OVER) &&
-                                        results &&
-                                        results.points > fantasyPoints) ||
-                                    (isEqual(contender.type, CONTEST_TYPES.UNDER) &&
-                                        results &&
-                                        results.points < fantasyPoints)
-                                ) {
-                                    await this.contenderRepository.updateById(contender.id, {
-                                        winner: true,
-                                        wonAt: moment().toDate(),
+                            } else {
+                                if (contest.fetchResultsAttemptsExceeded) continue;
+                                markGameAsFinished = false;
+
+                                let fetchRetryAttempts = (contest.fetchResultsAttempts || 0) + 1;
+                                await this.contestRepository.updateById(contest.id, {
+                                    retryFetchResults: true,
+                                    fetchResultsAttempts: fetchRetryAttempts,
+                                });
+
+                                if (fetchRetryAttempts >= 4) {
+                                    markGameAsFinished = true;
+                                    await this.contestRepository.updateById(contest.id, {
+                                        retryFetchResults: false,
+                                        fetchResultsAttempts: fetchRetryAttempts,
+                                        fetchResultsAttemptsExceeded: true,
                                     });
-                                    console.log(`Contender winner updated: ${contender.contenderId}`);
-                                    await this.gainRepository.create({
-                                        contenderId: contender.id,
-                                        userId: contender.contenderId,
-                                        amount: +contender.toRiskAmount,
+                                    for (let index = 0; index < contest.contenders.length; index++) {
+                                        const contender = contest.contenders[index];
+
+                                        //* TIED IF NOT FANTASY SCORE FOUND AFTER 3 RETRY ATTEMPTS
+                                        await this.contenderRepository.updateById(contender.id, {
+                                            tied: true,
+                                            tiedAt: moment().toDate(),
+                                            tiedReason: `Fantasy score not found after 3 retry attempts`,
+                                        });
+                                        console.log(
+                                            `Contender tied updated. Fantasy score not found after 3 retry attempts.`,
+                                        );
+                                        await this.gainRepository.create({
+                                            amount: +contender.toRiskAmount,
+                                            notes: `Contest tied. Fantasy score not found after 3 retry attempts`,
+                                            contenderId: contender.id,
+                                            userId: contender.contenderId,
+                                        });
+                                        console.log(
+                                            `Gain created on contest tied. Fantasy score not found after 3 retry attempts.`,
+                                        );
+                                    }
+                                    await this.contestRepository.updateById(contest.id, {
+                                        status: CONTEST_STATUSES.CLOSED,
+                                        ended: true,
+                                        endedAt: moment().toDate(),
                                     });
-                                    console.log(`Gain created on contest won. Return initial bet.`);
-                                    await this.gainRepository.create({
-                                        contenderId: contender.id,
-                                        userId: contender.contenderId,
-                                        amount: +contender.toWinAmount,
-                                    });
-                                    console.log(`Gain created on contest won. Win amount.`);
+                                    console.log(
+                                        `Contest marked as closed. Fantasy score not found after 3 retry attempts.`,
+                                    );
                                 }
                             }
                         }
-                    }
-                    //* IF FINISHED GAME IDS, MARK THOSE GAMES AS FINISHED TOO
-                    if (finishedGameIds.length) {
-                        await this.gameRepository.updateAll({ finished: true }, { id: { inq: finishedGameIds } });
-                        console.log(chalk.greenBright(`Finished games marked as finished.`));
+
+                        //* MARK GAME AS FINISHED (IF APPLIES)
+                        if (markGameAsFinished)
+                            await this.gameRepository.updateById(contest.gameId, { finished: true });
                     }
                 } catch (error) {
                     console.error(chalk.redBright(`Error on player results cron. Error: `, error));
