@@ -87,7 +87,7 @@ export class NflDetailsController {
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.NFL_DETAILS.VIEW_SCHEDULE_DETAILS)] })
     @get(API_ENDPOINTS.LEAGUE_DETAILS.NFL.SCHEDULE_BY_SEASON)
     async seasonSchedule(
-        @param.path.number('season') season: string,
+        @param.path.string('season') season: string,
     ): Promise<ICommonHttpResponse<IRemoteGame[]> | undefined> {
         try {
             const schedule = await this.sportDataService.scheduleBySeason(season);
@@ -101,7 +101,7 @@ export class NflDetailsController {
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.NFL_DETAILS.VIEW_SCHEDULE_DETAILS)] })
     @get(API_ENDPOINTS.LEAGUE_DETAILS.NFL.SCHEDULE_BY_WEEK)
     async weekSchedule(
-        @param.path.number('season') season: string,
+        @param.path.string('season') season: string,
         @param.path.number('week') week: number,
     ): Promise<ICommonHttpResponse<IRemoteGame[]> | undefined> {
         try {
