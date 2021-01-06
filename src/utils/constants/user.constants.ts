@@ -49,6 +49,7 @@ export const PERMISSIONS = {
         VIEW_WEEK_DETAILS: 'viewWeekDetails',
         VIEW_SEASON_DETAILS: 'viewSeasonDetails',
         VIEW_SCHEDULE_DETAILS: 'viewScheduleDetails',
+        VIEW_TIME_FRAMES: 'viewTimeFrames',
     },
     PLAYERS: {
         VIEW_ALL_PLAYERS: 'viewAllPlayers',

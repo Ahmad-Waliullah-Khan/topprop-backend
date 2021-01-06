@@ -42,7 +42,7 @@ export class SportsDataService {
         return JSON.parse(await this.sportDataClient.NFLv3ScoresClient.getPlayerDetailsByAvailablePromise());
     }
 
-    async scheduleBySeason(season: number): Promise<IRemoteGame[]> {
+    async scheduleBySeason(season: string): Promise<IRemoteGame[]> {
         return JSON.parse(await this.sportDataClient.NFLv3ScoresClient.getSchedulePromise(season));
     }
     async scoresBySeason(season: number): Promise<IRemoteScore[]> {
@@ -64,11 +64,12 @@ export class SportsDataService {
     //*HELPERS
     async currentWeekSchedule(): Promise<IRemoteGame[]> {
         try {
-            const season = await this.currentSeason();
-            const currentWeek = await this.currentWeek();
+            // const season = await this.currentSeason();
+            // const currentWeek = await this.currentWeek();
+            const [currentTimeFrame] = await this.timeFrames(TIMEFRAMES.CURRENT);
 
-            const seasonSchedule = await this.scheduleBySeason(season);
-            return seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, currentWeek));
+            const seasonSchedule = await this.scheduleBySeason(currentTimeFrame.ApiSeason);
+            return seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, +currentTimeFrame.ApiWeek));
         } catch (error) {
             throw new Error(error);
         }

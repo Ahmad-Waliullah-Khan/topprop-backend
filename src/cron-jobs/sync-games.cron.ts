@@ -2,7 +2,7 @@ import { service } from '@loopback/core';
 import { CronJob, cronJob } from '@loopback/cron';
 import { repository } from '@loopback/repository';
 import { GameRepository, TeamRepository } from '@src/repositories';
-import { SportsDataService } from '@src/services';
+import { SportsDataService, TIMEFRAMES } from '@src/services';
 import { CRON_JOBS, GAME_TYPES } from '@src/utils/constants';
 import chalk from 'chalk';
 import { isEqual } from 'lodash';
@@ -15,13 +15,11 @@ export class SyncGamesCron extends CronJob {
         @service() private sportDataService: SportsDataService,
     ) {
         super({
-            // cronTime: '0 * * * * *', // Every minute
-            cronTime: '0 30 * * * *', // Every hour at 30th minute
+            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : '0 30 * * * *',
             name: CRON_JOBS.SYNC_GAMES_CRON,
             onTick: async () => {
                 try {
-                    // const season = await this.sportDataService.currentSeason();
-                    const currentWeek = await this.sportDataService.currentWeek();
+                    const [currentTimeFrame] = await this.sportDataService.timeFrames(TIMEFRAMES.CURRENT);
 
                     const seasonSchedule = await this.sportDataService.currentWeekSchedule();
                     const currentWeekSchedule = seasonSchedule.filter(game => isEqual(game.Status, 'Scheduled'));
@@ -41,7 +39,7 @@ export class SyncGamesCron extends CronJob {
                                     visitorTeamId: visitorTeam.id,
                                     homeTeamId: homeTeam.id,
                                     type: GAME_TYPES.NFL,
-                                    week: currentWeek,
+                                    week: +currentTimeFrame.ApiWeek,
                                     finished: false,
                                 },
                             });
@@ -54,7 +52,7 @@ export class SyncGamesCron extends CronJob {
                                     visitorTeamId: visitorTeam.id,
                                     homeTeamId: homeTeam.id,
                                     type: GAME_TYPES.NFL,
-                                    week: currentWeek,
+                                    week: +currentTimeFrame.ApiWeek,
                                     startTime: remoteGame.DateTime,
                                     season: remoteGame.Season,
                                     remoteId: remoteGame.GlobalGameID,

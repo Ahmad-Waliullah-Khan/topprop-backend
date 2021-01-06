@@ -69,11 +69,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                     throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
 
                 const game = await gameRepository.findById(ctx.instance.gameId);
-                // const season = await this.sportsDataService.currentSeason();
-                // const currentWeek = await this.sportsDataService.currentWeek();
                 const filteredSchedule = await this.sportsDataService.currentWeekSchedule();
-
-                // const filteredSchedule = schedule.filter(remoteGame => isEqual(remoteGame.Week, currentWeek));
 
                 const remoteGame = find(filteredSchedule, remoteGame =>
                     isEqual(remoteGame.GlobalGameID, game.remoteId),

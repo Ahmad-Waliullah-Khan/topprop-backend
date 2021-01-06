@@ -49,7 +49,6 @@ export class ContenderRepository extends DefaultCrudRepository<
                 const contestRepo = await this.contestRepositoryGetter();
                 const contest = await contestRepo.findById(ctx.instance.contestId, { include: [{ relation: 'game' }] });
 
-                // const season = await this.sportsDataService.currentSeason();
                 // const currentWeek = await this.sportsDataService.currentWeek();
                 const filteredSchedule = await this.sportsDataService.currentWeekSchedule();
 

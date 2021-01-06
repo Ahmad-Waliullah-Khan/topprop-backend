@@ -4,11 +4,11 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { service } from '@loopback/core';
 import { get, param } from '@loopback/rest';
-import { SportsDataService } from '@src/services';
+import { SportsDataService, TIMEFRAMES } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IRemoteGame } from '@src/utils/interfaces';
+import { ICommonHttpResponse, IRemoteGame, ITimeFrame } from '@src/utils/interfaces';
 import { isEqual } from 'lodash';
 
 export class NflDetailsController {
@@ -54,10 +54,30 @@ export class NflDetailsController {
             },
         },
     })
-    async currentSeason(): Promise<ICommonHttpResponse<number> | undefined> {
+    async currentSeason(): Promise<ICommonHttpResponse<string> | undefined> {
         try {
-            const currentSeason = await this.sportDataService.currentSeason();
-            return { data: currentSeason };
+            const [currentTimeFrame] = await this.sportDataService.timeFrames(TIMEFRAMES.CURRENT);
+            return { data: currentTimeFrame.ApiSeason };
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.NFL_DETAILS.VIEW_TIME_FRAMES)] })
+    @get(API_ENDPOINTS.LEAGUE_DETAILS.NFL.TIME_FRAMES, {
+        responses: {
+            '200': {
+                description: 'NFL time frames',
+            },
+        },
+    })
+    async timeFrames(
+        @param.path.string('timeFrame') timeFrame: TIMEFRAMES,
+    ): Promise<ICommonHttpResponse<ITimeFrame[]> | undefined> {
+        try {
+            const timeFrames = await this.sportDataService.timeFrames(timeFrame);
+            return { data: timeFrames };
         } catch (error) {
             ErrorHandler.httpError(error);
         }
@@ -67,7 +87,7 @@ export class NflDetailsController {
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.NFL_DETAILS.VIEW_SCHEDULE_DETAILS)] })
     @get(API_ENDPOINTS.LEAGUE_DETAILS.NFL.SCHEDULE_BY_SEASON)
     async seasonSchedule(
-        @param.path.number('season') season: number,
+        @param.path.number('season') season: string,
     ): Promise<ICommonHttpResponse<IRemoteGame[]> | undefined> {
         try {
             const schedule = await this.sportDataService.scheduleBySeason(season);
@@ -81,7 +101,7 @@ export class NflDetailsController {
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.NFL_DETAILS.VIEW_SCHEDULE_DETAILS)] })
     @get(API_ENDPOINTS.LEAGUE_DETAILS.NFL.SCHEDULE_BY_WEEK)
     async weekSchedule(
-        @param.path.number('season') season: number,
+        @param.path.number('season') season: string,
         @param.path.number('week') week: number,
     ): Promise<ICommonHttpResponse<IRemoteGame[]> | undefined> {
         try {
