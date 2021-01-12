@@ -64,12 +64,20 @@ export class SportsDataService {
     //*HELPERS
     async currentWeekSchedule(): Promise<IRemoteGame[]> {
         try {
-            // const season = await this.currentSeason();
-            // const currentWeek = await this.currentWeek();
             const [currentTimeFrame] = await this.timeFrames(TIMEFRAMES.CURRENT);
 
             const seasonSchedule = await this.scheduleBySeason(currentTimeFrame.ApiSeason);
             return seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, +currentTimeFrame.ApiWeek));
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+    async lastWeekSchedule(): Promise<IRemoteGame[]> {
+        try {
+            const [lastTimeFrame] = await this.timeFrames(TIMEFRAMES.COMPLETED);
+
+            const seasonSchedule = await this.scheduleBySeason(lastTimeFrame.ApiSeason);
+            return seasonSchedule.filter(game => !isNull(game.Status) && isEqual(game.Week, +lastTimeFrame.ApiWeek));
         } catch (error) {
             throw new Error(error);
         }

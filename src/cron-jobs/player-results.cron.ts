@@ -38,7 +38,7 @@ export class PlayerResultsCron extends CronJob {
                     const finishedRemoteGameIds = finishedRemoteGames.map(remoteGame => remoteGame.GlobalGameID);
 
                     const finishedGames = await this.gameRepository.find({
-                        where: { remoteId: { inq: finishedRemoteGameIds }, finished: false },
+                        where: { remoteId: { inq: finishedRemoteGameIds } },
                     });
                     const finishedGameIds = finishedGames.map(game => game.id);
 
@@ -57,7 +57,6 @@ export class PlayerResultsCron extends CronJob {
                     for (let index = 0; index < contests.length; index++) {
                         const contest = contests[index];
 
-                        let markGameAsFinished = true;
                         if (isEqual(contest.status, CONTEST_STATUSES.OPEN)) {
                             await this.contestRepository.updateById(contest.id, {
                                 status: CONTEST_STATUSES.UNMATCHED,
@@ -149,7 +148,6 @@ export class PlayerResultsCron extends CronJob {
                                 }
                             } else {
                                 if (contest.fetchResultsAttemptsExceeded) continue;
-                                markGameAsFinished = false;
 
                                 let fetchRetryAttempts = (contest.fetchResultsAttempts || 0) + 1;
                                 await this.contestRepository.updateById(contest.id, {
@@ -158,7 +156,6 @@ export class PlayerResultsCron extends CronJob {
                                 });
 
                                 if (fetchRetryAttempts >= 4) {
-                                    markGameAsFinished = true;
                                     await this.contestRepository.updateById(contest.id, {
                                         retryFetchResults: false,
                                         fetchResultsAttempts: fetchRetryAttempts,
@@ -197,11 +194,10 @@ export class PlayerResultsCron extends CronJob {
                                 }
                             }
                         }
-
-                        //* MARK GAME AS FINISHED (IF APPLIES)
-                        if (markGameAsFinished)
-                            await this.gameRepository.updateById(contest.gameId, { finished: true });
                     }
+                    //* MARK GAMES AS FINISHED (IF APPLIES)
+                    finishedGameIds.length &&
+                        (await this.gameRepository.updateAll({ finished: true }, { id: { inq: finishedGameIds } }));
                 } catch (error) {
                     console.error(chalk.redBright(`Error on player results cron. Error: `, error));
                 }
