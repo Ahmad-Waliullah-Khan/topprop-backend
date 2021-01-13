@@ -229,7 +229,7 @@ export class ContestController {
             playerId: CONTEST_VALIDATORS.playerId,
             fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
             toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
-            inverse: CONTENDER_VALIDATORS.inverse,
+            matching: CONTENDER_VALIDATORS.matching,
             type: CONTENDER_VALIDATORS.type,
         };
 
@@ -241,7 +241,7 @@ export class ContestController {
             body.playerId,
             body.fantasyPoints,
             body.toRiskAmount,
-            body.inverse,
+            body.matching,
             body.type,
         );
         return { data: toWin };

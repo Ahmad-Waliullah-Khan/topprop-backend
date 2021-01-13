@@ -67,12 +67,12 @@ export const CONTENDER_VALIDATORS = {
     },
 
     //* ONLY FOR THE CALCULATE TO WIN
-    inverse: {
+    matching: {
         type: Boolean,
         required: true,
         message: {
-            required: 'Inverse is required.',
-            type: 'Inverse must be a true or false.',
+            required: 'Matching is required.',
+            type: 'Matching must be a true or false.',
         },
     },
 };

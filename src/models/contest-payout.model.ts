@@ -26,7 +26,7 @@ export class ContestPayout extends Base {
         type: 'number',
         required: true,
     })
-    inverseOdds: number;
+    matchOdds: number;
 
     @property({
         type: 'number',
@@ -36,14 +36,6 @@ export class ContestPayout extends Base {
         },
     })
     betPayout: number;
-    @property({
-        type: 'number',
-        required: true,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    inverseBetPayout: number;
 
     @property({
         type: 'number',
@@ -52,7 +44,16 @@ export class ContestPayout extends Base {
             dataType: 'decimal',
         },
     })
-    inversePayout: number;
+    matchBetPayout: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    matchPayout: number;
 
     constructor(data?: Partial<ContestPayout>) {
         super(data);

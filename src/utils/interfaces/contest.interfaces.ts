@@ -10,6 +10,6 @@ export interface ICalculateToWinRequest {
     toRiskAmount: number;
     fantasyPoints: number;
     playerId: number;
-    inverse?: boolean;
+    matching?: boolean;
     type: CONTEST_TYPES;
 }
