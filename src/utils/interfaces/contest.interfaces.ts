@@ -13,3 +13,9 @@ export interface ICalculateToWinRequest {
     matching?: boolean;
     type: CONTEST_TYPES;
 }
+export interface ICalculateRiskToMatchRequest {
+    fantasyPoints: number;
+    playerId: number;
+    type: CONTEST_TYPES;
+    initialRiskAmount: number;
+}

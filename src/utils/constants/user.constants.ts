@@ -34,6 +34,7 @@ export const PERMISSIONS = {
         DELETE_ANY_CONTEST: 'deleteAnyContest',
         ARCHIVE_ANY_CONTEST: 'archiveAnyContest',
         COUNT_CONTESTS: 'countContests',
+        CALCULATE_AMOUNTS: 'calculateAmounts',
     },
     GAINS: {
         VIEW_ALL_GAINS: 'viewAllGains',

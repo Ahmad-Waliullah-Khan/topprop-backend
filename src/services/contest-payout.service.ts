@@ -107,4 +107,44 @@ export class ContestPayoutService {
             return toWin;
         }
     }
+    async calculateRiskAmountToMatch(
+        playerId: number,
+        fantasyPoints: number,
+        type: CONTEST_TYPES,
+        initialRiskAmount: number,
+    ): Promise<number> {
+        let riskAmountToMatch = 0;
+        try {
+            const player = await this.playerRepo.findById(playerId);
+            if (!player) return riskAmountToMatch;
+
+            let lookForPercentage = 0;
+            let pointsField = `points`;
+            let even = fantasyPoints % 2;
+            if (isEqual(even, 0)) {
+                pointsField += fantasyPoints;
+                lookForPercentage = +parseFloat(player[pointsField as 'points0'].toString()).toFixed();
+            } else {
+                let prevPointsField = `points${fantasyPoints - 1}`;
+                let nextPointsField = `points${fantasyPoints + 1}`;
+
+                let prevPointsFieldValue = +player[prevPointsField as 'points0'];
+                let nextPointsFieldValue = +player[nextPointsField as 'points0'];
+                let avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
+                lookForPercentage = +avgPointsFields.toFixed();
+            }
+            if (isEqual(type, CONTEST_TYPES.UNDER)) lookForPercentage = 100 - lookForPercentage;
+
+            const contestPayout = await this.contestPayoutRepo.findOne({
+                where: { percentLikelihood: +lookForPercentage.toFixed() },
+            });
+            if (!contestPayout) return riskAmountToMatch;
+
+            riskAmountToMatch = +contestPayout.matchBetPayout * initialRiskAmount;
+            return riskAmountToMatch;
+        } catch (error) {
+            console.error(`Error on to risk amount to match calculation. Error: `, error);
+            return riskAmountToMatch;
+        }
+    }
 }

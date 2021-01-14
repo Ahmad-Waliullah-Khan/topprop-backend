@@ -30,7 +30,7 @@ export const CONTENDER_VALIDATORS = {
             size: `The minimum amount is 10 USD.`,
             lowerThanEqual: isEqual(amount, 0)
                 ? `You do not have enough funds. Please add some funds to your wallet and try again.`
-                : `The maximum risk amount should be $${amount / 100}`,
+                : `The maximum risk amount should be $${(amount / 100).toFixed(2)}`,
         },
     }),
     toWinAmount: (amount: number) => ({
@@ -73,6 +73,16 @@ export const CONTENDER_VALIDATORS = {
         message: {
             required: 'Matching is required.',
             type: 'Matching must be a true or false.',
+        },
+    },
+
+    //* ONLY FOR THE CALCULATE TO RISK AMOUNT
+    initialRiskAmount: {
+        type: Number,
+        required: true,
+        message: {
+            required: 'Initial Risk Amount is required.',
+            type: 'Initial Risk Amount  must be a number.',
         },
     },
 };

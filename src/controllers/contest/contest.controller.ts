@@ -11,6 +11,7 @@ import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
+    ICalculateRiskToMatchRequest,
     ICalculateToWinRequest,
     ICommonHttpResponse,
     IContestRequest,
@@ -207,12 +208,11 @@ export class ContestController {
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
     @post(API_ENDPOINTS.CONTESTS.CALCULATE_TO_WIN, {
         responses: {
             '200': {
-                description: 'Contest model count',
-                content: { 'application/json': { schema: CountSchema } },
+                description: 'Calculate to win amount',
             },
         },
     })
@@ -245,5 +245,40 @@ export class ContestController {
             body.type,
         );
         return { data: toWin };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
+    @post(API_ENDPOINTS.CONTESTS.CALCULATE_RISK_TO_MATCH, {
+        responses: {
+            '200': {
+                description: 'Calculate risk amount to match contest',
+            },
+        },
+    })
+    async calculateRiskAmountToMatch(
+        @requestBody()
+        body: ICalculateRiskToMatchRequest,
+    ): Promise<ICommonHttpResponse<number>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const validationSchema = {
+            playerId: CONTEST_VALIDATORS.playerId,
+            fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
+            initialRiskAmount: CONTENDER_VALIDATORS.initialRiskAmount,
+            type: CONTENDER_VALIDATORS.type,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const riskAmountToMatch = await this.contestPayoutService.calculateRiskAmountToMatch(
+            body.playerId,
+            body.fantasyPoints,
+            body.type,
+            body.initialRiskAmount,
+        );
+        return { data: riskAmountToMatch };
     }
 }
