@@ -7,7 +7,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import { Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
 import { ContestPayoutService, WalletService } from '@src/services';
-import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
+import { API_ENDPOINTS, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
@@ -58,7 +58,7 @@ export class ContestController {
             fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
             scoring: CONTEST_VALIDATORS.scoring,
             type: CONTENDER_VALIDATORS.type,
-            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
+            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds, MINIMUM_BET_AMOUNT),
             toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
         };
 

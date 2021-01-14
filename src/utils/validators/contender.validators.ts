@@ -1,5 +1,5 @@
 import { isEqual, values } from 'lodash';
-import { CONTEST_TYPES, MINIMUM_BET_AMOUNT } from '../constants';
+import { CONTEST_TYPES } from '../constants';
 import { ValidatorHelpers } from '../helpers';
 
 export const CONTENDER_VALIDATORS = {
@@ -19,15 +19,15 @@ export const CONTENDER_VALIDATORS = {
             type: 'Contest id must be a number.',
         },
     },
-    toRiskAmount: (amount: number) => ({
+    toRiskAmount: (amount: number, minAmount = 0) => ({
         required: true,
         type: Number,
-        size: { min: MINIMUM_BET_AMOUNT },
+        size: { min: minAmount },
         use: { lowerThanEqual: ValidatorHelpers.lowerOrEqualThan(amount) },
         message: {
             type: 'To risk amount must be a number.',
             required: 'To risk amount is required.',
-            size: `The minimum amount is 10 USD.`,
+            size: `The minimum amount is ${(minAmount / 100).toFixed(2)} USD.`,
             lowerThanEqual: isEqual(amount, 0)
                 ? `You do not have enough funds. Please add some funds to your wallet and try again.`
                 : `The maximum risk amount should be $${(amount / 100).toFixed(2)}`,
