@@ -9,7 +9,13 @@ import {
     PlayerResultRepository,
 } from '@src/repositories';
 import { SportsDataService } from '@src/services';
-import { CONTEST_SCORING_OPTIONS, CONTEST_STATUSES, CONTEST_TYPES, CRON_JOBS } from '@src/utils/constants';
+import {
+    CONTEST_SCORING_OPTIONS,
+    CONTEST_STATUSES,
+    CONTEST_TYPES,
+    CRON_JOBS,
+    MAX_ATTEMPT_RETRIES,
+} from '@src/utils/constants';
 import chalk from 'chalk';
 import { find, isEqual } from 'lodash';
 import moment from 'moment';
@@ -29,7 +35,8 @@ export class PlayerResultsCron extends CronJob {
             name: CRON_JOBS.PLAYER_RESULTS_CRON,
             onTick: async () => {
                 try {
-                    // console.log(`*****************************RUN PLAYERS RESULTS CRON*****************************`);
+                    console.log(`*****************************RUN PLAYERS RESULTS CRON*****************************`);
+                    console.log(`${moment().toLocaleString()}`);
                     const currentWeekSchedule = await this.sportsDataService.currentWeekSchedule();
                     const finishedRemoteGames = currentWeekSchedule.filter(
                         game => isEqual(game.Status, 'Final') || isEqual(game.Status, 'F/OT'),
@@ -155,7 +162,7 @@ export class PlayerResultsCron extends CronJob {
                                     fetchResultsAttempts: fetchRetryAttempts,
                                 });
 
-                                if (fetchRetryAttempts >= 4) {
+                                if (fetchRetryAttempts >= MAX_ATTEMPT_RETRIES) {
                                     await this.contestRepository.updateById(contest.id, {
                                         retryFetchResults: false,
                                         fetchResultsAttempts: fetchRetryAttempts,

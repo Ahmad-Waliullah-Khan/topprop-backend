@@ -10,3 +10,4 @@ export enum CRON_JOBS {
 }
 
 export const sportApiDateFormat = 'YYYY-MMM-DD';
+export const MAX_ATTEMPT_RETRIES = 25 * 4;
