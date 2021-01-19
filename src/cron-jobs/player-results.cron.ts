@@ -137,6 +137,9 @@ export class PlayerResultsCron extends CronJob {
                                         await this.contenderRepository.updateById(contender.id, {
                                             winner: true,
                                             wonAt: moment().toDate(),
+                                            tied: false,
+                                            tiedAt: null,
+                                            tiedReason: null,
                                         });
                                         console.log(`Contender winner updated: ${contender.contenderId}`);
                                         await this.gainRepository.create({
