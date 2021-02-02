@@ -18,7 +18,7 @@ const keys = {
     NFLv3StatsClient: process.env.NFL_SCORES_API_KEY as string,
 };
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({ scope: BindingScope.SINGLETON })
 export class SportsDataService {
     constructor(/* Add @inject to inject parameters */) {}
 

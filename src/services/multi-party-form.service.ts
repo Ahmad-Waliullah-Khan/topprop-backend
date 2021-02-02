@@ -7,7 +7,7 @@ import { removeSync } from 'fs-extra';
 import { forOwn, isEqual } from 'lodash';
 import multiparty from 'multiparty';
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({ scope: BindingScope.SINGLETON })
 export class MultiPartyFormService {
     constructor(/* Add @inject to inject parameters */) {}
 

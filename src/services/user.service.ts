@@ -13,7 +13,7 @@ import { isEqual, isNumber, merge } from 'lodash';
 import moment from 'moment';
 import { EmailService } from './email.service';
 
-@bind({ scope: BindingScope.TRANSIENT })
+@bind({ scope: BindingScope.SINGLETON })
 export class UserService {
     private HASH_ROUNDS = 10;
     constructor(

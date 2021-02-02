@@ -1,15 +1,23 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
+import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { ContestPayoutRepository, PlayerRepository } from '@src/repositories';
 import { CONTEST_TYPES, DEFAULT_CONTEST_PAYOUTS } from '@src/utils/constants';
 import { isEqual } from 'lodash';
 
-@bind({ scope: BindingScope.TRANSIENT })
+@bind({ scope: BindingScope.SINGLETON })
 export class ContestPayoutService {
+    contestPayoutRepo: ContestPayoutRepository;
+    playerRepo: PlayerRepository;
+
     constructor(
-        @repository('ContestPayoutRepository') private contestPayoutRepo: ContestPayoutRepository,
-        @repository('PlayerRepository') private playerRepo: PlayerRepository,
-    ) {}
+        @repository.getter('ContestPayoutRepository') private contestPayoutRepoGetter: Getter<ContestPayoutRepository>,
+        @repository.getter('PlayerRepository') private playerRepoGetter: Getter<PlayerRepository>,
+    ) {
+        (async () => {
+            this.contestPayoutRepo = await this.contestPayoutRepoGetter();
+            this.playerRepo = await this.playerRepoGetter();
+        })();
+    }
 
     async createDefaults() {
         // await this.contestPayoutRepo.deleteAll();

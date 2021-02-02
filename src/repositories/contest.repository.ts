@@ -1,6 +1,7 @@
 import { Getter, inject, service } from '@loopback/core';
 import { BelongsToAccessor, DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
+import { ContestPayoutService } from '@src/services/contest-payout.service';
 import { SportsDataService } from '@src/services/sports-data.service';
 import { GAME_MESSAGES, PLAYER_MESSAGES, TEAM_MESSAGES } from '@src/utils/messages';
 import { find, isEqual } from 'lodash';
@@ -30,6 +31,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('GainRepository') protected gainRepositoryGetter: Getter<GainRepository>,
         @service() private sportsDataService: SportsDataService,
+        @service() private contestPayoutService: ContestPayoutService,
     ) {
         super(Contest, dataSource);
         this.creator = this.createBelongsToAccessorFor('creator', userRepositoryGetter);
@@ -41,6 +43,29 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
         this.player = this.createBelongsToAccessorFor('player', playerRepositoryGetter);
         this.registerInclusionResolver('player', this.player.inclusionResolver);
 
+        /* (async () => {
+            const openContests = await this.find({
+                where: { status: CONTEST_STATUSES.OPEN },
+                include: [
+                    {
+                        relation: 'contenders',
+                    },
+                ],
+            });
+            for (let index = 0; index < openContests.length; index++) {
+                const element = openContests[index];
+                const riskAmountToMatch = await this.contestPayoutService.calculateRiskAmountToMatch(
+                    element.playerId,
+                    +element.fantasyPoints,
+                    element.contenders[0].type,
+                    +element.contenders[0].toRiskAmount,
+                );
+
+                await this.updateById(element.id, { maxRiskAmount: +riskAmountToMatch });
+            }
+            console.log('done');
+        })();
+ */
         //* BEFORE SAVE HOOK
         //* ASSIGN UPDATED AT
         this.modelClass.observe('before save', async ctx => {
@@ -111,6 +136,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                 ctx.options.contestType &&
                 ctx.options.toRiskAmount &&
                 ctx.options.toWinAmount &&
+                ctx.options.assignMAxRiskAmount &&
                 !ctx.hookState.skipInitialContenderCreation
             ) {
                 const contenderRepository = await this.contenderRepositoryGetter();
@@ -125,10 +151,19 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                     },
                     { fromContest: true },
                 );
+
+                const riskAmountToMatch = await this.contestPayoutService.calculateRiskAmountToMatch(
+                    ctx.instance.playerId,
+                    +ctx.instance.fantasyPoints,
+                    ctx.options.contestType,
+                    +ctx.options.toRiskAmount,
+                );
+                await this.updateById(ctx.instance.id, { maxRiskAmount: +riskAmountToMatch });
                 ctx.hookState.skipInitialContenderCreation = true;
             }
             return;
         });
+
         //* MANAGE REFUNDS IF CONTESt CLOSED & WHEN IMPORT PLAYERS
         this.modelClass.observe('after save', async ctx => {
             if (ctx.instance && ctx.options.refundBets && !ctx.hookState.skipRefundBetsByPlayersImport) {

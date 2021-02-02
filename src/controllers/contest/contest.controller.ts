@@ -80,6 +80,7 @@ export class ContestController {
                 contestType,
                 toRiskAmount,
                 toWinAmount,
+                assignMAxRiskAmount: true,
             }),
         };
     }

@@ -5,7 +5,7 @@ import { GAME_TYPES, NFL_WEEK_1 } from '@src/utils/constants';
 import chalk from 'chalk';
 import moment from 'moment';
 
-@bind({ scope: BindingScope.TRANSIENT })
+@bind({ scope: BindingScope.SINGLETON })
 export class GameService {
     constructor(
         @repository(GameRepository) private gameRepository: GameRepository,
