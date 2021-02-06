@@ -1,0 +1,21 @@
+| Hi admin,
+|
+| Here is an update regarding the imported players.
+|
+| Details:
+| Date & time: #{importedDateAndTime}
+| Target: #{targetResources}
+|
+if errors.length
+    |
+    | Errors:
+    |
+    each error in errors
+        | * #{error}
+        |
+else
+    | * All players were imported successfully.
+    |
+|
+| Thanks,
+| Top Prop Team

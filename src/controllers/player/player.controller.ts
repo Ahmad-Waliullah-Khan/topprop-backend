@@ -45,7 +45,6 @@ export class PlayerController {
         res.sendStatus(200);
 
         if (!gSheetsAuthHeader || !isEqual(gSheetsAuthHeader, process.env.GOOGLE_APP_SCRIPT_AUTH_HEADER)) return;
-        const promises: Promise<void>[] = [];
         const validationSchema: SchemaDefinition = {
             name: IMPORTED_PLAYER_VALIDATORS.name,
             position: IMPORTED_PLAYER_VALIDATORS.position,
@@ -82,42 +81,43 @@ export class PlayerController {
         };
 
         const validation = new Schema(validationSchema, { strip: true });
-        let errorFound = false;
+
+        // body.data = body.data.slice(0, 50);
+        let errors: string[] = [];
+        await this.playerRepository.updateAll({ available: false });
 
         for (let index = 0; index < body.data.length; index++) {
+            let row = index + 2;
             const player = body.data[index];
             if (!player.available) continue;
             const validationErrors = validation.validate(player);
             if (validationErrors.length) {
-                errorFound = true;
-                this.emailService.sendEmail({
-                    template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
-                    message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-                    locals: {
-                        targetResources: 'Players - Google Sheets',
-                        importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-                        errors: validationErrors.map((error: any) => `Error at row: ${index + 1} - ${error.message}`),
-                    },
-                });
-                break;
-            } else promises.push(this.upsertPlayer(player));
+                let errorMapped = validationErrors.map((error: any) => `Error at row: ${row} - ${error.message}`);
+                errors = [...errors, ...errorMapped];
+            } else {
+                try {
+                    await this.upsertPlayer(player, row);
+                } catch (error) {
+                    errors = [...errors, error.message];
+                }
+            }
         }
 
-        //* IF ERROR FOUND, SKIP THE REST OF THE IMPORTING
-        if (errorFound) return;
+        //* IF ERRORS SEND EMAIL BUT CONTINUE THE FLOW
+        let template = EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE;
+        let locals = {
+            targetResources: 'Players - Google Sheets',
+            importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+            errors,
+        };
+
+        this.emailService.sendEmail({
+            template,
+            message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+            locals,
+        });
 
         try {
-            await this.playerRepository.updateAll({ available: false });
-            await Promise.all(promises);
-            this.emailService.sendEmail({
-                template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
-                message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-                locals: {
-                    targetResources: 'Players - Google Sheets',
-                    importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-                },
-            });
-
             //* HANDLE UNAVAILABLE PLAYERS
             const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
             const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
@@ -141,12 +141,12 @@ export class PlayerController {
         } catch (error) {
             console.error(`Error upserting players from google sheets. Error:`, error);
             this.emailService.sendEmail({
-                template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
+                template: EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE,
                 message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
                 locals: {
                     targetResources: 'Players - Google Sheets',
                     importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-                    errors: [error.message || 'Unknown Error. Try again.'],
+                    errors: [...errors, error.message || 'Unknown Error. Try again.'],
                 },
             });
         }
@@ -465,7 +465,7 @@ export class PlayerController {
     //     await this.playerRepository.deleteById(id);
     // }
 
-    private async upsertPlayer(nflPlayer: IImportedPlayer): Promise<void> {
+    private async upsertPlayer(nflPlayer: IImportedPlayer, row: number): Promise<void> {
         const team = await this.teamRepository.findOne({ where: { abbr: nflPlayer.team } });
         if (team) {
             const player = await this.playerRepository.findOne({
@@ -505,6 +505,7 @@ export class PlayerController {
                     points46: 100 * +nflPlayer.points46,
                     points48: 100 * +nflPlayer.points48,
                     points50: 100 * +nflPlayer.points50,
+                    updatedAt: moment().toDate().toString(),
                 });
                 console.log(chalk.greenBright(`Player: ${nflPlayer.name} updated for team: ${team.name}`));
             } else {
@@ -543,7 +544,7 @@ export class PlayerController {
                 });
                 console.log(chalk.greenBright(`Player: ${nflPlayer.name} created for team: ${team.name}`));
             }
-        }
+        } else throw new Error(`Error at row: ${row}. Invalid team (${nflPlayer.team}) for player ${nflPlayer.name}.`);
     }
 
     private validPlayer(player: IImportedPlayer): boolean {

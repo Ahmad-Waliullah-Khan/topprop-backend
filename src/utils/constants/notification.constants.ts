@@ -4,8 +4,7 @@ export enum EMAIL_TEMPLATES {
     // ADMIN_SUBSCRIPTION_CANCELLATION_REQUEST = 'admin-subscription-cancellation-request',
     // ADMIN_SUBSCRIPTION_CANCELED = 'admin-subscription-canceled',
     // ADMIN_PAYMENT_FAILED = 'admin-payment-failed',
-    ADMIN_IMPORT_DATA_SUCCESS = 'admin-import-data-success',
-    ADMIN_IMPORT_DATA_FAILURE = 'admin-import-data-failure',
+    ADMIN_IMPORT_PLAYERS_UPDATE = 'admin-import-players-update',
     //* END ADMIN EMAIL TEMPLATES
     WELCOME = 'welcome',
     // ACCOUNT_CONFIRMED = 'account-confirmed',
