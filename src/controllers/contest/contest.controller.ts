@@ -4,7 +4,7 @@ import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { Contest } from '@src/models';
+import { Contender, Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
 import { ContestPayoutService, WalletService } from '@src/services';
 import { API_ENDPOINTS, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
@@ -281,5 +281,38 @@ export class ContestController {
             body.initialRiskAmount,
         );
         return { data: riskAmountToMatch };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
+    @post(API_ENDPOINTS.CONTESTS.CALCULATE_TOTAL_TO_WIN)
+    async calculateTotalToWinWithinDays(
+        @requestBody()
+        body: {
+            wonOnly: boolean;
+            filter?: Filter<Contest>;
+        },
+    ): Promise<ICommonHttpResponse<number>> {
+        let totalToWinAmount = 0;
+
+        const contests = await this.contestRepository.find(body.filter);
+
+        let contenders: Contender[] = [];
+
+        for (let index = 0; index < contests.length; index++) {
+            const contest = contests[index];
+
+            let localContenders = contest.contenders.filter(contender => {
+                if (body.wonOnly) return contender.winner;
+                else return true;
+            });
+            contenders = [...localContenders, ...contenders];
+        }
+
+        totalToWinAmount = contenders.reduce((total, current) => {
+            return total + +current.toWinAmount;
+        }, 0);
+
+        return { data: totalToWinAmount };
     }
 }

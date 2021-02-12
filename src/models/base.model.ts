@@ -6,13 +6,13 @@ export class Base extends Entity {
         type: 'date',
         default: () => new Date(),
     })
-    createdAt?: string;
+    createdAt?: string | Date;
 
     @property({
         type: 'date',
         default: () => new Date(),
     })
-    updatedAt?: string;
+    updatedAt?: string | Date;
 
     constructor(data?: Partial<Base>) {
         super(data);
