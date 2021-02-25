@@ -35,6 +35,7 @@ testing:
     after_script:
         - docker container stop $(docker container ls -aq)
         - docker container rm $(docker container ls -aq)
+    interruptible: true
 
 deployToStaging:
     stage: deployStaging
@@ -56,6 +57,7 @@ deployToStaging:
         - bash ./deployment-scripts/.deploy-staging.sh
     after_script:
         - docker system prune --volumes -a -f
+    interruptible: true
 
 deployToProduction:
     stage: deployProduction
@@ -77,3 +79,4 @@ deployToProduction:
         - bash ./deployment-scripts/.deploy-production.sh
     after_script:
         - docker system prune --volumes -a -f
+    interruptible: true
