@@ -45,6 +45,7 @@ export const API_ENDPOINTS = {
         },
         CALCULATE_TO_WIN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/calculate/to-win`,
         CALCULATE_TOTAL_TO_WIN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/calculate/total-to-win`,
+        CALCULATE_TOP_PROP_REVENUE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/calculate/top-prop-revenue`,
         CALCULATE_RISK_TO_MATCH: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CONTESTS}/calculate/risk-to-match`,
     },
     GAMES: {

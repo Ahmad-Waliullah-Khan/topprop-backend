@@ -45,7 +45,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
 
         /* (async () => {
             const closedContests = await this.find({
-                where: { status: CONTEST_STATUSES.CLOSED },
+                where: { or: [{ status: CONTEST_STATUSES.CLOSED }, { status: CONTEST_STATUSES.MATCHED }] },
                 include: [
                     {
                         relation: 'contenders',

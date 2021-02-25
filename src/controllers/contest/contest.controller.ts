@@ -7,7 +7,7 @@ import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
 import { ContestPayoutService, WalletService } from '@src/services';
-import { API_ENDPOINTS, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
+import { API_ENDPOINTS, CONTEST_STATUSES, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
@@ -20,6 +20,7 @@ import {
 import { COMMON_MESSAGES } from '@src/utils/messages';
 import { CONTENDER_VALIDATORS, CONTEST_VALIDATORS } from '@src/utils/validators';
 import { isEmpty } from 'lodash';
+import moment from 'moment';
 import Schema from 'validate';
 
 export class ContestController {
@@ -314,5 +315,32 @@ export class ContestController {
         }, 0);
 
         return { data: totalToWinAmount };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
+    @post(API_ENDPOINTS.CONTESTS.CALCULATE_TOP_PROP_REVENUE)
+    async calculateTopPropRevenue(
+        @requestBody()
+        body: {
+            days: number;
+        },
+    ): Promise<ICommonHttpResponse<number>> {
+        let topPropRevenue = 0;
+        let defaultWhere: Where<Contest> = {
+            and: [{ or: [{ status: CONTEST_STATUSES.CLOSED }, { status: CONTEST_STATUSES.MATCHED }] }],
+        };
+        if (body.days > 0) {
+            defaultWhere.and.push({ createdAt: { gte: moment().subtract(body.days, 'days').toDate() } });
+        }
+        const contests = await this.contestRepository.find({
+            where: defaultWhere,
+        });
+
+        topPropRevenue = contests.reduce((total, current) => {
+            return total + +current.topPropRevenue;
+        }, 0);
+
+        return { data: topPropRevenue };
     }
 }
