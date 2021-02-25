@@ -113,8 +113,24 @@ export class ContenderRepository extends DefaultCrudRepository<
             if (ctx.instance && ctx.options.matched && !ctx.hookState.skipContestMatch) {
                 const contestRepository = await this.contestRepositoryGetter();
 
-                await contestRepository.updateById(ctx.instance.contestId, { status: CONTEST_STATUSES.MATCHED });
-                console.log(`Contests with id: ${ctx.instance.contestId} is matched.`);
+                const contest = await contestRepository.findById(ctx.instance.contestId, {
+                    include: [{ relation: 'contenders' }],
+                });
+
+                let topPropRevenue = 0;
+                if (contest.contenders.length == 2) {
+                    let amount1 = +contest.contenders[0].toRiskAmount - +contest.contenders[1].toWinAmount;
+                    let amount2 = +contest.contenders[1].toRiskAmount - +contest.contenders[0].toWinAmount;
+                    topPropRevenue = amount1 + amount2;
+                }
+
+                await contestRepository.updateById(ctx.instance.contestId, {
+                    status: CONTEST_STATUSES.MATCHED,
+                    topPropRevenue: +topPropRevenue,
+                });
+                console.log(
+                    `Contests with id: ${ctx.instance.contestId} is matched and top prop revenue is calculated.`,
+                );
 
                 ctx.hookState.skipContestMatch = true;
             }

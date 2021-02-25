@@ -44,28 +44,31 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
         this.registerInclusionResolver('player', this.player.inclusionResolver);
 
         /* (async () => {
-            const openContests = await this.find({
-                where: { status: CONTEST_STATUSES.OPEN },
+            const closedContests = await this.find({
+                where: { status: CONTEST_STATUSES.CLOSED },
                 include: [
                     {
                         relation: 'contenders',
                     },
                 ],
             });
-            for (let index = 0; index < openContests.length; index++) {
-                const element = openContests[index];
-                const riskAmountToMatch = await this.contestPayoutService.calculateRiskAmountToMatch(
-                    element.playerId,
-                    +element.fantasyPoints,
-                    element.contenders[0].type,
-                    +element.contenders[0].toRiskAmount,
-                );
-
-                await this.updateById(element.id, { maxRiskAmount: +riskAmountToMatch });
+            for (let index = 0; index < closedContests.length; index++) {
+                const contest = closedContests[index];
+                let topPropRevenue = 0;
+                if (contest.contenders.length == 2) {
+                    let amount1 = +contest.contenders[0].toRiskAmount - +contest.contenders[1].toWinAmount;
+                    let amount2 = +contest.contenders[1].toRiskAmount - +contest.contenders[0].toWinAmount;
+                    // console.log(amount1);
+                    // console.log(amount2);
+                    topPropRevenue = amount1 + amount2;
+                    // console.log(topPropRevenue);
+                    // console.log(`----------------`);
+                }
+                await this.updateById(contest.id, { topPropRevenue: +topPropRevenue });
             }
             console.log('done');
-        })();
- */
+        })(); */
+
         //* BEFORE SAVE HOOK
         //* ASSIGN UPDATED AT
         this.modelClass.observe('before save', async ctx => {

@@ -34,6 +34,14 @@ export class Contest extends Base {
 
     @property({
         type: 'number',
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    topPropRevenue: number;
+
+    @property({
+        type: 'number',
         default: 0,
     })
     fetchResultsAttempts: number;
