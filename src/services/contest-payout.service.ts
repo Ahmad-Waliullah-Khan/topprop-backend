@@ -115,6 +115,7 @@ export class ContestPayoutService {
             return toWin;
         }
     }
+
     async calculateRiskAmountToMatch(
         playerId: number,
         fantasyPoints: number,

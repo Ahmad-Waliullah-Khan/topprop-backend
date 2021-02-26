@@ -56,13 +56,14 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
                 const contest = closedContests[index];
                 let topPropRevenue = 0;
                 if (contest.contenders.length == 2) {
-                    let amount1 = +contest.contenders[0].toRiskAmount - +contest.contenders[1].toWinAmount;
-                    let amount2 = +contest.contenders[1].toRiskAmount - +contest.contenders[0].toWinAmount;
-                    // console.log(amount1);
-                    // console.log(amount2);
-                    topPropRevenue = amount1 + amount2;
-                    // console.log(topPropRevenue);
-                    // console.log(`----------------`);
+                    let creatorContender = find(contest.contenders, contender => contender.creator);
+                    let matcherContender = find(contest.contenders, contender => !contender.creator);
+
+                    if (creatorContender && matcherContender) {
+                        let amount1 = +creatorContender.toRiskAmount - matcherContender.toWinAmount;
+                        let amount2 = +matcherContender.toRiskAmount - +creatorContender.toWinAmount;
+                        topPropRevenue = amount1 + amount2;
+                    }
                 }
                 await this.updateById(contest.id, { topPropRevenue: +topPropRevenue });
             }
