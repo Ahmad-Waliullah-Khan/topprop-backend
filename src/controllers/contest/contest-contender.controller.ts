@@ -6,7 +6,7 @@ import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@l
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
-import { WalletService } from '@src/services';
+import { ContestPayoutService, WalletService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -20,6 +20,7 @@ export class ContestContenderController {
     constructor(
         @repository(ContestRepository) protected contestRepository: ContestRepository,
         @service() private walletService: WalletService,
+        @service() private contestPayoutService: ContestPayoutService,
     ) {}
 
     @authenticate('jwt')
@@ -71,19 +72,32 @@ export class ContestContenderController {
         if (!body.contenderId) body.contenderId = +currentUser[securityId];
         // body.contestId = id;
 
+        const contest = await this.contestRepository.findById(id, { include: [{ relation: 'contenders' }] });
+
+        if (contest.contenders.length >= 2) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
+
         const funds = await this.walletService.userBalance(body.contenderId);
 
         const validationSchema = {
             // contestId: CONTENDER_VALIDATORS.contestId,
+            // toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
             contenderId: CONTENDER_VALIDATORS.contenderId,
             type: CONTENDER_VALIDATORS.type,
-            toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
             toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
         };
 
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const toWinAmount = await this.contestPayoutService.calculateToWin(
+            contest.playerId,
+            +contest.fantasyPoints,
+            contest.contenders[0].toRiskAmount,
+            true,
+            contest.contenders[0].type,
+        );
+        body.toWinAmount = toWinAmount;
 
         return { data: await this.contestRepository.contenders(id).create(body, { matched: true }) };
     }
