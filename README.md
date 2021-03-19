@@ -4,8 +4,9 @@
 ## Requirements
 
  1. Node JS (Dockerized or locally)
- 2. PostgreSQL (Optional)
- 3. Set `.env` file
+ 2. [Loobpack 4 CLI](https://loopback.io/doc/en/lb4/Command-line-interface.html) (Optional but useful to create resources like services, controllers, relationships, etc)
+ 3. PostgreSQL (Optional)
+ 4. Set `.env` file
 
 ## Run Locally
 If the server will be running locally there are some considerations to take into account to establish a DB connection.
@@ -43,6 +44,10 @@ To run all the test you need to run `npm test`
 
 ### Seed Data
 If you would like to work with a local DB instance, it is recommended to copy at least the admin user. If not you can simulate a sign-up API call using the admin email provided in the `.env` file and that will create an admin.
+
+###  Migrations
+
+By default the app is configured to run migration on every startup, however, there are some commands that help to perform this actions. To know more details, please see [this](https://loopback.io/doc/en/lb4/Database-migrations.html)
 
 ### Postman
 A copy of the collection will be provided along with the environments
