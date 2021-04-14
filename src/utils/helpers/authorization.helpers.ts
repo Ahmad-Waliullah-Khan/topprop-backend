@@ -7,7 +7,7 @@ export class AuthorizationHelpers {
     static allowedByPermission(permission: string) {
         return async (authorizationCtx: AuthorizationContext, metadata: AuthorizationMetadata) => {
             if (authorizationCtx.principals.length > 0) {
-                const decodedUser: ICustomUserProfile = authorizationCtx.principals[0];
+                const decodedUser = authorizationCtx.principals[0];
                 if (decodedUser.permissions && !isEqual(decodedUser.permissions.indexOf(permission), -1))
                     return AuthorizationDecision.ALLOW;
                 else return AuthorizationDecision.DENY;
@@ -16,12 +16,14 @@ export class AuthorizationHelpers {
     }
     static async ensureSameUserOrAdmin(authorizationCtx: AuthorizationContext, metadata: AuthorizationMetadata) {
         if (authorizationCtx.principals.length > 0) {
-            const decodedUser: ICustomUserProfile = authorizationCtx.principals[0];
+            const decodedUser = authorizationCtx.principals[0];
 
             if (decodedUser.isAdmin) return AuthorizationDecision.ALLOW;
 
             const userId = authorizationCtx.invocationContext.args[0];
-            return userId === +decodedUser[securityId] ? AuthorizationDecision.ALLOW : AuthorizationDecision.DENY;
+            return userId === +decodedUser[(securityId as unknown) as string]
+                ? AuthorizationDecision.ALLOW
+                : AuthorizationDecision.DENY;
         } else return AuthorizationDecision.DENY;
     }
 }

@@ -7,9 +7,9 @@ import Stripe from 'stripe';
 export class StripeService {
     stripe: Stripe;
     constructor() {
-        const apiVersion2020_03_02 = '2020-03-02';
+        const apiVersion2020_08_27 = '2020-08-27';
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-            apiVersion: apiVersion2020_03_02,
+            apiVersion: apiVersion2020_08_27,
         });
     }
 

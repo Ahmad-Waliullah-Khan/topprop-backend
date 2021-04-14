@@ -36,9 +36,21 @@
         "docker:run": "docker run -p 3000:3000 -d top-prop-backend",
         "migrate": "node  -r dotenv/config -r module-alias/register ./dist/migrate",
         "openapi-spec": "node ./dist/openapi-spec",
-        "prestart": "npm run build",
+        "//prestart": "npm run build",
         "start": "node -r source-map-support/register .",
+        "dev": "nodemon .",
         "clean": "lb-clean dist *.tsbuildinfo .eslintcache"
+    },
+    "nodemonConfig": {
+        "verbose": true,
+        "watch": [
+            "src/"
+        ],
+        "ignore": [
+            "dist/*"
+        ],
+        "ext": "ts",
+        "exec": "npm start"
     },
     "repository": {
         "type": "git"
@@ -110,6 +122,7 @@
         "eslint": "^7.10.0",
         "module-alias": "^2.2.2",
         "morgan": "^1.10.0",
+        "nodemon": "^2.0.7",
         "randomstring": "^1.1.5",
         "source-map-support": "^0.5.19",
         "typescript": "~4.0.3"

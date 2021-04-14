@@ -394,7 +394,7 @@ export class WalletController {
             business_profile: {
                 url: 'https://topprop.io',
             },
-            requested_capabilities: DEFAULT_CAPABILITIES,
+            capabilities: DEFAULT_CAPABILITIES,
             tos_acceptance: {
                 date: Math.floor(Date.now() / 1000),
                 ip: req.ip,
