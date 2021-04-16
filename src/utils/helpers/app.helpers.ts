@@ -5,19 +5,19 @@ import { merge } from 'lodash';
 export class ApplicationHelpers {
     static bindDbSourceCredential(app: RestApplication) {
         if (
-            !process.env.DB_HOST ||
-            !process.env.DB_USER ||
-            !process.env.DB_PWD ||
-            !process.env.DB_NAME ||
-            !process.env.DB_PORT
+            !process.env.POSTGRES_HOST ||
+            !process.env.POSTGRES_USER ||
+            !process.env.POSTGRES_PASSWORD ||
+            !process.env.POSTGRES_DB ||
+            !process.env.POSTGRES_PORT
         )
             throw new Error('Must provide DB Credentials.');
         const updatedDataSourceCredentials = merge(defaultDbConfig, {
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PWD,
-            database: process.env.DB_NAME,
-            port: +process.env.DB_PORT,
+            host: process.env.POSTGRES_HOST,
+            user: process.env.POSTGRES_USER,
+            password: process.env.POSTGRES_PASSWORD,
+            database: process.env.POSTGRES_DB,
+            port: +process.env.POSTGRES_PORT,
         });
         app.bind('datasources.config.db').to(updatedDataSourceCredentials);
     }

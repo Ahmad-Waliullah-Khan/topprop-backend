@@ -55,8 +55,6 @@
     "repository": {
         "type": "git"
     },
-    "author": "ivan@geekbears.com",
-    "license": "",
     "files": [
         "README.md",
         "dist",
