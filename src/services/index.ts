@@ -9,3 +9,4 @@ export * from './wallet.service';
 export * from './contest-payout.service';
 export * from './multi-party-form.service';
 export * from './sports-data.service';
+export * from './contest.service';

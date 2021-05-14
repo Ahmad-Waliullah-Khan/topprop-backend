@@ -6,9 +6,10 @@ import { del, get, getModelSchemaRef, HttpErrors, param, post, requestBody } fro
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest } from '@src/models';
 import { ContestRepository } from '@src/repositories';
-import { ContestPayoutService, WalletService } from '@src/services';
+import { PlayerResultRepository } from '@src/repositories';
+import { ContestPayoutService, ContestService, WalletService } from '@src/services';
 import { API_ENDPOINTS, CONTEST_STATUSES, CONTEST_TYPES, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICalculateRiskToMatchRequest,
@@ -27,8 +28,11 @@ export class ContestController {
     constructor(
         @repository(ContestRepository)
         public contestRepository: ContestRepository,
+        @repository(PlayerResultRepository)
+        public playerResultRepository: PlayerResultRepository,
         @service() private walletService: WalletService,
         @service() private contestPayoutService: ContestPayoutService,
+        @service() private contestService: ContestService,
     ) {}
 
     @authenticate('jwt')
@@ -348,5 +352,77 @@ export class ContestController {
         }, 0);
 
         return { data: topPropRevenue };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
+    @post(API_ENDPOINTS.CONTESTS.CALCULATE_SPREAD)
+    async calculateSpread(
+        @requestBody()
+        body: {
+            playerId: number;
+            opponentId: number;
+            type: string;
+        },
+    ): Promise<ICommonHttpResponse<number>> {
+        let spread = 0;
+
+        const playerResult = await this.playerResultRepository.findOne({
+            order: ['updatedat DESC'],
+            where: {
+                playerId: body.playerId,
+            },
+        });
+
+        const opponentResult = await this.playerResultRepository.findOne({
+            order: ['updatedat DESC'],
+            where: {
+                playerId: body.opponentId,
+            },
+        });
+        const playerPoints = playerResult ? playerResult.points : 0;
+        const opponentPoints = opponentResult ? opponentResult.points : 0;
+        if (body.type === 'creator') {
+            spread = MiscHelpers.roundValue(opponentPoints - playerPoints, 0.5);
+        } else {
+            spread = MiscHelpers.roundValue(playerPoints - opponentPoints, 0.5);
+        }
+
+        return { data: spread };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
+    @post(API_ENDPOINTS.CONTESTS.CALCULATE_VALUES)
+    async calculateValues(
+        @requestBody()
+        body: {
+            playerId: number;
+            opponentId: number;
+            type: string;
+            entry: number;
+        },
+    ): Promise<ICommonHttpResponse<object>> {
+        const spread = await this.contestService.calculateSpread(body.playerId, body.opponentId, body.type);
+
+        const coverWithBonus = await this.contestService.calculateCover(spread, body.entry, true);
+        const coverWithoutBonus = await this.contestService.calculateCover(spread, body.entry, false);
+
+        const winBonus = await this.contestService.calculateWinBonus(spread, body.entry);
+
+        return {
+            data: {
+                withWinBonus: {
+                    spread,
+                    cover: coverWithBonus,
+                    winBonus,
+                },
+                withoutWinBonus: {
+                    spread,
+                    cover: coverWithoutBonus,
+                    winBonus: 0,
+                },
+            },
+        };
     }
 }
