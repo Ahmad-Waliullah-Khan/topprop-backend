@@ -26,7 +26,6 @@ import { CrudRestComponent } from '@loopback/rest-crud';
 import { SpreadRepository } from './repositories';
 
 import { SpreadSeeder } from './seeders';
-console.log('🚀 ~ file: application.ts ~ line 29 ~ spreadSeeder', SpreadSeeder);
 
 export { ApplicationConfig };
 
