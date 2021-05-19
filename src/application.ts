@@ -21,6 +21,12 @@ import { PlayerResultsCron, SyncGamesCron, SyncTeamsCron } from './cron-jobs';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 import { IRawRequest } from './utils/interfaces';
+import { CrudRestComponent } from '@loopback/rest-crud';
+
+import { SpreadRepository } from './repositories';
+
+import { SpreadSeeder } from './seeders';
+console.log('🚀 ~ file: application.ts ~ line 29 ~ spreadSeeder', SpreadSeeder);
 
 export { ApplicationConfig };
 
@@ -121,5 +127,17 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
                 nested: true,
             },
         };
+        this.component(CrudRestComponent);
+    }
+
+    async migrateSchema(options: any) {
+        // 1. Run migration scripts provided by connectors
+        await super.migrateSchema(options);
+
+        // 2. Make further changes. When creating predefined model instances,
+        // handle the case when these instances already exist.
+        const spreadRepo = await this.getRepository(SpreadRepository);
+        spreadRepo.deleteAll();
+        await spreadRepo.createAll(SpreadSeeder);
     }
 }

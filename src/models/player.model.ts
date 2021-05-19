@@ -45,6 +45,12 @@ export class Player extends Base {
     @property({
         type: 'number',
         required: false,
+    })
+    fantasy_points: number;
+
+    @property({
+        type: 'number',
+        required: false,
         postgresql: {
             dataType: 'decimal',
         },
