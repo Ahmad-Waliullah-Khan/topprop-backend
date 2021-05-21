@@ -22,7 +22,31 @@ export class Player extends Base {
         type: 'string',
         required: true,
     })
-    name: string;
+    firstName: string;
+
+    @property({
+        type: 'string',
+        required: true,
+    })
+    lastName: string;
+
+    @property({
+        type: 'string',
+        required: true,
+    })
+    fullName: string;
+
+    @property({
+        type: 'string',
+        required: true,
+    })
+    shortName: string;
+
+    @property({
+        type: 'string',
+        required: true,
+    })
+    status: string;
 
     @property({
         type: 'string',
@@ -38,249 +62,59 @@ export class Player extends Base {
 
     @property({
         type: 'string',
-        required: true,
+        required: false,
     })
     position: string;
 
     @property({
-        type: 'number',
+        type: 'string',
         required: false,
     })
-    fantasy_points: number;
+    teamName: string;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    opponentName: string;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    homeOrAway: string;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    hasStarted: boolean;
+
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    isOver: boolean;
 
     @property({
         type: 'number',
-        required: false,
+        required: true,
+        default: 0,
         postgresql: {
             dataType: 'decimal',
         },
     })
-    points0: number;
+    fantasyPoints: number;
 
     @property({
         type: 'number',
-        required: false,
+        required: true,
+        default: 0,
         postgresql: {
             dataType: 'decimal',
         },
     })
-    points2: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points4: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points6: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points8: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points10: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points12: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points14: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points16: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points18: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points20: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points22: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points24: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points26: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points28: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points30: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points32: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points34: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points36: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points38: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points40: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points42: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points44: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points46: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points48: number;
-
-    @property({
-        type: 'number',
-        required: false,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    points50: number;
+    projectedFantasyPoints: number;
 
     @belongsTo(() => Team)
     teamId: number;

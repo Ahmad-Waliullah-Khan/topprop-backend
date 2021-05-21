@@ -90,3 +90,27 @@ export interface IDailyFantasyPointsData {
     Date: string;
     FantasyPointsFantasyDraft: null;
 }
+
+export interface IDailyFantasyPlayerData {
+    PlayerID: number;
+    Date: Date;
+    ShortName: string;
+    Name: string;
+    Team: string;
+    Opponent: string;
+    HomeOrAway: string;
+    Position: string | null;
+    Salary: number;
+    LastGameFantasyPoints: number;
+    ProjectedFantasyPoints: number;
+    OpponentRank: number;
+    OpponentPositionRank: number;
+    Status: string;
+    StatusCode: string;
+    StatusColor: string;
+    FanDuelSalary: number;
+    DraftKingsSalary: number;
+    YahooSalary: number;
+    FantasyDataSalary: number;
+    FantasyDraftSalary: null;
+}

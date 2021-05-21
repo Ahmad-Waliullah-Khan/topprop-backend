@@ -17,7 +17,7 @@ import {
     PassportFacebookTokenAuthProvider,
     PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
-import { PlayerResultsCron, SyncGamesCron, SyncTeamsCron } from './cron-jobs';
+import { PlayerResultsCron, SyncGamesCron, SyncTeamsCron, PlayersCron, ProjectedFantasyPointsCron } from './cron-jobs';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 import { IRawRequest } from './utils/interfaces';
@@ -95,6 +95,12 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         this.component(AuthorizationComponent);
 
         this.component(CronComponent);
+
+        const PlayersCronBinding = createBindingFromClass(PlayersCron);
+        this.add(PlayersCronBinding);
+
+        const ProjectedFantasyPointsCronBinding = createBindingFromClass(ProjectedFantasyPointsCron);
+        this.add(ProjectedFantasyPointsCronBinding);
 
         // const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
         // this.add(fakeResultsCronBinding);
