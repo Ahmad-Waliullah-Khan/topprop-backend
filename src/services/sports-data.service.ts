@@ -2,6 +2,7 @@ import { BindingScope, injectable } from '@loopback/core';
 import { sportApiDateFormat } from '@src/utils/constants';
 import {
     IDailyFantasyPointsData,
+    IDailyFantasyPlayerData,
     IRemoteGame,
     IRemotePlayer,
     IRemoteScore,
@@ -50,6 +51,14 @@ export class SportsDataService {
     }
     async scoresByWeek(season: number, week: number): Promise<IRemoteScore[]> {
         return JSON.parse(await this.sportDataClient.NFLv3ScoresClient.getScoresByWeekPromise(season, week));
+    }
+
+    async projectedFantasyPointsByPlayer(momentInst: moment.Moment): Promise<IDailyFantasyPlayerData[]> {
+        return JSON.parse(
+            await this.sportDataClient.NFLv3StatsClient.getDailyFantasyPlayersPromise(
+                momentInst.format(sportApiDateFormat),
+            ),
+        );
     }
 
     //*STATS

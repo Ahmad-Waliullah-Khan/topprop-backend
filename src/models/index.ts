@@ -12,3 +12,4 @@ export * from './gain.model';
 export * from './player-result.model';
 export * from './contest-payout.model';
 export * from './withdraw-request.model';
+export * from './spread.model';

@@ -58,13 +58,13 @@ export class ContestPayoutService {
             let even = fantasyPoints % 2;
             if (isEqual(even, 0)) {
                 pointsField += fantasyPoints;
-                lookForPercentage = +parseFloat(player[pointsField as 'points0'].toString()).toFixed();
+                lookForPercentage = +parseFloat(player[pointsField as 'fantasyPoints'].toString()).toFixed();
             } else {
                 let prevPointsField = `points${fantasyPoints - 1}`;
                 let nextPointsField = `points${fantasyPoints + 1}`;
 
-                let prevPointsFieldValue = +player[prevPointsField as 'points0'];
-                let nextPointsFieldValue = +player[nextPointsField as 'points0'];
+                let prevPointsFieldValue = +player[prevPointsField as 'fantasyPoints'];
+                let nextPointsFieldValue = +player[nextPointsField as 'fantasyPoints'];
                 let avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
                 lookForPercentage = +avgPointsFields.toFixed();
             }
@@ -132,13 +132,13 @@ export class ContestPayoutService {
             let even = fantasyPoints % 2;
             if (isEqual(even, 0)) {
                 pointsField += fantasyPoints;
-                lookForPercentage = +parseFloat(player[pointsField as 'points0'].toString()).toFixed();
+                lookForPercentage = +parseFloat(player[pointsField as 'fantasyPoints'].toString()).toFixed();
             } else {
                 let prevPointsField = `points${fantasyPoints - 1}`;
                 let nextPointsField = `points${fantasyPoints + 1}`;
 
-                let prevPointsFieldValue = +player[prevPointsField as 'points0'];
-                let nextPointsFieldValue = +player[nextPointsField as 'points0'];
+                let prevPointsFieldValue = +player[prevPointsField as 'fantasyPoints'];
+                let nextPointsFieldValue = +player[nextPointsField as 'fantasyPoints'];
                 let avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
                 lookForPercentage = +avgPointsFields.toFixed();
             }
