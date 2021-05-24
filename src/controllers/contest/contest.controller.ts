@@ -354,42 +354,42 @@ export class ContestController {
         return { data: topPropRevenue };
     }
 
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
-    @post(API_ENDPOINTS.CONTESTS.CALCULATE_SPREAD)
-    async calculateSpread(
-        @requestBody()
-        body: {
-            playerId: number;
-            opponentId: number;
-            type: string;
-        },
-    ): Promise<ICommonHttpResponse<number>> {
-        let spread = 0;
-
-        const playerResult = await this.playerResultRepository.findOne({
-            order: ['updatedat DESC'],
-            where: {
-                playerId: body.playerId,
-            },
-        });
-
-        const opponentResult = await this.playerResultRepository.findOne({
-            order: ['updatedat DESC'],
-            where: {
-                playerId: body.opponentId,
-            },
-        });
-        const playerPoints = playerResult ? playerResult.points : 0;
-        const opponentPoints = opponentResult ? opponentResult.points : 0;
-        if (body.type === 'creator') {
-            spread = MiscHelpers.roundValue(opponentPoints - playerPoints, 0.5);
-        } else {
-            spread = MiscHelpers.roundValue(playerPoints - opponentPoints, 0.5);
-        }
-
-        return { data: spread };
-    }
+    // @authenticate('jwt')
+    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
+    // @post(API_ENDPOINTS.CONTESTS.CALCULATE_SPREAD)
+    // async calculateSpread(
+    //     @requestBody()
+    //     body: {
+    //         playerId: number;
+    //         opponentId: number;
+    //         type: string;
+    //     },
+    // ): Promise<ICommonHttpResponse<number>> {
+    //     let spread = 0;
+    //
+    //     const playerResult = await this.playerResultRepository.findOne({
+    //         order: ['updatedat DESC'],
+    //         where: {
+    //             playerId: body.playerId,
+    //         },
+    //     });
+    //
+    //     const opponentResult = await this.playerResultRepository.findOne({
+    //         order: ['updatedat DESC'],
+    //         where: {
+    //             playerId: body.opponentId,
+    //         },
+    //     });
+    //     const playerPoints = playerResult ? playerResult.points : 0;
+    //     const opponentPoints = opponentResult ? opponentResult.points : 0;
+    //     if (body.type === 'creator') {
+    //         spread = MiscHelpers.roundValue(opponentPoints - playerPoints, 0.5);
+    //     } else {
+    //         spread = MiscHelpers.roundValue(playerPoints - opponentPoints, 0.5);
+    //     }
+    //
+    //     return { data: spread };
+    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
@@ -403,6 +403,9 @@ export class ContestController {
             entry: number;
         },
     ): Promise<ICommonHttpResponse<object>> {
+        const isPlayerAvailable = await this.contestService.checkPlayerStatus(body.playerId, body.opponentId);
+        if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
+
         const spread = await this.contestService.calculateSpread(body.playerId, body.opponentId, body.type);
 
         const coverWithBonus = await this.contestService.calculateCover(spread, body.entry, true);
