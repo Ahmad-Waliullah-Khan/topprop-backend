@@ -54,16 +54,15 @@ export class ContestController {
 
         if (!body.creatorId) body.creatorId = +currentUser[securityId];
 
-        const funds = await this.walletService.userBalance(body.creatorId);
+        // const funds = await this.walletService.userBalance(body.creatorId);
 
         const validationSchema = {
             creatorId: CONTEST_VALIDATORS.creatorId,
-            playerId: CONTEST_VALIDATORS.playerId,
-            gameId: CONTEST_VALIDATORS.gameId,
-            fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
-            scoring: CONTEST_VALIDATORS.scoring,
-            type: CONTENDER_VALIDATORS.type,
-            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds, MINIMUM_BET_AMOUNT),
+            creatorPlayerId: CONTEST_VALIDATORS.creatorPlayerId,
+            claimerPlayerId: CONTEST_VALIDATORS.claimerPlayerId,
+            entry: CONTEST_VALIDATORS.entry,
+            winBonus: CONTEST_VALIDATORS.winBonus,
+            // toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds, MINIMUM_BET_AMOUNT),
             // toWinAmount: CONTENDER_VALIDATORS.toWinAmount(1),
         };
 
@@ -71,28 +70,25 @@ export class ContestController {
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        const contestType = body.type;
-        const toRiskAmount = body.toRiskAmount;
-        const toWinAmount = await this.contestPayoutService.calculateToWin(
-            body.creatorPlayerId as number,
-            body.spreadValue as number,
-            body.toRiskAmount,
-            false,
-            body.type as CONTEST_TYPES,
+        const isPlayerAvailable = await this.contestService.checkPlayerStatus(
+            body.creatorPlayerId? body.creatorPlayerId: 0,
+            body.claimerPlayerId? body.claimerPlayerId: 0
+        );
+        if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
+
+        const contestData = await this.contestService.getContestCreationData(
+            body.creatorPlayerId? body.creatorPlayerId: 0,
+            body.claimerPlayerId ? body.claimerPlayerId : 0,
+            body.entry? body.entry: 0,
+            body.winBonus? body.winBonus : false,
+            body.creatorId? body.creatorId: 0,
+            body.creatorPlayerId? body.creatorPlayerId : 0,
+            body.claimerPlayerId? body.claimerPlayerId: 0,
         );
 
-        delete body.type;
-        delete body.toRiskAmount;
-        delete body.toWinAmount;
-
+        //TODO: pass proper data to the repository
         return {
-            data: await this.contestRepository.create(body, {
-                creatorId: body.creatorId,
-                contestType,
-                toRiskAmount,
-                toWinAmount,
-                assignMAxRiskAmount: true,
-            }),
+            data: await this.contestRepository.create(contestData),
         };
     }
 
@@ -313,7 +309,7 @@ export class ContestController {
         for (let index = 0; index < contests.length; index++) {
             const contest = contests[index];
 
-            
+
             contenders = [ ...contenders];
         }
 

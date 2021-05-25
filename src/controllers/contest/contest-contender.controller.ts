@@ -91,14 +91,14 @@ export class ContestContenderController {
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        const toWinAmount = await this.contestPayoutService.calculateToWin(
-            contest.creatorPlayerId,
-            +contest.claimerPlayerFantasyPoint,
-            contest.claimerPlayerFantasyPoint,
-            true,
-            CONTEST_TYPES.OVER,
-        );
-        body.toWinAmount = toWinAmount;
+        // const toWinAmount = await this.contestPayoutService.calculateToWin(
+        //     contest.creatorPlayerId,
+        //     +contest.claimerPlayerFantasyPoint,
+        //     contest.claimerPlayerFantasyPoint,
+        //     true,
+        //     CONTEST_TYPES.OVER,
+        // );
+        // body.toWinAmount = toWinAmount;
 
         return {};
     }

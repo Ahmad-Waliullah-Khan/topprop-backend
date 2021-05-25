@@ -5,6 +5,11 @@ export interface IContestRequest extends Contest {
     type?: CONTEST_TYPES;
     toRiskAmount?: number;
     toWinAmount?: number;
+    creatorId: number,
+    creatorPlayerId: number,
+    claimerPlayerId: number,
+    entry: number,
+    winBonus: boolean,
 }
 export interface ICalculateToWinRequest {
     toRiskAmount: number;

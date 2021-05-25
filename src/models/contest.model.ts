@@ -17,11 +17,13 @@ export class Contest extends Base {
     id: number;
 
     @property({
-        type: 'boolean',
-        required: false,
-        default: false,
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
-    winBonus: boolean;
+    entry: number;
 
     @property({
         type: 'number',
@@ -75,6 +77,15 @@ export class Contest extends Base {
             dataType: 'decimal',
         },
     })
+    claimerPlayerToWin: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
     creatorPlayerMaxWin: number;
 
     @property({
@@ -93,6 +104,24 @@ export class Contest extends Base {
             dataType: 'decimal',
         },
     })
+    creatorPlayerSpreadValue: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    claimerPlayerSpreadValue: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
     spreadValue: number;
 
     @property({
@@ -103,33 +132,6 @@ export class Contest extends Base {
         },
     })
     mlValue: number;
-
-    @property({
-        type: 'number',
-        required: true,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    contestStatus: number;
-
-    @property({
-        type: 'number',
-        required: true,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    creatorPlayerFantasyPoint: number;
-
-    @property({
-        type: 'number',
-        required: true,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    claimerPlayerFantasyPoint: number;
 
     @property({
         type: 'string',

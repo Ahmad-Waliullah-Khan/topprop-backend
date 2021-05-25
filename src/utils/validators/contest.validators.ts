@@ -18,12 +18,44 @@ export const CONTEST_VALIDATORS = {
             type: 'Player id must be a number.',
         },
     },
+    creatorPlayerId: {
+        required: true,
+        type: Number,
+        message: {
+            required: 'Creator Player id is required.',
+            type: 'Creator Player id must be a number.',
+        },
+    },
+    claimerPlayerId: {
+        required: true,
+        type: Number,
+        message: {
+            required: 'Claimer Player id is required.',
+            type: 'Claimer Player id must be a number.',
+        },
+    },
     creatorId: {
         required: true,
         type: Number,
         message: {
             required: 'Creator id is required.',
             type: 'Creator id must be a number.',
+        },
+    },
+    entry: {
+        required: true,
+        type: Number,
+        message: {
+            required: 'Entry is required.',
+            type: 'Entry must be a number.',
+        },
+    },
+    winBonus: {
+        required: true,
+        type: Boolean,
+        message: {
+            required: 'Win Bonus is required.',
+            type: 'Win Bonus must be a boolean.',
         },
     },
     gameId: {
