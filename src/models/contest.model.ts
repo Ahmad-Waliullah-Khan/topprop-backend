@@ -5,6 +5,7 @@ import { Contender } from './contender.model';
 import { Game } from './game.model';
 import { Player } from './player.model';
 import { User } from './user.model';
+import { Spread } from '@src/models/spread.model';
 
 @model()
 export class Contest extends Base {
@@ -16,53 +17,119 @@ export class Contest extends Base {
     id: number;
 
     @property({
+        type: 'boolean',
+        required: false,
+        default: false,
+    })
+    winBonus: boolean;
+
+    @property({
         type: 'number',
         required: true,
         postgresql: {
             dataType: 'decimal',
         },
     })
-    fantasyPoints: number;
+    creatorPlayerProjDiff: number;
 
     @property({
         type: 'number',
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    maxRiskAmount: number;
-
-    @property({
-        type: 'number',
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    topPropRevenue: number;
-
-    @property({
-        type: 'number',
-        default: 0,
-    })
-    fetchResultsAttempts: number;
-
-    @property({
-        type: 'boolean',
-        default: false,
-    })
-    fetchResultsAttemptsExceeded: boolean;
-
-    @property({
-        type: 'boolean',
-        default: false,
-    })
-    retryFetchResults: boolean;
-
-    @property({
-        type: 'string',
         required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
-    scoring: CONTEST_SCORING_OPTIONS;
+    claimerPlayerProjDiff: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    creatorPlayerCover: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    claimerPlayerCover: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    creatorPlayerToWin: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    creatorPlayerMaxWin: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    claimerPlayerMaxWin: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    spreadValue: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    mlValue: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    contestStatus: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    creatorPlayerFantasyPoint: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    claimerPlayerFantasyPoint: number;
 
     @property({
         type: 'string',
@@ -85,17 +152,17 @@ export class Contest extends Base {
     })
     endedAt: Date | null;
 
-    @belongsTo(() => Player)
-    playerId: number;
-
-    @belongsTo(() => Game)
-    gameId: number;
-
-    @hasMany(() => Contender)
-    contenders: Contender[];
-
     @belongsTo(() => User)
     creatorId: number;
+
+    @belongsTo(() => Spread)
+    spreadId: number;
+
+    @belongsTo(() => Player)
+    creatorPlayerId: number;
+
+    @belongsTo(() => Player)
+    claimerPlayerId: number;
 
     constructor(data?: Partial<Contest>) {
         super(data);
@@ -103,9 +170,10 @@ export class Contest extends Base {
 }
 
 export interface ContestRelations {
-    game?: Game;
-    player?: Player;
     creator?: User;
+    creatorPlayer?: Player;
+    claimerPlayer?: Player;
+    spread?: Spread;
 }
 
 export type ContestWithRelations = Contest & ContestRelations;
