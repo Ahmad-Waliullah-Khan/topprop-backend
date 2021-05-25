@@ -55,7 +55,7 @@ export class ContenderRepository extends DefaultCrudRepository<
                 // const filteredSchedule = schedule.filter(remoteGame => isEqual(remoteGame.Week, currentWeek));
 
                 const remoteGame = find(filteredSchedule, remoteGame =>
-                    isEqual(remoteGame.GlobalGameID, contest.game?.remoteId),
+                    isEqual(remoteGame.GlobalGameID, contest.spreadId),
                 );
                 if (!remoteGame) throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
                 if (!isEqual(remoteGame.Status, 'Scheduled'))
@@ -118,20 +118,19 @@ export class ContenderRepository extends DefaultCrudRepository<
                 });
 
                 let topPropRevenue = 0;
-                if (contest.contenders.length == 2) {
-                    let creatorContender = find(contest.contenders, contender => contender.creator);
-                    let matcherContender = find(contest.contenders, contender => !contender.creator);
+                // if (contest.contenders.length == 2) {
+                //     let creatorContender = find(contest.contenders, contender => contender.creator);
+                //     let matcherContender = find(contest.contenders, contender => !contender.creator);
 
-                    if (creatorContender && matcherContender) {
-                        let amount1 = +creatorContender.toRiskAmount - matcherContender.toWinAmount;
-                        let amount2 = +matcherContender.toRiskAmount - +creatorContender.toWinAmount;
-                        topPropRevenue = amount1 + amount2;
-                    }
-                }
+                //     if (creatorContender && matcherContender) {
+                //         let amount1 = +creatorContender.toRiskAmount - matcherContender.toWinAmount;
+                //         let amount2 = +matcherContender.toRiskAmount - +creatorContender.toWinAmount;
+                //         topPropRevenue = amount1 + amount2;
+                //     }
+                // }
 
                 await contestRepository.updateById(ctx.instance.contestId, {
                     status: CONTEST_STATUSES.MATCHED,
-                    topPropRevenue: +topPropRevenue,
                 });
                 console.log(
                     `Contests with id: ${ctx.instance.contestId} is matched and top prop revenue is calculated.`,

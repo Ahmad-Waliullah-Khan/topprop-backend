@@ -17,7 +17,7 @@ import {
     PassportFacebookTokenAuthProvider,
     PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
-import { PlayerResultsCron, SyncGamesCron, SyncTeamsCron, PlayersCron, ProjectedFantasyPointsCron } from './cron-jobs';
+import { SyncGamesCron, SyncTeamsCron, PlayersCron, ProjectedFantasyPointsCron } from './cron-jobs';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 import { IRawRequest } from './utils/interfaces';
@@ -111,8 +111,8 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         const syncGamesCronBinding = createBindingFromClass(SyncGamesCron);
         this.add(syncGamesCronBinding);
 
-        const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
-        this.add(playerResultsCronBinding);
+        // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
+        // this.add(playerResultsCronBinding);
         // Set up default home page
         // this.static('/', path.join(__dirname, '../public'));
 

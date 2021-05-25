@@ -74,8 +74,8 @@ export class ContestController {
         const contestType = body.type;
         const toRiskAmount = body.toRiskAmount;
         const toWinAmount = await this.contestPayoutService.calculateToWin(
-            body.playerId as number,
-            body.fantasyPoints as number,
+            body.creatorPlayerId as number,
+            body.spreadValue as number,
             body.toRiskAmount,
             false,
             body.type as CONTEST_TYPES,
@@ -313,11 +313,8 @@ export class ContestController {
         for (let index = 0; index < contests.length; index++) {
             const contest = contests[index];
 
-            let localContenders = contest.contenders.filter(contender => {
-                if (body.wonOnly) return contender.winner;
-                else return true;
-            });
-            contenders = [...localContenders, ...contenders];
+            
+            contenders = [ ...contenders];
         }
 
         totalToWinAmount = contenders.reduce((total, current) => {
@@ -348,7 +345,7 @@ export class ContestController {
         });
 
         topPropRevenue = contests.reduce((total, current) => {
-            return total + +current.topPropRevenue;
+            return total + +current.spreadValue;
         }, 0);
 
         return { data: topPropRevenue };

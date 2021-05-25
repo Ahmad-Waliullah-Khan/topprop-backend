@@ -86,7 +86,7 @@ export class ContestRepository extends DefaultCrudRepository<Contest, typeof Con
         //* VALIDATE GAME EXISTENCE & STATUS
         this.modelClass.observe('before save', async ctx => {
             if (ctx.instance && !ctx.options.skipGameValidation && !ctx.hookState.skipGameValidation) {
-                const gameRepository = await this.gameRepositoryGetter();
+                const gameRepository = await this.playerRepositoryGetter();
                 if (!(await gameRepository.exists(ctx.instance.gameId)))
                     throw new HttpErrors.NotFound(GAME_MESSAGES.GAME_NOT_FOUND);
 
