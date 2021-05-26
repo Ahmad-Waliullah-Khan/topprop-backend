@@ -1,5 +1,5 @@
 import { belongsTo, hasMany, model, property } from '@loopback/repository';
-import { CONTEST_SCORING_OPTIONS, CONTEST_STATUSES } from '@src/utils/constants';
+import { CONTEST_STAKEHOLDERS, CONTEST_STATUSES, CONTEST_TYPES } from '@src/utils/constants';
 import { Base } from './base.model';
 import { Contender } from './contender.model';
 import { Game } from './game.model';
@@ -10,42 +10,47 @@ import { Spread } from '@src/models/spread.model';
 @model()
 export class Contest extends Base {
     @property({
-        type: 'number',
         id: true,
         generated: true,
+        type: 'Number',
+        description: 'The unique identifier for a contest',
     })
     id: number;
 
     @property({
         type: 'number',
         required: true,
+        description: 'Entry amount in dollars for the contest. Would be the same for creator and claimer',
         postgresql: {
             dataType: 'decimal',
         },
     })
-    entry: number;
+    entryAmount: number;
 
     @property({
         type: 'number',
         required: true,
+        description: 'Projected Fantasy points for creator player at the time of contest creation. Posterity purposes ',
         postgresql: {
             dataType: 'decimal',
         },
     })
-    creatorPlayerProjDiff: number;
+    creatorPlayerProjFantasyPoints: number;
 
     @property({
         type: 'number',
         required: true,
+        description: 'Projected Fantasy points for claimer player at the time of contest creation. Posterity purposes ',
         postgresql: {
             dataType: 'decimal',
         },
     })
-    claimerPlayerProjDiff: number;
+    claimerPlayerProjFantasyPoints: number;
 
     @property({
         type: 'number',
         required: true,
+        description: 'Cover for creator player at the time of contest creation',
         postgresql: {
             dataType: 'decimal',
         },
@@ -55,6 +60,7 @@ export class Contest extends Base {
     @property({
         type: 'number',
         required: true,
+        description: 'Cover for claimer player at the time of contest creation',
         postgresql: {
             dataType: 'decimal',
         },
@@ -64,20 +70,42 @@ export class Contest extends Base {
     @property({
         type: 'number',
         required: true,
+        description: 'Win Bonus for creator player at the time of contest creation. Only >0 if winBonus flag is set',
         postgresql: {
             dataType: 'decimal',
         },
     })
-    creatorPlayerToWin: number;
+    creatorPlayerWinBonus: number;
 
     @property({
         type: 'number',
         required: true,
+        description: 'Win Bonus for claimer player at the time of contest creation. Only >0 if winBonus flag is set',
         postgresql: {
             dataType: 'decimal',
         },
     })
-    claimerPlayerToWin: number;
+    claimerPlayerWinBonus: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        description: 'FP Spread for creator player at the time of contest creation',
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    creatorPlayerSpread: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        description: 'FP Spread for claimer player at the time of contest creation',
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    claimerPlayerSpread: number;
 
     @property({
         type: 'number',
@@ -104,24 +132,6 @@ export class Contest extends Base {
             dataType: 'decimal',
         },
     })
-    creatorPlayerSpreadValue: number;
-
-    @property({
-        type: 'number',
-        required: true,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
-    claimerPlayerSpreadValue: number;
-
-    @property({
-        type: 'number',
-        required: true,
-        postgresql: {
-            dataType: 'decimal',
-        },
-    })
     spreadValue: number;
 
     @property({
@@ -132,6 +142,13 @@ export class Contest extends Base {
         },
     })
     mlValue: number;
+
+    @property({
+        type: 'string',
+        required: true,
+        default: CONTEST_TYPES.LOBBY,
+    })
+    type: CONTEST_TYPES;
 
     @property({
         type: 'string',
@@ -154,8 +171,48 @@ export class Contest extends Base {
     })
     endedAt: Date | null;
 
+    @property({
+        type: 'string',
+        default: null,
+    })
+    winnerLabel: CONTEST_STAKEHOLDERS;
+
+    @property({
+        type: 'number',
+        default: null,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    creatorWinAmount: number;
+
+    @property({
+        type: 'number',
+        default: null,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    claimerWinAmount: number;
+
+    @property({
+        type: 'number',
+        required: true,
+        default: 0,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    topPropProfit: number;
+
+    @belongsTo(() => User)
+    winnerId: number;
+
     @belongsTo(() => User)
     creatorId: number;
+
+    @belongsTo(() => User)
+    claimerId: number;
 
     @belongsTo(() => Spread)
     spreadId: number;

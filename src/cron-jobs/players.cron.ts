@@ -15,8 +15,8 @@ export class PlayersCron extends CronJob {
         @service() private sportsDataService: SportsDataService,
     ) {
         super({
-            cronTime: '0 0/30 * * * *', // Every 30 minute interval
-            // cronTime: '0 * * * * *', // Every 30 minute interval
+            // cronTime: '0 0/30 * * * *', // Every 30 minute interval
+            cronTime: '0 * * * * *', // Every 30 minute interval
             name: CRON_JOBS.PLAYERS_CRON,
             onTick: async () => {
                 console.log("Running Player Cron");

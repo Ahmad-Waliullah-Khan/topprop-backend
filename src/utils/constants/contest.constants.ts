@@ -11,6 +11,13 @@ export enum CONTEST_STATUSES {
     CLOSED = 'closed',
 }
 export enum CONTEST_TYPES {
+    LOBBY = 'lobby',
+    LEAGUE = 'league',
     OVER = 'over',
     UNDER = 'under',
+}
+
+export enum CONTEST_STAKEHOLDERS {
+    CREATOR = 'creator',
+    CLAIMER = 'claimer',
 }

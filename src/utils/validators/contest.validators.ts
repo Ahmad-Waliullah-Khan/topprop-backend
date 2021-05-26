@@ -42,7 +42,7 @@ export const CONTEST_VALIDATORS = {
             type: 'Creator id must be a number.',
         },
     },
-    entry: {
+    entryAmount: {
         required: true,
         type: Number,
         message: {
