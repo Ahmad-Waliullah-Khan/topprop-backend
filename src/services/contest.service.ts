@@ -55,9 +55,9 @@ export class ContestService {
                 spreadType: 'lobby',
             },
         });
-
+        
         if (winBonus) {
-            cover = entry * 0.85 * (spreadData ? spreadData.spreadPay : 0);
+            cover = (entry * 0.85) * (spreadData ? spreadData.spreadPay : 0);
         } else {
             cover = entry * (spreadData ? spreadData.spreadPay : 0);
         }

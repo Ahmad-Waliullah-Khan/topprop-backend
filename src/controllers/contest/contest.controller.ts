@@ -2,7 +2,7 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
+import { del, get, patch, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest, Bet } from '@src/models';
 import { ContestRepository, PlayerRepository, BetRepository } from '@src/repositories';
@@ -16,10 +16,12 @@ import {
     ICalculateToWinRequest,
     ICommonHttpResponse,
     IContestCreateRequest,
+    IContestClaimRequest,
     ICustomUserProfile,
+    IContestResponses,
 } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
-import { CONTENDER_VALIDATORS, CONTEST_VALIDATORS } from '@src/utils/validators';
+import { CONTENDER_VALIDATORS, CONTEST_CREATE_VALIDATORS, CONTEST_CLAIM_VALIDATOR } from '@src/utils/validators';
 import { isEmpty } from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
@@ -45,7 +47,17 @@ export class ContestController {
         responses: {
             '200': {
                 description: 'Contest model instance',
-                content: { 'application/json': { schema: getModelSchemaRef(Contest) } },
+                content: {
+                    'application/json': {
+                        schema: {
+                            message: { type: 'string' },
+                            data: {
+                                myContests: { type: 'array', items: getModelSchemaRef(Contest) },
+                                contests: { type: 'array', items: getModelSchemaRef(Contest) },
+                            },
+                        },
+                    },
+                },
             },
         },
     })
@@ -53,17 +65,17 @@ export class ContestController {
         @requestBody()
         body: Partial<IContestCreateRequest>,
         @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
-    ): Promise<ICommonHttpResponse<Contest>> {
+    ): Promise<ICommonHttpResponse<any>> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
         if (!body.creatorId) body.creatorId = +currentUser[securityId];
 
         const validationSchema = {
-            creatorId: CONTEST_VALIDATORS.creatorId,
-            creatorPlayerId: CONTEST_VALIDATORS.creatorPlayerId,
-            claimerPlayerId: CONTEST_VALIDATORS.claimerPlayerId,
-            entryAmount: CONTEST_VALIDATORS.entryAmount,
-            winBonus: CONTEST_VALIDATORS.winBonus,
+            creatorId: CONTEST_CREATE_VALIDATORS.creatorId,
+            creatorPlayerId: CONTEST_CREATE_VALIDATORS.creatorPlayerId,
+            claimerPlayerId: CONTEST_CREATE_VALIDATORS.claimerPlayerId,
+            entryAmount: CONTEST_CREATE_VALIDATORS.entryAmount,
+            winBonus: CONTEST_CREATE_VALIDATORS.winBonus,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
@@ -78,7 +90,7 @@ export class ContestController {
 
         const funds = await this.walletService.userBalance(+currentUser[securityId]);
         const entryAmount = body.entryAmount || 0;
-        if (funds < (entryAmount * 100)) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
         const winBonusFlag = body.winBonus || false;
         const creatorPlayerId = body.creatorPlayerId || 0;
@@ -110,9 +122,13 @@ export class ContestController {
             entryAmount,
             winBonusFlag,
         );
-
-        const creatorPlayerWinBonus = await this.contestService.calculateWinBonus(creatorPlayerSpread, entryAmount);
-        const claimerPlayerWinBonus = await this.contestService.calculateWinBonus(claimerPlayerSpread, entryAmount);
+        
+        const creatorPlayerWinBonus = winBonusFlag
+            ? await this.contestService.calculateWinBonus(creatorPlayerSpread, entryAmount)
+            : 0;
+        const claimerPlayerWinBonus = winBonusFlag
+            ? await this.contestService.calculateWinBonus(claimerPlayerSpread, entryAmount)
+            : 0;
 
         const creatorPlayerProjFantasyPoints = creatorPlayerData ? creatorPlayerData.projectedFantasyPoints : 0;
         const claimerPlayerProjFantasyPoints = claimerPlayerData ? claimerPlayerData.projectedFantasyPoints : 0;
@@ -124,10 +140,9 @@ export class ContestController {
         const mlValue = entryAmount - spreadValue;
 
         const contestData = new Contest();
+        const userId = body.creatorId;
 
-        const creatorId = body.creatorId;
-
-        contestData.creatorId = creatorId;
+        contestData.creatorId = userId;
         contestData.creatorPlayerId = creatorPlayerId;
         contestData.claimerPlayerId = claimerPlayerId;
         contestData.entryAmount = entryAmount;
@@ -151,28 +166,141 @@ export class ContestController {
         const bet = new Bet();
 
         bet.contenderId = creatorPlayerId;
-        bet.userId = creatorId;
+        bet.userId = userId;
         bet.amount = entryAmount * 100;
 
-        const createdBet = await this.betRepository.create(bet);
+        await this.betRepository.create(bet);
+
+        const myContestFilter = {
+            where: {
+                and: [
+                    { ended: false },
+                    { or: [{ creatorId: userId }, { claimerId: userId }] },
+                    {
+                        or: [
+                            { status: CONTEST_STATUSES.OPEN },
+                            { status: CONTEST_STATUSES.MATCHED },
+                            { status: CONTEST_STATUSES.UNMATCHED },
+                        ],
+                    },
+                ],
+            },
+        };
+
+        const contestFilter = {
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+                creatorId: { neq: userId },
+            },
+        };
+        const myContests = await this.contestRepository.find(myContestFilter);
+        const contests = await this.contestRepository.find(contestFilter);
 
         return {
-            data: createdContest,
+            message: CONTEST_MESSAGES.CREATE_SUCCESS,
+            data: {
+                myContests: myContests,
+                contests: contests,
+            },
         };
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.COUNT_CONTESTS)] })
-    @get(API_ENDPOINTS.CONTESTS.COUNT, {
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @patch(API_ENDPOINTS.CONTESTS.CRUD, {
         responses: {
             '200': {
-                description: 'Contest model count',
-                content: { 'application/json': { schema: CountSchema } },
+                description: 'Contest model instance',
+                content: {
+                    'application/json': {
+                        schema: {
+                            message: { type: 'string' },
+                            data: {
+                                myContests: { type: 'array', items: getModelSchemaRef(Contest) },
+                                contests: { type: 'array', items: getModelSchemaRef(Contest) },
+                            },
+                        },
+                    },
+                },
             },
         },
     })
-    async count(@param.where(Contest) where?: Where<Contest>): Promise<ICommonHttpResponse<Count>> {
-        return { data: await this.contestRepository.count(where) };
+    async claim(
+        @requestBody()
+        body: Partial<IContestClaimRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        if (!body.claimerId) body.claimerId = +currentUser[securityId];
+
+        const validationSchema = {
+            contestId: CONTEST_CLAIM_VALIDATOR.contestId,
+            claimerId: CONTEST_CLAIM_VALIDATOR.claimerId,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const contestId = body.contestId || 0;
+        const userId = body.claimerId || 0;
+        const contestData = await this.contestRepository.findById(contestId);
+        if (!contestData) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_NOT_FOUND);
+
+        if (contestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
+
+        const funds = await this.walletService.userBalance(userId);
+        const entryAmount = contestData.entryAmount || 0;
+        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+
+        contestData.claimerId = body.claimerId;
+        contestData.status = CONTEST_STATUSES.MATCHED;
+
+        const updatedContest = await this.contestRepository.updateById(contestId, contestData);
+
+        const bet = new Bet();
+
+        bet.contenderId = contestData.claimerPlayerId;
+        bet.userId = userId;
+        bet.amount = contestData.entryAmount * 100;
+
+        await this.betRepository.create(bet);
+
+        const myContestFilter = {
+            where: {
+                and: [
+                    { ended: false },
+                    { or: [{ creatorId: userId }, { claimerId: userId }] },
+                    {
+                        or: [
+                            { status: CONTEST_STATUSES.OPEN },
+                            { status: CONTEST_STATUSES.MATCHED },
+                            { status: CONTEST_STATUSES.UNMATCHED },
+                        ],
+                    },
+                ],
+            },
+        };
+
+        const contestFilter = {
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+                creatorId: { neq: userId },
+            },
+        };
+        const myContests = await this.contestRepository.find(myContestFilter);
+        const contests = await this.contestRepository.find(contestFilter);
+
+        return {
+            message: CONTEST_MESSAGES.CLAIM_SUCCESS,
+            data: {
+                myContests: myContests,
+                contests: contests,
+            },
+        };
     }
 
     @authenticate('jwt')
@@ -196,28 +324,6 @@ export class ContestController {
         return { data: await this.contestRepository.find(filter) };
     }
 
-    // @patch(API_ENDPOINTS.CONTESTS.CRUD, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Contest PATCH success count',
-    //             content: { 'application/json': { schema: CountSchema } },
-    //         },
-    //     },
-    // })
-    // async updateAll(
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Contest, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     contest: Contest,
-    //     @param.where(Contest) where?: Where<Contest>,
-    // ): Promise<Count> {
-    //     return this.contestRepository.updateAll(contest, where);
-    // }
-
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
     @get(API_ENDPOINTS.CONTESTS.BY_ID, {
@@ -239,38 +345,6 @@ export class ContestController {
         return { data: await this.contestRepository.findById(id, filter) };
     }
 
-    // @patch(API_ENDPOINTS.CONTESTS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Contest PATCH success',
-    //         },
-    //     },
-    // })
-    // async updateById(
-    //     @param.path.number('id') id: number,
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Contest, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     contest: Contest,
-    // ): Promise<void> {
-    //     await this.contestRepository.updateById(id, contest);
-    // }
-
-    // @put(API_ENDPOINTS.CONTESTS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Contest PUT success',
-    //         },
-    //     },
-    // })
-    // async replaceById(@param.path.number('id') id: number, @requestBody() contest: Contest): Promise<void> {
-    //     await this.contestRepository.replaceById(id, contest);
-    // }
-
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.DELETE_ANY_CONTEST)] })
     @del(API_ENDPOINTS.CONTESTS.BY_ID, {
@@ -283,174 +357,6 @@ export class ContestController {
     async deleteById(@param.path.number('id') id: number): Promise<void> {
         await this.contestRepository.deleteById(id);
     }
-
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
-    @post(API_ENDPOINTS.CONTESTS.CALCULATE_TO_WIN, {
-        responses: {
-            '200': {
-                description: 'Calculate to win amount',
-            },
-        },
-    })
-    async calculateToWin(
-        @requestBody()
-        body: ICalculateToWinRequest,
-        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
-    ): Promise<ICommonHttpResponse<number>> {
-        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
-
-        const funds = await this.walletService.userBalance(+currentUser[securityId]);
-
-        const validationSchema = {
-            playerId: CONTEST_VALIDATORS.playerId,
-            fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
-            toRiskAmount: CONTENDER_VALIDATORS.toRiskAmount(funds),
-            matching: CONTENDER_VALIDATORS.matching,
-            type: CONTENDER_VALIDATORS.type,
-        };
-
-        const validation = new Schema(validationSchema, { strip: true });
-        const validationErrors = validation.validate(body);
-        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
-
-        const toWin = await this.contestPayoutService.calculateToWin(
-            body.playerId,
-            body.fantasyPoints,
-            body.toRiskAmount,
-            body.matching,
-            body.type,
-        );
-        return { data: toWin };
-    }
-
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
-    @post(API_ENDPOINTS.CONTESTS.CALCULATE_RISK_TO_MATCH, {
-        responses: {
-            '200': {
-                description: 'Calculate risk amount to match contest',
-            },
-        },
-    })
-    async calculateRiskAmountToMatch(
-        @requestBody()
-        body: ICalculateRiskToMatchRequest,
-    ): Promise<ICommonHttpResponse<number>> {
-        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
-
-        const validationSchema = {
-            playerId: CONTEST_VALIDATORS.playerId,
-            fantasyPoints: CONTEST_VALIDATORS.fantasyPoints,
-            initialRiskAmount: CONTENDER_VALIDATORS.initialRiskAmount,
-            type: CONTENDER_VALIDATORS.type,
-        };
-
-        const validation = new Schema(validationSchema, { strip: true });
-        const validationErrors = validation.validate(body);
-        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
-
-        const riskAmountToMatch = await this.contestPayoutService.calculateRiskAmountToMatch(
-            body.playerId,
-            body.fantasyPoints,
-            body.type,
-            body.initialRiskAmount,
-        );
-        return { data: riskAmountToMatch };
-    }
-
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
-    @post(API_ENDPOINTS.CONTESTS.CALCULATE_TOTAL_TO_WIN)
-    async calculateTotalToWinWithinDays(
-        @requestBody()
-        body: {
-            wonOnly: boolean;
-            filter?: Filter<Contest>;
-        },
-    ): Promise<ICommonHttpResponse<number>> {
-        let totalToWinAmount = 0;
-
-        const contests = await this.contestRepository.find(body.filter);
-
-        let contenders: Contender[] = [];
-
-        for (let index = 0; index < contests.length; index++) {
-            const contest = contests[index];
-
-            contenders = [...contenders];
-        }
-
-        totalToWinAmount = contenders.reduce((total, current) => {
-            return total + +current.toWinAmount;
-        }, 0);
-
-        return { data: totalToWinAmount };
-    }
-
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
-    @post(API_ENDPOINTS.CONTESTS.CALCULATE_TOP_PROP_REVENUE)
-    async calculateTopPropRevenue(
-        @requestBody()
-        body: {
-            days: number;
-        },
-    ): Promise<ICommonHttpResponse<number>> {
-        let topPropRevenue = 0;
-        let defaultWhere: Where<Contest> = {
-            and: [{ or: [{ status: CONTEST_STATUSES.CLOSED }, { status: CONTEST_STATUSES.MATCHED }] }],
-        };
-        if (body.days > 0) {
-            defaultWhere.and.push({ createdAt: { gte: moment().subtract(body.days, 'days').toDate() } });
-        }
-        const contests = await this.contestRepository.find({
-            where: defaultWhere,
-        });
-
-        topPropRevenue = contests.reduce((total, current) => {
-            return total + +current.spreadValue;
-        }, 0);
-
-        return { data: topPropRevenue };
-    }
-
-    // @authenticate('jwt')
-    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
-    // @post(API_ENDPOINTS.CONTESTS.CALCULATE_SPREAD)
-    // async calculateSpread(
-    //     @requestBody()
-    //     body: {
-    //         playerId: number;
-    //         opponentId: number;
-    //         type: string;
-    //     },
-    // ): Promise<ICommonHttpResponse<number>> {
-    //     let spread = 0;
-    //
-    //     const playerResult = await this.playerResultRepository.findOne({
-    //         order: ['updatedat DESC'],
-    //         where: {
-    //             playerId: body.playerId,
-    //         },
-    //     });
-    //
-    //     const opponentResult = await this.playerResultRepository.findOne({
-    //         order: ['updatedat DESC'],
-    //         where: {
-    //             playerId: body.opponentId,
-    //         },
-    //     });
-    //     const playerPoints = playerResult ? playerResult.points : 0;
-    //     const opponentPoints = opponentResult ? opponentResult.points : 0;
-    //     if (body.type === 'creator') {
-    //         spread = MiscHelpers.roundValue(opponentPoints - playerPoints, 0.5);
-    //     } else {
-    //         spread = MiscHelpers.roundValue(playerPoints - opponentPoints, 0.5);
-    //     }
-    //
-    //     return { data: spread };
-    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CALCULATE_AMOUNTS)] })
