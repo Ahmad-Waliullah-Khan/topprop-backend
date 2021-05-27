@@ -106,6 +106,11 @@ export class User extends Entity {
     profileImage?: string | null;
 
     @property({
+        type: 'string',
+    })
+    promo?: string | null;
+
+    @property({
         type: 'date',
         default: () => new Date(),
     })

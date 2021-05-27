@@ -126,7 +126,7 @@ export class PlayerController {
                 where: {
                     and: [
                         { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
-                        { playerId: { inq: unavailablePlayerIds } },
+                        { creatorPlayerId: { inq: unavailablePlayerIds } },
                     ],
                 },
             });

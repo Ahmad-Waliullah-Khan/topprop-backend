@@ -18,7 +18,7 @@ export class Spread extends Base {
             dataType: 'decimal',
         },
     })
-    projection_spread: number;
+    projectionSpread: number;
 
     @property({
         type: 'number',
@@ -36,7 +36,7 @@ export class Spread extends Base {
             dataType: 'decimal',
         },
     })
-    spread_pay: number;
+    spreadPay: number;
 
     @property({
         type: 'number',
@@ -54,13 +54,13 @@ export class Spread extends Base {
             dataType: 'decimal',
         },
     })
-    ml_pay: number;
+    mlPay: number;
 
     @property({
         type: 'string',
         required: true,
     })
-    spread_type: string;
+    spreadType: string;
 
     // Define well-known properties here
 

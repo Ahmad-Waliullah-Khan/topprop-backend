@@ -13,6 +13,7 @@ import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse, ICustomUserProfile } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, CONTEST_MESSAGES } from '@src/utils/messages';
 import { CONTENDER_VALIDATORS } from '@src/utils/validators';
+import { CONTEST_TYPES } from '@src/utils/constants';
 import { isEmpty } from 'lodash';
 import Schema from 'validate';
 
@@ -42,8 +43,8 @@ export class ContestContenderController {
     async find(
         @param.path.number('id') id: number,
         @param.query.object('filter') filter?: Filter<Contender>,
-    ): Promise<ICommonHttpResponse<Contender[]>> {
-        return { data: await this.contestRepository.contenders(id).find(filter) };
+    ): Promise<ICommonHttpResponse<Contest[]>> {
+        return { data: await this.contestRepository.find() };
     }
 
     @authenticate('jwt')
@@ -74,7 +75,7 @@ export class ContestContenderController {
 
         const contest = await this.contestRepository.findById(id, { include: [{ relation: 'contenders' }] });
 
-        if (contest.contenders.length >= 2) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
+        // if (contest.contenders.length >= 2) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
 
         const funds = await this.walletService.userBalance(body.contenderId);
 
@@ -90,16 +91,16 @@ export class ContestContenderController {
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        const toWinAmount = await this.contestPayoutService.calculateToWin(
-            contest.playerId,
-            +contest.fantasyPoints,
-            contest.contenders[0].toRiskAmount,
-            true,
-            contest.contenders[0].type,
-        );
-        body.toWinAmount = toWinAmount;
+        // const toWinAmount = await this.contestPayoutService.calculateToWin(
+        //     contest.creatorPlayerId,
+        //     +contest.claimerPlayerFantasyPoint,
+        //     contest.claimerPlayerFantasyPoint,
+        //     true,
+        //     CONTEST_TYPES.OVER,
+        // );
+        // body.toWinAmount = toWinAmount;
 
-        return { data: await this.contestRepository.contenders(id).create(body, { matched: true }) };
+        return {};
     }
 
     // @patch('/contests/{id}/contenders', {

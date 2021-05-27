@@ -34,8 +34,13 @@ export class MiscHelpers {
 
     static roundValue = (value: number, step: number) => {
         step || (step = 1.0);
-        var inv = 1.0 / step;
-        return Math.round(value * inv) / inv;
+        const inv = 1.0 / step;
+        let total = 0;
+        if (value < 0) {
+            total = Math.floor(value * inv) / inv;
+        } else {
+            total = Math.ceil(value * inv) / inv;
+        }
+        return total;
     };
-
 }
