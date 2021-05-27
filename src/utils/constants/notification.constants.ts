@@ -30,6 +30,9 @@ export enum EMAIL_TEMPLATES {
     PAYOUT_PAID = 'payout-paid',
     WITHDRAW_REQUEST_ACCEPTED = 'withdraw-request-accepted',
     WITHDRAW_REQUEST_DENIED = 'withdraw-request-denied',
+    CONTEST_CREATED = 'create-contest',
+    CONTEST_CLAIMED = 'claim-contest',
+    CONTEST_CLAIMED_BY_CLAIMER = 'claim-contest-creator',
 }
 
 // export enum PUSH_NOTIFICATIONS {
