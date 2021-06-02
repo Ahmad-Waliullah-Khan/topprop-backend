@@ -20,4 +20,6 @@ export enum CONTEST_TYPES {
 export enum CONTEST_STAKEHOLDERS {
     CREATOR = 'creator',
     CLAIMER = 'claimer',
+    PUSH = 'push',
+    PENDING = 'pending',
 }

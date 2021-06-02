@@ -5,25 +5,22 @@ import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } f
 import { del, get, patch, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest, Bet } from '@src/models';
-import { ContestRepository, PlayerRepository, BetRepository } from '@src/repositories';
+import { ContestRepository, PlayerRepository, BetRepository, UserRepository } from '@src/repositories';
 import { PlayerResultRepository } from '@src/repositories';
-import { ContestPayoutService, ContestService, WalletService } from '@src/services';
+import { ContestPayoutService, ContestService, WalletService, UserService } from '@src/services';
 import { API_ENDPOINTS, CONTEST_STATUSES, CONTEST_TYPES, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
-    ICalculateRiskToMatchRequest,
-    ICalculateToWinRequest,
     ICommonHttpResponse,
-    IContestCreateRequest,
     IContestClaimRequest,
+    IContestCreateRequest,
     ICustomUserProfile,
     IContestResponses,
 } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
 import { CONTENDER_VALIDATORS, CONTEST_CREATE_VALIDATORS, CONTEST_CLAIM_VALIDATOR } from '@src/utils/validators';
 import { isEmpty } from 'lodash';
-import moment from 'moment';
 import Schema from 'validate';
 
 export class ContestController {
@@ -36,9 +33,12 @@ export class ContestController {
         public playerRepository: PlayerRepository,
         @repository(PlayerResultRepository)
         public playerResultRepository: PlayerResultRepository,
+        @repository(UserRepository)
+        public userRepository: UserRepository,
         @service() private walletService: WalletService,
         @service() private contestPayoutService: ContestPayoutService,
         @service() private contestService: ContestService,
+        @service() private userService: UserService,
     ) {}
 
     @authenticate('jwt')

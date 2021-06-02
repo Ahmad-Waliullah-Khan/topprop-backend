@@ -21,6 +21,7 @@ import {
 import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
 import { USER_VALIDATORS } from '@src/utils/validators';
 import { isEmpty, isEqual } from 'lodash';
+import { RUN_TYPE } from '@src/utils/constants';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -193,7 +194,7 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        return { data: token };
+        return { data: { token, type: RUN_TYPE } };
     }
 
     @authenticate('facebookToken')

@@ -1,8 +1,6 @@
 import { belongsTo, hasMany, model, property, hasOne } from '@loopback/repository';
 import { CONTEST_STAKEHOLDERS, CONTEST_STATUSES, CONTEST_TYPES } from '@src/utils/constants';
 import { Base } from './base.model';
-import { Contender } from './contender.model';
-import { Game } from './game.model';
 import { Player, PlayerWithRelations } from './player.model';
 import { User, UserWithRelations } from './user.model';
 import { Spread, SpreadWithRelations } from '@src/models/spread.model';

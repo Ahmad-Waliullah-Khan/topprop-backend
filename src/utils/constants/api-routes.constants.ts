@@ -18,6 +18,7 @@ export const API_RESOURCES = {
     TEAMS: 'teams',
     TOP_UPS: 'top-ups',
     WITHDRAW_REQUESTS: 'withdraw-requests',
+    CRONS: 'crons',
 };
 
 export const API_ENDPOINTS = {
@@ -192,5 +193,10 @@ export const API_ENDPOINTS = {
         DENY: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/{id}/deny`,
         COUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/count`,
         USER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.WITHDRAW_REQUESTS}/{id}/user`,
+    },
+    CRONS: {
+        FETCH_PROJECTIONS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/fetch-projections`,
+        FETCH_POINTS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/fetch-points`,
+        WIN_CHECK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/win-check`,
     },
 };

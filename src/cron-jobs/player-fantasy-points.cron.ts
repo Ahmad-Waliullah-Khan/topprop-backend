@@ -13,42 +13,41 @@ import moment from 'moment';
 import { RUN_TYPE } from '../utils/constants';
 
 @cronJob()
-export class ProjectedFantasyPointsCron extends CronJob {
+export class PlayerFantasyPointsCron extends CronJob {
     constructor(
         @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @service() private sportsDataService: SportsDataService,
         @service() private cronService: CronService,
     ) {
         super({
-            // cronTime: RUN_TYPE === 'principle' ? '0 0 */1 * * *' : '0 */1 * * * *',
             cronTime: '0 */1 * * * *',
-            name: CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON,
+            name: CRON_JOBS.PLAYER_FANTASY_POINTS_CRON,
             start: true,
             onTick: async () => {
-                
                 try {
                     const currentDate = await this.cronService.fetchDate();
-                    const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
+                    const remotePlayers = await this.sportsDataService.fantasyPointsByDate(currentDate);
                     const localPlayers = await this.playerRepository.find();
                     const playerPromises = remotePlayers.map(async remotePlayer => {
                         const foundLocalPlayer = localPlayers.find(
                             localPlayer => remotePlayer.PlayerID === localPlayer.remoteId,
                         );
                         if (foundLocalPlayer) {
-                            foundLocalPlayer.opponentName = remotePlayer.Opponent;
-                            foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
-                            foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
+                            foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                            foundLocalPlayer.isOver = remotePlayer.IsOver;
+                            foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
                             await this.playerRepository.save(foundLocalPlayer);
                         }
                     });
-
-                    console.log('Running Fetch Fantasy Projections Cron finished at', moment().format('DD-MM-YYYY hh:mm:ss a'));
-
+                    console.log(
+                        'Running Fetch Fantasy Points Cron finished at',
+                        moment().format('DD-MM-YYYY hh:mm:ss a'),
+                    );
                     if (RUN_TYPE === 'principle') {
-                        const updatedCronTime = new cron.CronTime('0 0/6 * * * *');
+                        const updatedCronTime = new cron.CronTime('0 2/6 * * * *');
                         this.setTime(updatedCronTime);
                         this.start();
-                    }else{
+                    } else {
                         const updatedCronTime = new cron.CronTime('0 */15 * * * *');
                         this.setTime(updatedCronTime);
                         this.start();
@@ -56,7 +55,7 @@ export class ProjectedFantasyPointsCron extends CronJob {
 
                     Promise.all(playerPromises);
                 } catch (error) {
-                    console.error(chalk.redBright(`Error on projected player fantasy points cron job. Error: `, error));
+                    console.error(chalk.redBright(`Error on player fantasy points cron job. Error: `, error));
                 }
             },
         });
