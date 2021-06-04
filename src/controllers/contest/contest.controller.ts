@@ -8,7 +8,14 @@ import { Contender, Contest, Bet } from '@src/models';
 import { ContestRepository, PlayerRepository, BetRepository, UserRepository } from '@src/repositories';
 import { PlayerResultRepository } from '@src/repositories';
 import { ContestPayoutService, ContestService, WalletService, UserService } from '@src/services';
-import { API_ENDPOINTS, CONTEST_STATUSES, CONTEST_TYPES, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
+import {
+    API_ENDPOINTS,
+    CONTEST_STATUSES,
+    CONTEST_TYPES,
+    EMAIL_TEMPLATES,
+    MINIMUM_BET_AMOUNT,
+    PERMISSIONS,
+} from '@src/utils/constants';
 import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {

@@ -1,12 +1,12 @@
 import { service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { CronJob, cronJob } from '@loopback/cron';
-import { CONTEST_STATUSES, CRON_JOBS, CONTEST_STAKEHOLDERS, RUN_TYPE } from '@src/utils/constants';
+import { CONTEST_STATUSES, CRON_JOBS, CONTEST_STAKEHOLDERS, RUN_TYPE, EMAIL_TEMPLATES } from '@src/utils/constants';
 import cron from 'cron';
 
 import { PlayerRepository, ContestRepository, UserRepository, GainRepository } from '@src/repositories';
 
-import { SportsDataService, CronService } from '@src/services';
+import { SportsDataService, CronService, UserService } from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import { Gain } from '@src/models';
@@ -17,8 +17,10 @@ export class WinCriteriaCron extends CronJob {
         @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
+        @repository('UserRepository') private userRepository: UserRepository,
         @service() private sportsDataService: SportsDataService,
         @service() private cronService: CronService,
+        @service() private userService: UserService,
     ) {
         super({
             cronTime: '0 */1 * * * *',
@@ -264,6 +266,39 @@ export class WinCriteriaCron extends CronJob {
                             // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                             await this.gainRepository.create(winningGain);
+
+                            if(winner === "favorite") {
+                                const winnerUser = await this.userRepository.findById(favorite.userId);
+                                this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                                    winnerUser
+                                });
+
+                                const loserUser = await this.userRepository.findById(underdog.userId);
+                                this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                                    loserUser
+                                });
+                            } else if (winner === "underdog") {
+                                const winnerUser = await this.userRepository.findById(underdog.userId);
+                                this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                                    winnerUser
+                                });
+
+                                const loserUser = await this.userRepository.findById(favorite.userId);
+                                this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                                    loserUser
+                                });
+                            } else {
+                                //Send Draw Email
+                                const favoriteUser = await this.userRepository.findById(favorite.userId);
+                                this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
+                                    favoriteUser
+                                });
+                                const underdogUser = await this.userRepository.findById(underdog.userId);
+                                this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
+                                    underdogUser
+                                });
+                            }
+
                         }
                     });
 
