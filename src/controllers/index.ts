@@ -35,3 +35,4 @@ export * from './wallet/wallet.controller';
 // export * from './user-withdraw-request.controller';
 // export * from './withdraw-request-user.controller';
 export * from './withdraw-request/withdraw-request.controller';
+export * from './cron/cron.controller';

@@ -4,6 +4,7 @@ import { IStadiumDetails } from './stadium.interfaces';
 
 export interface IRemoteScore {
     GameKey: string;
+    PlayerID: number;
     SeasonType: number;
     Season: number;
     Week: number;
@@ -34,8 +35,9 @@ export interface IRemoteScore {
     HomeScoreQuarter4: number;
     HomeScoreOvertime: number;
     HasStarted: boolean;
+    Started: boolean;
     IsInProgress: boolean;
-    IsOver: boolean;
+    IsGameOver: boolean;
     Has1stQuarterStarted: boolean;
     Has2ndQuarterStarted: boolean;
     Has3rdQuarterStarted: boolean;
@@ -73,6 +75,8 @@ export interface IRemoteScore {
     AwayRotationNumber: number;
     NeutralVenue: boolean;
     StadiumDetails: IStadiumDetails;
+    FantasyPoints: number,
+    FantasyPointsPPR: number,
 }
 export interface IDailyFantasyPointsData {
     PlayerID: number;

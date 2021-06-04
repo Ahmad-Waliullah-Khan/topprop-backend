@@ -16,7 +16,8 @@ import moment from 'moment';
 
 const keys = {
     NFLv3ScoresClient: process.env.NFL_SCORES_API_KEY as string,
-    NFLv3StatsClient: process.env.NFL_SCORES_API_KEY as string,
+    NFLv3StatsClient: process.env.NFL_STATS_API_KEY as string,
+    NFLv3ProjectionsClient: process.env.NFL_STATS_API_KEY as string,
 };
 
 @injectable({ scope: BindingScope.SINGLETON })

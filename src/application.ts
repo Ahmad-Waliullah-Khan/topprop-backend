@@ -17,7 +17,15 @@ import {
     PassportFacebookTokenAuthProvider,
     PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
-import { SyncGamesCron, SyncTeamsCron, PlayersCron, ProjectedFantasyPointsCron } from './cron-jobs';
+import {
+    SyncGamesCron,
+    SyncTeamsCron,
+    PlayersCron,
+    ProjectedFantasyPointsCron,
+    PlayerFantasyPointsCron,
+    TimeframeCron,
+    WinCriteriaCron,
+} from './cron-jobs';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 import { IRawRequest } from './utils/interfaces';
@@ -94,28 +102,6 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         this.component(AuthenticationComponent);
         this.component(AuthorizationComponent);
 
-        this.component(CronComponent);
-
-        const PlayersCronBinding = createBindingFromClass(PlayersCron);
-        this.add(PlayersCronBinding);
-
-        const ProjectedFantasyPointsCronBinding = createBindingFromClass(ProjectedFantasyPointsCron);
-        this.add(ProjectedFantasyPointsCronBinding);
-
-        // const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
-        // this.add(fakeResultsCronBinding);
-
-        const syncTeamsCronBinding = createBindingFromClass(SyncTeamsCron);
-        this.add(syncTeamsCronBinding);
-
-        const syncGamesCronBinding = createBindingFromClass(SyncGamesCron);
-        this.add(syncGamesCronBinding);
-
-        // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
-        // this.add(playerResultsCronBinding);
-        // Set up default home page
-        // this.static('/', path.join(__dirname, '../public'));
-
         // Customize @loopback/rest-explorer configuration here
         // this.configure(RestExplorerBindings.COMPONENT).to({
         //     path: '/explorer',
@@ -133,6 +119,37 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
             },
         };
         this.component(CrudRestComponent);
+
+        this.component(CronComponent);
+
+        const PlayersCronBinding = createBindingFromClass(PlayersCron);
+        this.add(PlayersCronBinding);
+
+        const ProjectedFantasyPointsCronBinding = createBindingFromClass(ProjectedFantasyPointsCron);
+        this.add(ProjectedFantasyPointsCronBinding);
+
+        const PlayerFantasyPointsCronBinding = createBindingFromClass(PlayerFantasyPointsCron);
+        this.add(PlayerFantasyPointsCronBinding);
+
+        const WinCriteriaCronBinding = createBindingFromClass(WinCriteriaCron);
+        this.add(WinCriteriaCronBinding);
+
+        const TimeframeCronBinding = createBindingFromClass(TimeframeCron);
+        this.add(TimeframeCronBinding);
+
+        // const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
+        // this.add(fakeResultsCronBinding);
+
+        const syncTeamsCronBinding = createBindingFromClass(SyncTeamsCron);
+        this.add(syncTeamsCronBinding);
+
+        const syncGamesCronBinding = createBindingFromClass(SyncGamesCron);
+        this.add(syncGamesCronBinding);
+
+        // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
+        // this.add(playerResultsCronBinding);
+        // Set up default home page
+        // this.static('/', path.join(__dirname, '../public'));
     }
 
     async migrateSchema(options: any) {

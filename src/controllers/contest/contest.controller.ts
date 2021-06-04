@@ -1,24 +1,27 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
+import { del, get, patch, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, Contest } from '@src/models';
-import { BetRepository, ContestRepository, PlayerRepository, PlayerResultRepository, UserRepository } from '@src/repositories';
-import { ContestPayoutService, ContestService, UserService, WalletService } from '@src/services';
-import { API_ENDPOINTS, CONTEST_STATUSES, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
+import { Contender, Contest, Bet } from '@src/models';
+import { ContestRepository, PlayerRepository, BetRepository, UserRepository } from '@src/repositories';
+import { PlayerResultRepository } from '@src/repositories';
+import { ContestPayoutService, ContestService, WalletService, UserService } from '@src/services';
+import { API_ENDPOINTS, CONTEST_STATUSES, CONTEST_TYPES, MINIMUM_BET_AMOUNT, PERMISSIONS } from '@src/utils/constants';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
     ICustomUserProfile,
+    IContestResponses,
 } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
-import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
+import { CONTENDER_VALIDATORS, CONTEST_CREATE_VALIDATORS, CONTEST_CLAIM_VALIDATOR } from '@src/utils/validators';
 import { isEmpty } from 'lodash';
+import moment from 'moment';
 import Schema from 'validate';
 
 export class ContestController {
@@ -120,7 +123,7 @@ export class ContestController {
             entryAmount,
             winBonusFlag,
         );
-        
+
         const creatorPlayerWinBonus = winBonusFlag
             ? await this.contestService.calculateWinBonus(creatorPlayerSpread, entryAmount)
             : 0;
@@ -183,6 +186,7 @@ export class ContestController {
                     },
                 ],
             },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         };
 
         const contestFilter = {
@@ -191,9 +195,11 @@ export class ContestController {
                 ended: false,
                 creatorId: { neq: userId },
             },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         };
         const myContests = await this.contestRepository.find(myContestFilter);
         const contests = await this.contestRepository.find(contestFilter);
+
 
         const user = await this.userRepository.findById(userId);
         const creatorPlayer = await this.playerRepository.findById(creatorPlayerId);
@@ -285,6 +291,7 @@ export class ContestController {
                     },
                 ],
             },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         };
 
         const contestFilter = {
@@ -293,6 +300,7 @@ export class ContestController {
                 ended: false,
                 creatorId: { neq: userId },
             },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         };
         const myContests = await this.contestRepository.find(myContestFilter);
         const contests = await this.contestRepository.find(contestFilter);
@@ -338,6 +346,28 @@ export class ContestController {
         return { data: await this.contestRepository.find(filter) };
     }
 
+    // @patch(API_ENDPOINTS.CONTESTS.CRUD, {
+    //     responses: {
+    //         '200': {
+    //             description: 'Contest PATCH success count',
+    //             content: { 'application/json': { schema: CountSchema } },
+    //         },
+    //     },
+    // })
+    // async updateAll(
+    //     @requestBody({
+    //         content: {
+    //             'application/json': {
+    //                 schema: getModelSchemaRef(Contest, { partial: true }),
+    //             },
+    //         },
+    //     })
+    //     contest: Contest,
+    //     @param.where(Contest) where?: Where<Contest>,
+    // ): Promise<Count> {
+    //     return this.contestRepository.updateAll(contest, where);
+    // }
+
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
     @get(API_ENDPOINTS.CONTESTS.BY_ID, {
@@ -358,6 +388,38 @@ export class ContestController {
     ): Promise<ICommonHttpResponse<Contest>> {
         return { data: await this.contestRepository.findById(id, filter) };
     }
+
+    // @patch(API_ENDPOINTS.CONTESTS.BY_ID, {
+    //     responses: {
+    //         '204': {
+    //             description: 'Contest PATCH success',
+    //         },
+    //     },
+    // })
+    // async updateById(
+    //     @param.path.number('id') id: number,
+    //     @requestBody({
+    //         content: {
+    //             'application/json': {
+    //                 schema: getModelSchemaRef(Contest, { partial: true }),
+    //             },
+    //         },
+    //     })
+    //     contest: Contest,
+    // ): Promise<void> {
+    //     await this.contestRepository.updateById(id, contest);
+    // }
+
+    // @put(API_ENDPOINTS.CONTESTS.BY_ID, {
+    //     responses: {
+    //         '204': {
+    //             description: 'Contest PUT success',
+    //         },
+    //     },
+    // })
+    // async replaceById(@param.path.number('id') id: number, @requestBody() contest: Contest): Promise<void> {
+    //     await this.contestRepository.replaceById(id, contest);
+    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.DELETE_ANY_CONTEST)] })
