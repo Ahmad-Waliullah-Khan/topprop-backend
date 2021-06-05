@@ -4,10 +4,17 @@ import { repository } from '@loopback/repository';
 import { authorize } from '@loopback/authorization';
 import { get, HttpErrors } from '@loopback/rest';
 
-import { ContestRepository, PlayerRepository, GainRepository } from '@src/repositories';
-import { CronService, SportsDataService } from '@src/services';
+import { ContestRepository, PlayerRepository, GainRepository, UserRepository } from '@src/repositories';
+import { CronService, SportsDataService, UserService } from '@src/services';
 
-import { API_ENDPOINTS, CONTEST_STATUSES, CONTEST_STAKEHOLDERS, PERMISSIONS, RUN_TYPE } from '@src/utils/constants';
+import {
+    API_ENDPOINTS,
+    CONTEST_STATUSES,
+    CONTEST_STAKEHOLDERS,
+    PERMISSIONS,
+    RUN_TYPE,
+    EMAIL_TEMPLATES,
+} from '@src/utils/constants';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
 import { CRON_MESSAGES } from '@src/utils/messages';
@@ -23,8 +30,10 @@ export class CronController {
         @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
+        @repository('UserRepository') private userRepository: UserRepository,
         @service() private sportsDataService: SportsDataService,
         @service() private cronService: CronService,
+        @service() private userService: UserService,
     ) {}
 
     @authenticate('jwt')
@@ -139,7 +148,7 @@ export class CronController {
             });
 
             const filteredContests = contests.filter(contest => {
-                return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+                return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
             });
 
             filteredContests.map(async contest => {
@@ -331,6 +340,61 @@ export class CronController {
                     // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                     await this.gainRepository.create(winningGain);
+
+                    console.log('==================================');
+                    console.log('Sending Game Win/Lose Email ... ');
+
+                    if (winner === 'favorite') {
+                        const winnerUser = await this.userRepository.findById(favorite.userId);
+                        const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
+                        const loserUser = await this.userRepository.findById(underdog.userId);
+                        const loserPlayer = await this.playerRepository.findById(underdog.playerId);
+                        this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                            winnerUser,
+                            loserUser,
+                            winnerPlayer,
+                            loserPlayer,
+                            netEarnings: favorite.netEarnings,
+                        });
+
+                        this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                            winnerUser,
+                            loserUser,
+                            winnerPlayer,
+                            loserPlayer,
+                            netEarnings: underdog.netEarnings,
+                        });
+                    } else if (winner === 'underdog') {
+                        const winnerUser = await this.userRepository.findById(underdog.userId);
+                        const winnerPlayer = await this.playerRepository.findById(underdog.playerId);
+                        const loserUser = await this.userRepository.findById(favorite.userId);
+                        const loserPlayer = await this.playerRepository.findById(favorite.playerId);
+                        this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                            winnerUser,
+                            loserUser,
+                            winnerPlayer,
+                            loserPlayer,
+                            netEarnings: underdog.netEarnings,
+                        });
+
+                        this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                            winnerUser,
+                            loserUser,
+                            winnerPlayer,
+                            loserPlayer,
+                            netEarnings: favorite.netEarnings,
+                        });
+                    } else {
+                        //Send Draw Email
+                        const favoriteUser = await this.userRepository.findById(favorite.userId);
+                        this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
+                            favoriteUser,
+                        });
+                        const underdogUser = await this.userRepository.findById(underdog.userId);
+                        this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
+                            underdogUser,
+                        });
+                    }
                 }
             });
 

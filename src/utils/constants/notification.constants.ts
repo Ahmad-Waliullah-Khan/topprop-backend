@@ -33,6 +33,10 @@ export enum EMAIL_TEMPLATES {
     CONTEST_CREATED = 'create-contest',
     CONTEST_CLAIMED = 'claim-contest',
     CONTEST_CLAIMED_BY_CLAIMER = 'claim-contest-creator',
+    CONTEST_WON = 'contest-win',
+    CONTEST_LOST = 'contest-lose',
+    CONTEST_DRAW_FAVORITE = 'contest-draw-favorite',
+    CONTEST_DRAW_UNDERDOG = 'contest-draw-underdog',
 }
 
 // export enum PUSH_NOTIFICATIONS {

@@ -25,7 +25,7 @@ export class PlayersCron extends CronJob {
             name: CRON_JOBS.PLAYERS_CRON,
             start: true,
             onTick: async () => {
-                
+
                 try {
                     const remotePlayers = await this.sportsDataService.availablePlayers();
                     const localPlayers = await this.playerRepository.find();

@@ -127,7 +127,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const ProjectedFantasyPointsCronBinding = createBindingFromClass(ProjectedFantasyPointsCron);
         this.add(ProjectedFantasyPointsCronBinding);
-        
+
         const PlayerFantasyPointsCronBinding = createBindingFromClass(PlayerFantasyPointsCron);
         this.add(PlayerFantasyPointsCronBinding);
 
