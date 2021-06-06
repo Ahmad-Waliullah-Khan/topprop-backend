@@ -375,8 +375,6 @@ export class ContestController {
     //     return this.contestRepository.updateAll(contest, where);
     // }
 
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
     @get(API_ENDPOINTS.CONTESTS.BY_ID, {
         responses: {
             '200': {
@@ -393,7 +391,12 @@ export class ContestController {
         @param.path.number('id') id: number,
         @param.filter(Contest, { exclude: 'where' }) filter?: FilterExcludingWhere<Contest>,
     ): Promise<ICommonHttpResponse<Contest>> {
-        return { data: await this.contestRepository.findById(id, filter) };
+        return { data: await this.contestRepository.findById(
+            id,
+        {
+                include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+             }
+        ) };
     }
 
     // @patch(API_ENDPOINTS.CONTESTS.BY_ID, {
