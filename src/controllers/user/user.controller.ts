@@ -59,11 +59,19 @@ export class UserController {
             email: USER_VALIDATORS.email,
             password: USER_VALIDATORS.password,
             confirmPassword: USER_VALIDATORS.confirmPassword,
+            signUpState: USER_VALIDATORS.state,
         };
 
         const validation = new Schema(validationSchema, { strip: false });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        //Validate User State
+        const validState = await this.userService.validState(body.signUpState);
+        if (!validState) throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_INVALID);
+
+        const validCountry = await this.userService.validCountry(body.signUpCountry || '');
+        if (!validCountry) throw new HttpErrors.BadRequest(USER_MESSAGES.COUNTRY_INVALID);
 
         //LOWER CASING THE EMAIL
         body.email = body.email.toLowerCase();
@@ -91,6 +99,7 @@ export class UserController {
 
         delete body.password;
         delete body.confirmPassword;
+        delete body.signUpCountry;
         const user = await this.userRepository.create(body);
         let token = await this.jwtService.generateToken({
             id: user.id,

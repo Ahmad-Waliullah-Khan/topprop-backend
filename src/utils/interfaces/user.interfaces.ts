@@ -15,6 +15,8 @@ export interface ICustomUserProfile extends UserProfile {
 // }
 
 export class SignupUserRequest extends User {
+    signUpState: string;
+    signUpCountry?: string;
     constructor(public password?: string, public confirmPassword?: string) {
         super();
     }
@@ -30,5 +32,7 @@ export class ChangePasswordRequest {
 }
 
 export class LoginCredentials {
+    state: string;
+    country: string;
     constructor(public password: string, public emailOrUsername: string) {}
 }

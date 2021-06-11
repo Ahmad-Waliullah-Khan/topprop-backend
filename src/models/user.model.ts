@@ -111,6 +111,16 @@ export class User extends Entity {
     promo?: string | null;
 
     @property({
+        type: 'string',
+    })
+    signUpState?: string | null;
+
+    @property({
+        type: 'string',
+    })
+    lastLoginState?: string | null;
+
+    @property({
         type: 'date',
         default: () => new Date(),
     })

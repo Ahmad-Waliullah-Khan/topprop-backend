@@ -49,7 +49,7 @@ export const USER_VALIDATORS = {
     username: {
         type: String,
         required: true,
-        match: /^@(?=.{5,20}$)(?:[a-zA-Z\d]+(?:(?:\.|-|_)[a-zA-Z\d])*)+$/,
+        match: /(?=.{5,20}$)(?:[a-zA-Z\d]+(?:(?:\.|-|_)[a-zA-Z\d])*)+$/,
         message: {
             required: 'Username is required.',
             match: `Username could be alphanumeric and can contain symbols (- _ . -one at a time-) and must contain between 5 and 20 characters.`,
@@ -104,6 +104,13 @@ export const USER_VALIDATORS = {
         message: {
             required: 'Confirm Account Token is required.',
             match: 'Bad formatted token.',
+        },
+    },
+    state: {
+        type: String,
+        required: true,
+        message: {
+            required: 'Sign Up State is required.',
         },
     },
     // notificationType: {

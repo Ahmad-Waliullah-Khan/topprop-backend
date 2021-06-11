@@ -4,6 +4,12 @@ import { HttpErrors } from '@loopback/rest';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
 import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
+import {
+    VALID_STATES,
+    VALID_COUNTRIES,
+    DEV_VALID_STATES,
+    DEV_VALID_COUNTRIES,
+} from '@src/utils/constants/state.constants';
 import { MiscHelpers, UserHelpers } from '@src/utils/helpers';
 import { LoginCredentials } from '@src/utils/interfaces';
 import { USER_MESSAGES } from '@src/utils/messages';
@@ -51,6 +57,14 @@ export class UserService {
             (foundUser && (await this.validPassword(credentials.password, foundUser.hash as string))) || false;
 
         if (!foundUser || !passwordMatched) throw new HttpErrors.BadRequest(USER_MESSAGES.INVALID_CREDENTIALS);
+
+        if (!(await this.validState(credentials.state))) throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_INVALID);
+
+        if (!(await this.validCountry(credentials.country)))
+            throw new HttpErrors.BadRequest(USER_MESSAGES.COUNTRY_INVALID);
+
+        foundUser.lastLoginState = credentials.state;
+        await userRepository.updateById(foundUser.id, foundUser);
 
         return foundUser;
     }
@@ -184,5 +198,21 @@ export class UserService {
 
     async compareId(user: User, id: number): Promise<boolean> {
         return isEqual(user.id, id);
+    }
+
+    async validState(state: string): Promise<boolean> {
+        let validStaties = VALID_STATES;
+        if (isEqual(process.env.NODE_ENV, 'development')) {
+            validStaties = [...VALID_STATES, ...DEV_VALID_STATES];
+        }
+        return validStaties.includes(state);
+    }
+
+    async validCountry(country: string): Promise<boolean> {
+        let validCountries = VALID_COUNTRIES;
+        if (isEqual(process.env.NODE_ENV, 'development')) {
+            validCountries = [...VALID_COUNTRIES, ...DEV_VALID_COUNTRIES];
+        }
+        return validCountries.includes(country);
     }
 }
