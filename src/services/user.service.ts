@@ -202,7 +202,7 @@ export class UserService {
 
     async validState(state: string): Promise<boolean> {
         let validStaties = VALID_STATES;
-        if (isEqual(process.env.NODE_ENV, 'development')) {
+        if (isEqual(process.env.GEOTRACKING_ENV, 'development')) {
             validStaties = [...VALID_STATES, ...DEV_VALID_STATES];
         }
         return validStaties.includes(state);
@@ -210,7 +210,7 @@ export class UserService {
 
     async validCountry(country: string): Promise<boolean> {
         let validCountries = VALID_COUNTRIES;
-        if (isEqual(process.env.NODE_ENV, 'development')) {
+        if (isEqual(process.env.GEOTRACKING_ENV, 'development')) {
             validCountries = [...VALID_COUNTRIES, ...DEV_VALID_COUNTRIES];
         }
         return validCountries.includes(country);
