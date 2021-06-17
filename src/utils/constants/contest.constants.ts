@@ -23,3 +23,11 @@ export enum CONTEST_STAKEHOLDERS {
     PUSH = 'push',
     PENDING = 'pending',
 }
+
+export enum TIMEFRAMES {
+    CURRENT = 'current',
+    UPCOMING = 'upcoming',
+    COMPLETED = 'completed',
+    RECENT = 'recent',
+    ALL = 'all',
+}

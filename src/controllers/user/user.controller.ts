@@ -1,27 +1,26 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { User } from '@src/models';
-import { UserRepository } from '@src/repositories';
-import { JwtService } from '@src/services';
-import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {User} from '@src/models';
+import {UserRepository} from '@src/repositories';
+import {JwtService} from '@src/services';
+import {UserService} from '@src/services/user.service';
+import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
     LoginCredentials,
     ResetPasswordRequest,
-    SignupUserRequest,
+    SignupUserRequest
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
-import { USER_VALIDATORS } from '@src/utils/validators';
-import { isEmpty, isEqual } from 'lodash';
-import { RUN_TYPE } from '@src/utils/constants';
+import {COMMON_MESSAGES, USER_MESSAGES} from '@src/utils/messages';
+import {USER_VALIDATORS} from '@src/utils/validators';
+import {isEmpty, isEqual} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -101,7 +100,7 @@ export class UserController {
         delete body.confirmPassword;
         delete body.signUpCountry;
         const user = await this.userRepository.create(body);
-        let token = await this.jwtService.generateToken({
+        const token = await this.jwtService.generateToken({
             id: user.id,
             email: user.email,
             username: user.username,
@@ -322,11 +321,13 @@ export class UserController {
 
         const newUser = this.userService.setForgotPasswordFields(user);
 
+        const clientHost = process.env.CLIENT_HOST;
+
         await this.userRepository.save(newUser);
         this.userService.sendEmail(newUser, EMAIL_TEMPLATES.FORGOT_PASSWORD, {
             user: newUser,
             // forgotPasswordToken: newUser.forgotPasswordToken,
-            link: `${process.env.CLIENT_HOST}/reset-password/${newUser.forgotPasswordToken}`,
+            link: `${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
         });
 
         return { message: 'Check you inbox.' };

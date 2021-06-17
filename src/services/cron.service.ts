@@ -1,24 +1,47 @@
 import { injectable, service, BindingScope } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { PROXY_DAY, PROXY_MONTH, PROXY_YEAR, PROXY_WEEK, PROXY_DAY_OFFSET } from '../utils/constants';
+import chalk from 'chalk';
+import {
+    PROXY_DAY,
+    PROXY_MONTH,
+    PROXY_YEAR,
+    PROXY_WEEK,
+    PROXY_DAY_OFFSET,
+    CRON_JOBS,
+    CONTEST_STAKEHOLDERS,
+    CONTEST_STATUSES,
+} from '../utils/constants';
 
-import { SportsDataService, TIMEFRAMES } from '@src/services';
-import { Timeframe } from '@src/models';
-import { TimeframeRepository } from '@src/repositories';
+import { SportsDataService, UserService } from '@src/services';
+import { Timeframe, Player, Gain } from '@src/models';
+import {
+    TimeframeRepository,
+    PlayerRepository,
+    ContestRepository,
+    GainRepository,
+    UserRepository,
+} from '@src/repositories';
+
+import { IDailyFantasyPointsData } from '@src/utils/interfaces';
+
+import { RUN_TYPE, CRON_RUN_TYPES, TIMEFRAMES, EMAIL_TEMPLATES } from '../utils/constants';
 
 import moment from 'moment';
-
-const runType = process.env.RUN_TYPE || 'principle';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
     constructor(
-        @service() private sportDataService: SportsDataService,
+        @service() private sportsDataService: SportsDataService,
+        @service() private userService: UserService,
+        @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @repository('TimeframeRepository') private timeframeRepository: TimeframeRepository,
+        @repository('ContestRepository') private contestRepository: ContestRepository,
+        @repository('GainRepository') private gainRepository: GainRepository,
+        @repository('UserRepository') private userRepository: UserRepository,
     ) {}
 
     async fetchDate() {
-        if (runType === 'principle') {
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
             return moment();
         } else {
             return moment(`${PROXY_YEAR}-${PROXY_MONTH}-${PROXY_DAY}`, 'YYYY-MMM-DD');
@@ -26,7 +49,7 @@ export class CronService {
     }
 
     async fetchSeason() {
-        if (runType === 'principle') {
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
             const currentDate = moment();
             const currentMonth = currentDate.month();
             if (currentMonth < 6) {
@@ -50,8 +73,8 @@ export class CronService {
     }
 
     async fetchTimeframe() {
-        if (runType === 'principle') {
-            const [remoteTimeFrame] = await this.sportDataService.timeFrames(TIMEFRAMES.CURRENT);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
+            const [remoteTimeFrame] = await this.sportsDataService.timeFrames(TIMEFRAMES.CURRENT);
             const currentTimeFrame = new Timeframe(remoteTimeFrame);
             return currentTimeFrame;
         } else {
@@ -63,5 +86,535 @@ export class CronService {
             });
             return currentTimeFrame;
         }
+    }
+
+    async updatedCronConfig(cronName: string) {
+        let cronTiming = '0 */15 * * * *';
+        switch (cronName) {
+            case CRON_JOBS.PLAYERS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th second of 0th minute every wednesday
+                        cronTiming = '0 0 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of 0th minute every wednesday
+                        cronTiming = '0 0 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of 0th minute of every hour of every day
+                        cronTiming = '0 0 */1 */1 * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th second of 0th minute of every hour of every day
+                        cronTiming = '0 0 */1 */1 * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of 15th minute every wednesday
+                        cronTiming = '0 15 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of every 5th minute from 0th minute to 40th minute
+                        cronTiming = '0 0-40/5 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.PLAYER_FANTASY_POINTS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th second of every 5 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of every 15th minute
+                        cronTiming = '0 */15 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of every 5th minute from 40th minute to 50th minute
+                        cronTiming = '0 40-50/5 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.WIN_CHECK_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 45th second of every 5 minutes
+                        cronTiming = '45 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of every hour every tuesday
+                        cronTiming = '0 0 */1 * * 2';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 45th second of every 3rd minute from 50th minute to 59th minute
+                        cronTiming = '45 50-59/3 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.TIMEFRAME_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th second of 15th minute every wednesday
+                        cronTiming = '0 15 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of 0th minute every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of 0th minute every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                }
+                break;
+        }
+        return cronTiming;
+    }
+
+    async cronLogger(cronName: string) {
+        let cronMessage = `default cron message from ${cronName}`;
+        switch (cronName) {
+            case CRON_JOBS.PLAYERS_CRON:
+                cronMessage = 'Players';
+                break;
+            case CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON:
+                cronMessage = 'Projected Fantasy Points';
+                break;
+            case CRON_JOBS.PLAYER_FANTASY_POINTS_CRON:
+                cronMessage = 'Player Fantasy Points';
+                break;
+            case CRON_JOBS.WIN_CHECK_CRON:
+                cronMessage = 'Win Check';
+                break;
+            case CRON_JOBS.TIMEFRAME_CRON:
+                cronMessage = 'Timeframe';
+                break;
+        }
+
+        console.log(chalk.green(`${cronMessage} cron finished at`, moment().format('DD-MM-YYYY hh:mm:ss a')));
+    }
+
+    async processPlayerFantasyPoints() {
+        const currentDate = await this.fetchDate();
+        const remotePlayers = await this.sportsDataService.fantasyPointsByDate(currentDate);
+        const localPlayers = await this.playerRepository.find();
+
+        const playerPromises = remotePlayers.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                        foundLocalPlayer.isOver = remotePlayer.IsOver;
+                        foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        const today = moment().format('dddd');
+                        const gameDay = moment(remotePlayer.Date).format('dddd');
+                        if (today === gameDay) {
+                            foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                            foundLocalPlayer.isOver = remotePlayer.IsOver;
+                            foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                            await this.playerRepository.save(foundLocalPlayer);
+                        }
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                        foundLocalPlayer.isOver = remotePlayer.IsOver;
+                        foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                }
+            }
+        });
+
+        return playerPromises;
+    }
+
+    async processProjectedFantasyPoints() {
+        const currentDate = await this.fetchDate();
+        const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
+        const localPlayers = await this.playerRepository.find();
+        const playerPromises = remotePlayers.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        foundLocalPlayer.opponentName = remotePlayer.Opponent;
+                        foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
+                        foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        foundLocalPlayer.hasStarted = false;
+                        foundLocalPlayer.isOver = false;
+                        foundLocalPlayer.opponentName = remotePlayer.Opponent;
+                        foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
+                        foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        foundLocalPlayer.hasStarted = false;
+                        foundLocalPlayer.isOver = false;
+                        foundLocalPlayer.opponentName = remotePlayer.Opponent;
+                        foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
+                        foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                }
+            }
+        });
+
+        return playerPromises;
+    }
+
+    async winCheck() {
+        const favorite = {
+            type: CONTEST_STAKEHOLDERS.PENDING,
+            gameWin: false,
+            coversSpread: false,
+            winBonus: false,
+            netEarnings: 0,
+            playerWinBonus: 0,
+            playerMaxWin: 0,
+            playerCover: 0,
+            playerSpread: 0,
+            playerId: 0,
+            userId: 0,
+            fantasyPoints: 0,
+            projectedFantasyPoints: 0,
+        };
+
+        const underdog = {
+            type: CONTEST_STAKEHOLDERS.PENDING,
+            gameWin: false,
+            coversSpread: false,
+            winBonus: false,
+            netEarnings: 0,
+            playerWinBonus: 0,
+            playerMaxWin: 0,
+            playerCover: 0,
+            playerSpread: 0,
+            playerId: 0,
+            userId: 0,
+            fantasyPoints: 0,
+            projectedFantasyPoints: 0,
+        };
+
+        const contests = await this.contestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.MATCHED,
+                ended: false,
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        });
+
+        const filteredContests = contests.filter(contest => {
+            return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+        });
+
+        filteredContests.map(async contest => {
+            const entryAmount = Number(contest.entryAmount);
+            const mlValue = Number(contest.mlValue);
+            const spreadValue = Number(contest.spreadValue);
+            let topPropProfit = 0;
+            let winner = '';
+
+            if (contest.creatorPlayerSpread < contest.claimerPlayerSpread) {
+                favorite.type = CONTEST_STAKEHOLDERS.CREATOR;
+                favorite.playerWinBonus = contest.creatorPlayerWinBonus;
+                favorite.playerMaxWin = contest.creatorPlayerMaxWin;
+                favorite.playerCover = contest.creatorPlayerCover;
+                favorite.playerSpread = contest.creatorPlayerSpread;
+                favorite.userId = contest.creatorId;
+                favorite.playerId = contest.creatorPlayerId;
+                favorite.fantasyPoints = contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0;
+                favorite.projectedFantasyPoints = contest.creatorPlayer
+                    ? contest.creatorPlayer.projectedFantasyPoints
+                    : 0;
+
+                underdog.type = CONTEST_STAKEHOLDERS.CLAIMER;
+                underdog.playerWinBonus = contest.claimerPlayerWinBonus;
+                underdog.playerMaxWin = contest.claimerPlayerMaxWin;
+                underdog.playerCover = contest.claimerPlayerCover;
+                underdog.playerSpread = contest.claimerPlayerSpread;
+                underdog.userId = contest.claimerId;
+                underdog.playerId = contest.claimerPlayerId;
+                underdog.fantasyPoints = contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0;
+                underdog.projectedFantasyPoints = contest.claimerPlayer
+                    ? contest.claimerPlayer.projectedFantasyPoints
+                    : 0;
+            } else {
+                underdog.type = CONTEST_STAKEHOLDERS.CREATOR;
+                underdog.playerWinBonus = contest.creatorPlayerWinBonus;
+                underdog.playerMaxWin = contest.creatorPlayerMaxWin;
+                underdog.playerCover = contest.creatorPlayerCover;
+                underdog.playerSpread = contest.creatorPlayerSpread;
+                underdog.userId = contest.creatorId;
+                underdog.playerId = contest.creatorPlayerId;
+                underdog.fantasyPoints = contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0;
+                underdog.projectedFantasyPoints = contest.creatorPlayer
+                    ? contest.creatorPlayer.projectedFantasyPoints
+                    : 0;
+
+                favorite.type = CONTEST_STAKEHOLDERS.CLAIMER;
+                favorite.playerWinBonus = contest.claimerPlayerWinBonus;
+                favorite.playerMaxWin = contest.claimerPlayerMaxWin;
+                favorite.playerCover = contest.claimerPlayerCover;
+                favorite.playerSpread = contest.claimerPlayerSpread;
+                favorite.userId = contest.claimerId;
+                favorite.playerId = contest.claimerPlayerId;
+                favorite.fantasyPoints = contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0;
+                favorite.projectedFantasyPoints = contest.claimerPlayer
+                    ? contest.claimerPlayer.projectedFantasyPoints
+                    : 0;
+            }
+
+            // TEST BENCH START
+            // favorite.fantasyPoints = 6;
+            // underdog.fantasyPoints = 3;
+            // TEST BENCH END
+
+            favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
+            underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
+
+            favorite.coversSpread = favorite.fantasyPoints - underdog.playerSpread > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + underdog.playerSpread > favorite.fantasyPoints;
+
+            favorite.winBonus = favorite.playerWinBonus > 0;
+            underdog.winBonus = underdog.fantasyPoints > 0;
+
+            if (favorite.gameWin && favorite.coversSpread) {
+                // Row 1 & 2 of wiki combination table
+                favorite.netEarnings = favorite.playerMaxWin;
+                underdog.netEarnings = -entryAmount;
+                topPropProfit = entryAmount - favorite.playerMaxWin;
+                winner = 'favorite';
+            }
+
+            if (underdog.gameWin && underdog.coversSpread) {
+                // Row 3 & 4 of wiki combination table
+                favorite.netEarnings = -entryAmount;
+                underdog.netEarnings = underdog.playerMaxWin;
+                topPropProfit = entryAmount - underdog.playerMaxWin;
+                winner = 'underdog';
+            }
+
+            if (favorite.gameWin && !favorite.coversSpread) {
+                // Row 5 & 6 of wiki combination table
+                favorite.netEarnings = -entryAmount + Number(favorite.playerWinBonus) + mlValue;
+                underdog.netEarnings = favorite.playerCover - mlValue;
+                topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+                winner = 'underdog';
+            }
+
+            if (!favorite.coversSpread && !underdog.coversSpread) {
+                // Draw
+                favorite.netEarnings = entryAmount;
+                underdog.netEarnings = entryAmount;
+                topPropProfit = 0;
+                winner = 'push';
+            }
+
+            if (winner === 'push') {
+                const constestData = {
+                    topPropProfit: topPropProfit,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+
+                await this.contestRepository.updateById(contest.id, constestData);
+
+                const entryGain = new Gain();
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = favorite.userId;
+                entryGain.contenderId = underdog.playerId;
+
+                // console.log('🚀 ~ refund data for favorite', entryGain);
+
+                await this.gainRepository.create(entryGain);
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = underdog.userId;
+                entryGain.contenderId = favorite.playerId;
+
+                // console.log('🚀 ~ refund data for underdog', entryGain);
+
+                await this.gainRepository.create(entryGain);
+            } else {
+                const winnerId = winner === 'favorite' ? favorite.userId : underdog.userId;
+                const winnerLabel = winner === 'favorite' ? favorite.type : underdog.type;
+                const creatorWinAmount =
+                    favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? favorite.netEarnings : underdog.netEarnings;
+
+                const claimerWinAmount =
+                    favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.netEarnings : favorite.netEarnings;
+
+                const constestData = {
+                    winnerId: winnerId,
+                    topPropProfit: topPropProfit,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: winnerLabel,
+                    creatorWinAmount: creatorWinAmount,
+                    claimerWinAmount: claimerWinAmount,
+                };
+
+                await this.contestRepository.updateById(contest.id, constestData);
+
+                const userId = winner === 'favorite' ? favorite.userId : underdog.userId;
+                const contenderId = winner === 'favorite' ? underdog.playerId : favorite.playerId;
+                const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
+                const entryGain = new Gain();
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = userId;
+                entryGain.contenderId = contenderId;
+
+                // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
+
+                await this.gainRepository.create(entryGain);
+
+                const winningGain = new Gain();
+
+                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.userId = userId;
+                winningGain.contenderId = contenderId;
+
+                // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
+
+                await this.gainRepository.create(winningGain);
+
+                if (winner === 'favorite') {
+                    const winnerUser = await this.userRepository.findById(favorite.userId);
+                    const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
+                    const loserUser = await this.userRepository.findById(underdog.userId);
+                    const loserPlayer = await this.playerRepository.findById(underdog.playerId);
+                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                        winnerUser,
+                        loserUser,
+                        winnerPlayer,
+                        loserPlayer,
+                        netEarnings: favorite.netEarnings,
+                    });
+
+                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                        winnerUser,
+                        loserUser,
+                        winnerPlayer,
+                        loserPlayer,
+                        netEarnings: underdog.netEarnings,
+                    });
+                } else if (winner === 'underdog') {
+                    const winnerUser = await this.userRepository.findById(underdog.userId);
+                    const winnerPlayer = await this.playerRepository.findById(underdog.playerId);
+                    const loserUser = await this.userRepository.findById(favorite.userId);
+                    const loserPlayer = await this.playerRepository.findById(favorite.playerId);
+                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                        winnerUser,
+                        loserUser,
+                        winnerPlayer,
+                        loserPlayer,
+                        netEarnings: underdog.netEarnings,
+                    });
+
+                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                        winnerUser,
+                        loserUser,
+                        winnerPlayer,
+                        loserPlayer,
+                        netEarnings: favorite.netEarnings,
+                    });
+                } else {
+                    //Send Draw Email
+                    const favoriteUser = await this.userRepository.findById(favorite.userId);
+                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
+                        favoriteUser,
+                    });
+                    const underdogUser = await this.userRepository.findById(underdog.userId);
+                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
+                        underdogUser,
+                    });
+                }
+            }
+        });
+
+        return filteredContests;
+    }
+
+    async fetchTimeframes() {
+        const remoteTimeframes = await this.sportsDataService.timeFrames(TIMEFRAMES.ALL);
+        const localTimeframes = await this.timeframeRepository.find();
+        const timeframePromises = remoteTimeframes.map(async remoteTimeframe => {
+            const foundLocalTimeframe = localTimeframes.find(localTimeframe => {
+                return moment(remoteTimeframe.StartDate).isSame(localTimeframe.startDate);
+            });
+            if (!foundLocalTimeframe) {
+                const newTimeframe = new Timeframe();
+                newTimeframe.seasonType = remoteTimeframe.SeasonType;
+                newTimeframe.season = remoteTimeframe.Season;
+                newTimeframe.week = remoteTimeframe.Week;
+                newTimeframe.name = remoteTimeframe.Name;
+                newTimeframe.shortName = remoteTimeframe.ShortName;
+                newTimeframe.startDate = remoteTimeframe.StartDate;
+                newTimeframe.endDate = remoteTimeframe.EndDate;
+                newTimeframe.firstGameStart = remoteTimeframe.FirstGameStart;
+                newTimeframe.firstGameEnd = remoteTimeframe.FirstGameEnd;
+                newTimeframe.lastGameEnd = remoteTimeframe.LastGameEnd;
+                newTimeframe.hasGames = remoteTimeframe.HasGames;
+                newTimeframe.hasStarted = remoteTimeframe.HasStarted;
+                newTimeframe.hasEnded = remoteTimeframe.HasEnded;
+                newTimeframe.hasFirstGameStarted = remoteTimeframe.HasFirstGameStarted;
+                newTimeframe.hasFirstGameEnded = remoteTimeframe.HasFirstGameEnded;
+                newTimeframe.hasLastGameEnded = remoteTimeframe.HasLastGameEnded;
+                newTimeframe.apiSeason = remoteTimeframe.ApiSeason;
+                newTimeframe.apiWeek = remoteTimeframe.ApiWeek;
+                await this.timeframeRepository.create(newTimeframe);
+            }
+        });
+
+        return timeframePromises;
+    }
+
+    async fetchPlayers() {
+        const remotePlayers = await this.sportsDataService.availablePlayers();
+        const localPlayers = await this.playerRepository.find();
+        const playerPromises = remotePlayers.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                foundLocalPlayer.photoUrl = remotePlayer.PhotoUrl;
+                foundLocalPlayer.status = remotePlayer.Status;
+                foundLocalPlayer.available = remotePlayer.Active;
+                foundLocalPlayer.teamName = remotePlayer.Team;
+                await this.playerRepository.save(foundLocalPlayer);
+            } else {
+                const newLocalPlayer = new Player();
+                newLocalPlayer.remoteId = remotePlayer.PlayerID;
+                newLocalPlayer.photoUrl = remotePlayer.PhotoUrl;
+                newLocalPlayer.firstName = remotePlayer.FirstName;
+                newLocalPlayer.lastName = remotePlayer.LastName;
+                newLocalPlayer.fullName = `${remotePlayer.FirstName} ${remotePlayer.LastName}`;
+                newLocalPlayer.shortName = remotePlayer.ShortName;
+                newLocalPlayer.status = remotePlayer.Status;
+                newLocalPlayer.available = remotePlayer.Active;
+                newLocalPlayer.position = remotePlayer.Position;
+                newLocalPlayer.teamName = remotePlayer.Team;
+                newLocalPlayer.teamId = remotePlayer.TeamID;
+                await this.playerRepository.create(newLocalPlayer);
+            }
+        });
+
+        return playerPromises;
     }
 }
