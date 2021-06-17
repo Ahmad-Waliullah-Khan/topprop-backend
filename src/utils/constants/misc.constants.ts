@@ -8,6 +8,7 @@ export enum CRON_JOBS {
     PLAYER_FANTASY_POINTS_CRON = 'player-fantasy-points-cron',
     WIN_CHECK_CRON = 'win-check-cron',
     TIMEFRAME_CRON = 'timeframe-cron',
+    CLOSE_CONTEST_CRON = 'close-contests-cron',
     
     FAKE_RESULTS_CRON = 'fake-results-cron',
     SYNC_TEAMS_CRON = 'sync-teams-cron',

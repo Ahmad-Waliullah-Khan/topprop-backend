@@ -171,6 +171,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.CLOSE_CONTEST_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th second of 1st minute every wednesday
+                        cronTiming = '0 1 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of 1st minute every wednesday
+                        cronTiming = '0 1 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of 0th minute of 0th hour of every day
+                        cronTiming = '0 0 0 * * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -551,6 +567,97 @@ export class CronService {
         });
 
         return filteredContests;
+    }
+
+    async closeContests() {
+        const favorite = {
+            type: CONTEST_STAKEHOLDERS.PENDING,
+            gameWin: false,
+            coversSpread: false,
+            winBonus: false,
+            netEarnings: 0,
+            playerWinBonus: 0,
+            playerMaxWin: 0,
+            playerCover: 0,
+            playerSpread: 0,
+            playerId: 0,
+            userId: 0,
+            fantasyPoints: 0,
+            projectedFantasyPoints: 0,
+        };
+
+        const underdog = {
+            type: CONTEST_STAKEHOLDERS.PENDING,
+            gameWin: false,
+            coversSpread: false,
+            winBonus: false,
+            netEarnings: 0,
+            playerWinBonus: 0,
+            playerMaxWin: 0,
+            playerCover: 0,
+            playerSpread: 0,
+            playerId: 0,
+            userId: 0,
+            fantasyPoints: 0,
+            projectedFantasyPoints: 0,
+        };
+
+        const contests = await this.contestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        });
+
+        contests.map(async contest => {
+            const entryAmount = Number(contest.entryAmount);
+
+            if (contest.claimerId === null) {
+                // Unmatched
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.contestRepository.updateById(contest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = favorite.userId;
+                entryGain.contenderId = favorite.playerId;
+                await this.gainRepository.create(entryGain);
+            } else {
+                // No data so autoclose
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.contestRepository.updateById(contest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = favorite.userId;
+                entryGain.contenderId = underdog.playerId;
+
+                await this.gainRepository.create(entryGain);
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = underdog.userId;
+                entryGain.contenderId = favorite.playerId;
+            }
+        });
+
+        return contests;
     }
 
     async fetchTimeframes() {

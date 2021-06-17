@@ -22,6 +22,7 @@ export enum CONTEST_STAKEHOLDERS {
     CLAIMER = 'claimer',
     PUSH = 'push',
     PENDING = 'pending',
+    UNMATCHED = 'unmatched',
 }
 
 export enum TIMEFRAMES {
