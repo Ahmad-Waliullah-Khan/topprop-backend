@@ -1,5 +1,5 @@
-import { UserProfile } from '@loopback/security';
-import { User } from '@src/models';
+import {UserProfile} from '@loopback/security';
+import {User} from '@src/models';
 
 export interface ICustomUserProfile extends UserProfile {
     // role?: ROLES;
@@ -35,4 +35,9 @@ export class LoginCredentials {
     state: string;
     country: string;
     constructor(public password: string, public emailOrUsername: string) {}
+}
+
+export class EmailRequest {
+    receiverEmail: string;
+    senderId?: number;
 }

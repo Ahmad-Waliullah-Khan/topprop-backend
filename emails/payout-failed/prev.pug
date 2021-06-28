@@ -1,0 +1,13 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi #{user.fullName},
+        p We had some troubles completing your withdraw.
+        if details
+            p Details:
+            p #{details}
+        p We recommend you to double-check your bank account information (or add a new one) and try again.
+        br
+        p Thanks,
+        p Top Prop Team

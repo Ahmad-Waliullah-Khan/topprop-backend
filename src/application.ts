@@ -1,41 +1,39 @@
 import {
     AuthenticationBindings,
     AuthenticationComponent,
-    registerAuthenticationStrategy,
+    registerAuthenticationStrategy
 } from '@loopback/authentication';
-import { AuthorizationComponent } from '@loopback/authorization';
-import { BootMixin } from '@loopback/boot';
-import { addExtension, ApplicationConfig, createBindingFromClass } from '@loopback/core';
-import { CronComponent } from '@loopback/cron';
-import { RepositoryMixin } from '@loopback/repository';
-import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
-import { ServiceMixin } from '@loopback/service-proxy';
-import { isEqual } from 'lodash';
+import {AuthorizationComponent} from '@loopback/authorization';
+import {BootMixin} from '@loopback/boot';
+import {addExtension, ApplicationConfig, createBindingFromClass} from '@loopback/core';
+import {CronComponent} from '@loopback/cron';
+import {RepositoryMixin} from '@loopback/repository';
+import {RequestBodyParserOptions, RestApplication, RestBindings} from '@loopback/rest';
+import {CrudRestComponent} from '@loopback/rest-crud';
+import {ServiceMixin} from '@loopback/service-proxy';
+import {isEqual} from 'lodash';
 import morgan from 'morgan';
+import {join} from 'path';
 import {
     JWTAuthenticationStrategy,
     PassportFacebookTokenAuthProvider,
-    PassportGoogleTokenAuthProvider,
+    PassportGoogleTokenAuthProvider
 } from './authentication-strategies';
 import {
-    SyncGamesCron,
-    SyncTeamsCron,
-    PlayersCron,
-    ProjectedFantasyPointsCron,
-    PlayerFantasyPointsCron,
-    TimeframeCron,
-    WinCriteriaCron,
+    PlayerFantasyPointsCron, PlayersCron,
+    ProjectedFantasyPointsCron, SyncGamesCron,
+    SyncTeamsCron, TimeframeCron,
+    WinCriteriaCron
 } from './cron-jobs';
-import { MySequence } from './sequence';
-import { ApplicationHelpers } from './utils/helpers';
-import { IRawRequest } from './utils/interfaces';
-import { CrudRestComponent } from '@loopback/rest-crud';
+import {SpreadRepository} from './repositories';
+import {SpreadSeeder} from './seeders';
+import {MySequence} from './sequence';
+import {ApplicationHelpers} from './utils/helpers';
+import {IRawRequest} from './utils/interfaces';
 
-import { SpreadRepository } from './repositories';
 
-import { SpreadSeeder } from './seeders';
 
-export { ApplicationConfig };
+export {ApplicationConfig};
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
@@ -47,7 +45,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
                 strict: true,
                 limit: '2mb',
                 verify: function (req: IRawRequest, res, buf) {
-                    let url = req.originalUrl;
+                    const url = req.originalUrl;
                     if (/stripe-webhooks/gi.test(url)) req.rawBody = buf;
                 },
             },
@@ -150,6 +148,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         // this.add(playerResultsCronBinding);
         // Set up default home page
         // this.static('/', path.join(__dirname, '../public'));
+        this.static('/images', join(__dirname, '../public/images'));
     }
 
     async migrateSchema(options: any) {

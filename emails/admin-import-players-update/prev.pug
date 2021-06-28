@@ -1,0 +1,24 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi admin,
+        p
+        p Here is an update regarding the imported players.
+        p
+        p Details:
+        p Date & time: #{importedDateAndTime}
+        p Target: #{targetResources}
+        p
+        if errors.length
+            p
+            p Errors:
+            p
+            each error in errors
+                p * #{error}
+                p
+        else
+            p * All players were imported successfully.
+        br
+        p Thanks,
+        p Top Prop Team

@@ -1,0 +1,17 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi #{user.fullName},
+        if plural
+            p Your verification files could not be verified.
+        else
+            p Your #{side} verification file could not be verified.
+        if details
+            p Here are some details:
+            p #{details}
+        p Please try submitting correct information through the "Withdraw" page.
+        br
+        p Thanks,
+        p Top Prop Team
+

@@ -1,0 +1,16 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi #{user.fullName},
+        p
+        p The admin team has got back to your contact submission. Here are the details:
+        p
+        p Original Message sent on #{messageDate} at #{messageTime}:
+        p #{message}
+        p
+        p Admin Reply sent on #{replyDate} at #{replyTime}:
+        p #{reply}
+        br
+        p Thanks,
+        p Top Prop Team

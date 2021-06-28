@@ -1,0 +1,16 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi admin,
+        p
+        p There was an issue processing a subscription payment.
+        p
+        p Here are the details:
+        p User: #{user.fullName} (#{user.username})
+        p Plan: #{plan}
+        p Amount Remaining: #{amountRemaining}
+        p Link: #{link}
+        br
+        p Thanks,
+        p Top Prop Team

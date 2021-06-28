@@ -1,0 +1,12 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi #{user.fullName},
+        if plural
+            p Your verification files have been successfully verified.
+        else
+            p Your #{side} verification file has been successfully verified.
+        br
+        p Thanks,
+        p Top Prop Team

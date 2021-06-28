@@ -148,6 +148,7 @@ export const API_ENDPOINTS = {
         WITHDRAW_REQUESTS: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/withdraw-requests`,
         },
+        EMAIL: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/email`,
     },
     PLAYERS: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}`,

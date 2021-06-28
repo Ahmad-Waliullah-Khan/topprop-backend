@@ -1,5 +1,5 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { join } from 'path';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {join} from 'path';
 import EmailTemplate = require('email-templates');
 import chalk = require('chalk');
 
@@ -26,7 +26,7 @@ export class EmailService {
                 from: process.env.MAIL_FROM as string,
             },
             htmlToText: false,
-            textOnly: true,
+            textOnly: false,
             preview: false,
             send: true,
             transport,

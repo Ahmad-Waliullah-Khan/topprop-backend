@@ -1,26 +1,27 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
-import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {User} from '@src/models';
-import {UserRepository} from '@src/repositories';
-import {JwtService} from '@src/services';
-import {UserService} from '@src/services/user.service';
-import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE} from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { User } from '@src/models';
+import { UserRepository } from '@src/repositories';
+import { JwtService } from '@src/services';
+import { UserService } from '@src/services/user.service';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
+    EmailRequest,
     ICommonHttpResponse,
     ICustomUserProfile,
     LoginCredentials,
     ResetPasswordRequest,
-    SignupUserRequest
+    SignupUserRequest,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, USER_MESSAGES} from '@src/utils/messages';
-import {USER_VALIDATORS} from '@src/utils/validators';
-import {isEmpty, isEqual} from 'lodash';
+import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
+import { USER_VALIDATORS } from '@src/utils/validators';
+import { isEmpty, isEqual } from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -67,10 +68,10 @@ export class UserController {
 
         //Validate User State
         const validState = await this.userService.validState(body.signUpState);
-        if (!validState) throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_INVALID);
+        if (!validState) throw new HttpErrors.BadRequest(`${body.signUpState} ${USER_MESSAGES.STATE_INVALID}`);
 
         const validCountry = await this.userService.validCountry(body.signUpCountry || '');
-        if (!validCountry) throw new HttpErrors.BadRequest(USER_MESSAGES.COUNTRY_INVALID);
+        if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
         //LOWER CASING THE EMAIL
         body.email = body.email.toLowerCase();
@@ -491,5 +492,58 @@ export class UserController {
     })
     async deleteById(@param.path.number('id') id: number): Promise<void> {
         await this.userRepository.deleteById(id);
+    }
+
+    @authenticate('jwt')
+    @post(API_ENDPOINTS.USERS.EMAIL, {
+        responses: {
+            '200': {
+                description: 'Email Template',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                data: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async userEmail(
+        @requestBody()
+        body: EmailRequest,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse> {
+        const validationSchema = {
+            receiverEmail: USER_VALIDATORS.email,
+        };
+
+        const validation = new Schema(validationSchema, { strip: false });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        if (!body.senderId) body.senderId = +currentUser[securityId];
+
+        const user = await this.userRepository.findById(body.senderId);
+        console.log('🚀 ~ file: user.controller.ts ~ line 533 ~ UserController ~ user', user);
+        const receiverEmail = body.receiverEmail;
+        await this.userService.sendEmail(
+            user,
+            EMAIL_TEMPLATES.USER_EMAIL,
+            {
+                receiverEmail,
+            },
+            body.receiverEmail,
+        );
+
+        return {
+            message: USER_MESSAGES.EMIL_SENT,
+            data: { email: receiverEmail },
+        };
     }
 }

@@ -1,4 +1,4 @@
-import { MINIMUM_WITHDRAW_AMOUNT } from '../constants';
+import {MINIMUM_WITHDRAW_AMOUNT} from '../constants';
 
 export const USER_MESSAGES = {
     INVALID_CREDENTIALS: `The credentials are incorrect. Try again.`,
@@ -11,8 +11,9 @@ export const USER_MESSAGES = {
     FORGOT_EMAIL_ALREADY_SENT: `Please check your email to reset your password.`,
     RESET_PASS_TOKEN_EXPIRED: `Your reset password token has expired. Generate a new one and try again.`,
     LOGGED_IN_WITH_SOCIAL_NETWORK: `You have logged in with a social network.`,
-    STATE_INVALID: `We do not support this state yet. Please check back later`,
-    COUNTRY_INVALID: `We do not support this country yet. Please check back later.`,
+    EMIL_SENT: `Email has been sent successfully.`,
+    STATE_INVALID: `is not one of our supported states yet. Please check back later.`,
+    COUNTRY_INVALID: `is not one of our supported countries yet. Please check back later.`,
 };
 export const WALLET_MESSAGES = {
     MISSING_WALLET: `User does not a wallet yet. Add a card first.`,

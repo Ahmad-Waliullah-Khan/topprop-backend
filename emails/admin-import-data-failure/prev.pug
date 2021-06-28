@@ -1,0 +1,21 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi admin,
+        p
+        p There were some errors importing your data:
+        p
+        p Details:
+        p Date & time: #{importedDateAndTime}
+        p Target: #{targetResources}
+        p Errors:
+        p
+        each error in errors
+            p * #{error}
+            p
+        p
+        p Please double-check the file uploaded and try again.
+        br
+        p Thanks,
+        p Top Prop Team

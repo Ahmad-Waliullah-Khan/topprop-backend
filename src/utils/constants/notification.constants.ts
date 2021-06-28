@@ -1,6 +1,6 @@
 export enum EMAIL_TEMPLATES {
     //* ADMIN EMAIL TEMPLATES
-    // ADMIN_CONTACT_FORM_SUBMITTED = 'admin-contact-form-submitted',
+    ADMIN_CONTACT_FORM_SUBMITTED = 'admin-contact-form-submitted',
     // ADMIN_SUBSCRIPTION_CANCELLATION_REQUEST = 'admin-subscription-cancellation-request',
     // ADMIN_SUBSCRIPTION_CANCELED = 'admin-subscription-canceled',
     // ADMIN_PAYMENT_FAILED = 'admin-payment-failed',
@@ -37,6 +37,7 @@ export enum EMAIL_TEMPLATES {
     CONTEST_LOST = 'contest-lose',
     CONTEST_DRAW_FAVORITE = 'contest-draw-favorite',
     CONTEST_DRAW_UNDERDOG = 'contest-draw-underdog',
+    USER_EMAIL = 'user-email',
 }
 
 // export enum PUSH_NOTIFICATIONS {

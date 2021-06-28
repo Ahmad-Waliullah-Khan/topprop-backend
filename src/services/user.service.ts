@@ -1,23 +1,20 @@
-import { bind, BindingScope, Getter, service } from '@loopback/core';
-import { Filter, repository, Where } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
-import { User } from '@src/models';
-import { UserRepository } from '@src/repositories';
-import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
+import {bind, BindingScope, Getter, service} from '@loopback/core';
+import {Filter, repository, Where} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
+import {User} from '@src/models';
+import {UserRepository} from '@src/repositories';
+import {EMAIL_TEMPLATES, ROLES} from '@src/utils/constants';
 import {
-    VALID_STATES,
-    VALID_COUNTRIES,
-    DEV_VALID_STATES,
-    DEV_VALID_COUNTRIES,
+    DEV_VALID_COUNTRIES, DEV_VALID_STATES, VALID_COUNTRIES, VALID_STATES
 } from '@src/utils/constants/state.constants';
-import { MiscHelpers, UserHelpers } from '@src/utils/helpers';
-import { LoginCredentials } from '@src/utils/interfaces';
-import { USER_MESSAGES } from '@src/utils/messages';
-import { compare, hash } from 'bcrypt';
-import { randomBytes } from 'crypto';
-import { isEqual, isNumber, merge } from 'lodash';
+import {MiscHelpers, UserHelpers} from '@src/utils/helpers';
+import {LoginCredentials} from '@src/utils/interfaces';
+import {USER_MESSAGES} from '@src/utils/messages';
+import {compare, hash} from 'bcrypt';
+import {randomBytes} from 'crypto';
+import {isEqual, isNumber, merge} from 'lodash';
 import moment from 'moment';
-import { EmailService } from './email.service';
+import {EmailService} from './email.service';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class UserService {
@@ -28,15 +25,15 @@ export class UserService {
     ) {}
 
     async setPassword(password: string) {
-        return await hash(password, this.HASH_ROUNDS);
+        return hash(password, this.HASH_ROUNDS);
     }
 
     async validPassword(password: string, hashPassword: string) {
-        return await compare(password, hashPassword);
+        return compare(password, hashPassword);
     }
 
     async verifyCredentials(credentials: LoginCredentials, verifyAdmin = false): Promise<User> {
-        let verifyUserQuery: Filter<User> = {
+        const verifyUserQuery: Filter<User> = {
             where: {
                 and: [
                     {
@@ -58,10 +55,10 @@ export class UserService {
 
         if (!foundUser || !passwordMatched) throw new HttpErrors.BadRequest(USER_MESSAGES.INVALID_CREDENTIALS);
 
-        if (!(await this.validState(credentials.state))) throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_INVALID);
+        if (!(await this.validState(credentials.state))) throw new HttpErrors.BadRequest(`${credentials.state} ${USER_MESSAGES.STATE_INVALID}`);
 
         if (!(await this.validCountry(credentials.country)))
-            throw new HttpErrors.BadRequest(USER_MESSAGES.COUNTRY_INVALID);
+            throw new HttpErrors.BadRequest(`${credentials.country} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
         foundUser.lastLoginState = credentials.state;
         await userRepository.updateById(foundUser.id, foundUser);
@@ -121,7 +118,7 @@ export class UserService {
             username,
         };
         if (excludeUserId) {
-            let excludeWhere: Where<User> = {
+            const excludeWhere: Where<User> = {
                 id: { nin: [excludeUserId] },
             };
             defaultWhere = merge(defaultWhere, excludeWhere);
@@ -132,9 +129,9 @@ export class UserService {
     }
 
     buildUsername(email: string): string {
-        let splittedEmail = email.split('@');
-        let tentativeUsername = `@${splittedEmail[0]}`.substr(0, 5).replace('+', '-');
-        let defaultUsername = MiscHelpers.appendRandomStr(`${tentativeUsername}-`, 20);
+        const splittedEmail = email.split('@');
+        const tentativeUsername = `@${splittedEmail[0]}`.substr(0, 5).replace('+', '-');
+        const defaultUsername = MiscHelpers.appendRandomStr(`${tentativeUsername}-`, 20);
         return defaultUsername;
     }
 
@@ -144,7 +141,7 @@ export class UserService {
             email,
         };
         if (excludeUserId) {
-            let excludeWhere: Where<User> = {
+            const excludeWhere: Where<User> = {
                 id: { nin: [excludeUserId] },
             };
             defaultWhere = merge(defaultWhere, excludeWhere);
