@@ -1,13 +1,13 @@
-import { Getter, inject, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { param, post, requestBody, Response, RestBindings } from '@loopback/rest';
-import { Bet, Gain, TopUp, User } from '@src/models';
-import { BetRepository, GainRepository, TopUpRepository, UserRepository } from '@src/repositories';
-import { StripeService, UserService } from '@src/services';
-import { API_ENDPOINTS, EMAIL_TEMPLATES } from '@src/utils/constants';
-import { IRawRequest, ISignedEventData } from '@src/utils/interfaces';
+import {Getter, inject, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {param, post, requestBody, Response, RestBindings} from '@loopback/rest';
+import {Bet, Gain, TopUp, User} from '@src/models';
+import {BetRepository, GainRepository, TopUpRepository, UserRepository} from '@src/repositories';
+import {StripeService, UserService} from '@src/services';
+import {API_ENDPOINTS, EMAIL_TEMPLATES} from '@src/utils/constants';
+import {IRawRequest, ISignedEventData} from '@src/utils/interfaces';
 import chalk from 'chalk';
-import { isEqual, isNull } from 'lodash';
+import {isEqual, isNull} from 'lodash';
 import moment from 'moment';
 import Stripe from 'stripe';
 
@@ -58,7 +58,7 @@ export class StripeWebhookController {
         };
         try {
             event = this.stripeService.stripe.webhooks.constructEvent(rawBody, sign, secretSignKey);
-            const objectData = event.data.object as { customer: string };
+            const objectData = event.data.object as {customer: string};
             const userRepository = await this.userRepositoryGetter();
 
             let where: Where<User> = {};
@@ -73,7 +73,7 @@ export class StripeWebhookController {
                     _customerToken: objectData.customer,
                 };
 
-            const user = await userRepository.findOne({ where });
+            const user = await userRepository.findOne({where});
 
             signedEventData = {
                 event,
@@ -116,7 +116,7 @@ export class StripeWebhookController {
         const topUpRepository = await this.topUpRepositoryGetter();
 
         const topUpsUpdated = await topUpRepository.updateAll(
-            { refunded: charge.refunded, refundId: charge.refunds.data[0].id },
+            {refunded: charge.refunded, refundId: charge.refunds.data[0].id},
             {
                 paymentIntentId: charge.payment_intent as string,
             },
@@ -202,6 +202,10 @@ export class StripeWebhookController {
                 side,
                 details,
                 user: signedEventData.user,
+                text: {
+                    title: "Top Prop - Verification Failed",
+                    subtitle: "",
+                },
             });
         }
         if (
@@ -229,6 +233,10 @@ export class StripeWebhookController {
                 plural,
                 side,
                 user: signedEventData.user,
+                text: {
+                    title: "Top Prop - Verification Successful",
+                    subtitle: ""
+                },
             });
         }
         if (
@@ -256,6 +264,10 @@ export class StripeWebhookController {
                 plural,
                 side,
                 user: signedEventData.user,
+                text: {
+                    title: "Top Prop - Verification Successful",
+                    subtitle: ""
+                },
             });
         }
         if (
@@ -285,6 +297,10 @@ export class StripeWebhookController {
                 plural,
                 side,
                 user: signedEventData.user,
+                text: {
+                    title: "Top Prop - Verification Successful",
+                    subtitle: ""
+                },
             });
         }
     }
@@ -334,11 +350,11 @@ export class StripeWebhookController {
                         {
                             paid: false,
                         },
-                        { payoutId: payout.id, paid: true },
+                        {payoutId: payout.id, paid: true},
                     ],
                 },
-                { transferred: true },
-                { userId: signedEventData.user.id },
+                {transferred: true},
+                {userId: signedEventData.user.id},
             ],
         };
 
@@ -349,6 +365,10 @@ export class StripeWebhookController {
         this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_FAILED, {
             details: payout.failure_message,
             user: signedEventData.user,
+            text: {
+                title: "Top Prop - Withdraw Failed",
+                subtitle: `We had some troubles completing your withdraw. We recommend you to double-check your bank account information (or add a new one) and try again.`
+            }
         });
     }
 
@@ -381,7 +401,7 @@ export class StripeWebhookController {
 
         const payout = signedEventData.event.data.object as Stripe.Payout;
 
-        const paidUpdate: Partial<TopUp | Bet | Gain> = { paid: true, payoutId: payout.id, paidAt: moment().toDate() };
+        const paidUpdate: Partial<TopUp | Bet | Gain> = {paid: true, payoutId: payout.id, paidAt: moment().toDate()};
 
         const whereUpdate: Where<TopUp | Bet | Gain> = {
             paid: false,
@@ -395,6 +415,10 @@ export class StripeWebhookController {
 
         this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_PAID, {
             user: signedEventData.user,
+            text: {
+                title: "Top Prop - Withdraw Almost Ready",
+                subtitle: "Your funds are almost ready and they should be in your bank account soon."
+            },
         });
     }
 }

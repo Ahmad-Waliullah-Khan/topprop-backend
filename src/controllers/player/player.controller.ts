@@ -1,11 +1,11 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
-import { Player } from '@src/models';
-import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
-import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {get, getModelSchemaRef, param, post, requestBody, Response, RestBindings} from '@loopback/rest';
+import {Player} from '@src/models';
+import {ContestRepository, PlayerRepository, TeamRepository} from '@src/repositories';
+import {EmailService, MultiPartyFormService, SportsDataService} from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -13,15 +13,15 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
 } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
-import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse, IImportedPlayer, IRemotePlayer} from '@src/utils/interfaces';
+import {IMPORTED_PLAYER_VALIDATORS} from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
-import { isEqual, isNumber, sortBy, values } from 'lodash';
+import {isEqual, isNumber, sortBy, values} from 'lodash';
 import moment from 'moment';
-import Schema, { SchemaDefinition } from 'validate';
+import Schema, {SchemaDefinition} from 'validate';
 
 export class PlayerController {
     constructor(
@@ -32,7 +32,7 @@ export class PlayerController {
         @service() protected multipartyFormService: MultiPartyFormService,
         @service() private emailService: EmailService,
         @service() private sportDataService: SportsDataService,
-    ) {}
+    ) { }
 
     // @authenticate('jwt')
     // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.IMPORT_PLAYERS)] })
@@ -40,7 +40,7 @@ export class PlayerController {
     async googleSheetsImport(
         @inject(RestBindings.Http.RESPONSE) res: Response,
         @param.header.string('g-sheets-auth-header') gSheetsAuthHeader: string,
-        @requestBody() body: { data: IImportedPlayer[] },
+        @requestBody() body: {data: IImportedPlayer[]},
     ): Promise<void> {
         res.sendStatus(200);
 
@@ -80,11 +80,11 @@ export class PlayerController {
             points50: IMPORTED_PLAYER_VALIDATORS.points(50),
         };
 
-        const validation = new Schema(validationSchema, { strip: true });
+        const validation = new Schema(validationSchema, {strip: true});
 
         // body.data = body.data.slice(0, 50);
         let errors: string[] = [];
-        await this.playerRepository.updateAll({ available: false });
+        await this.playerRepository.updateAll({available: false});
 
         for (let index = 0; index < body.data.length; index++) {
             let row = index + 2;
@@ -108,25 +108,29 @@ export class PlayerController {
         let locals = {
             targetResources: 'Players - Google Sheets',
             importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
+            text: {
+                title: `Top Prop - Imported Players Update`,
+                subtitle: `Here is an update regarding the imported players.`
+            },
             errors,
         };
 
         this.emailService.sendEmail({
             template,
-            message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+            message: {to: process.env.SUPPORT_EMAIL_ADDRESS as string},
             locals,
         });
 
         try {
             //* HANDLE UNAVAILABLE PLAYERS
-            const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
+            const unavailablePlayers = await this.playerRepository.find({where: {available: false}});
             const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
 
             const contests = await this.contestRepository.find({
                 where: {
                     and: [
-                        { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
-                        { creatorPlayerId: { inq: unavailablePlayerIds } },
+                        {or: [{status: CONTEST_STATUSES.OPEN}, {status: CONTEST_STATUSES.MATCHED}]},
+                        {creatorPlayerId: {inq: unavailablePlayerIds}},
                     ],
                 },
             });
@@ -136,13 +140,13 @@ export class PlayerController {
                 contest.status = CONTEST_STATUSES.CLOSED;
                 contest.ended = true;
                 contest.endedAt = moment().toDate();
-                await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
+                await this.contestRepository.save(contest, {refundBets: true, skipGameValidation: true});
             }
         } catch (error) {
             console.error(`Error upserting players from google sheets. Error:`, error);
             this.emailService.sendEmail({
                 template: EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE,
-                message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
+                message: {to: process.env.SUPPORT_EMAIL_ADDRESS as string},
                 locals: {
                     targetResources: 'Players - Google Sheets',
                     importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
@@ -275,7 +279,7 @@ export class PlayerController {
     // }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.EXPORT_PLAYERS)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.EXPORT_PLAYERS)]})
     @post(API_ENDPOINTS.PLAYERS.EXPORT)
     async exportRemotePlayers(@inject(RestBindings.Http.RESPONSE) res: Response): Promise<void> {
         try {
@@ -318,21 +322,21 @@ export class PlayerController {
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.COUNT_PLAYERS)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.COUNT_PLAYERS)]})
     @get(API_ENDPOINTS.PLAYERS.COUNT, {
         responses: {
             '200': {
                 description: 'Player model count',
-                content: { 'application/json': { schema: CountSchema } },
+                content: {'application/json': {schema: CountSchema}},
             },
         },
     })
     async count(@param.where(Player) where?: Where<Player>): Promise<ICommonHttpResponse<Count>> {
-        return { data: await this.playerRepository.count(where) };
+        return {data: await this.playerRepository.count(where)};
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)]})
     @get(API_ENDPOINTS.PLAYERS.CRUD, {
         responses: {
             '200': {
@@ -341,7 +345,7 @@ export class PlayerController {
                     'application/json': {
                         schema: {
                             type: 'array',
-                            items: getModelSchemaRef(Player, { includeRelations: true }),
+                            items: getModelSchemaRef(Player, {includeRelations: true}),
                         },
                     },
                 },
@@ -349,7 +353,7 @@ export class PlayerController {
         },
     })
     async find(@param.filter(Player) filter?: Filter<Player>): Promise<ICommonHttpResponse<Player[]>> {
-        return { data: await this.playerRepository.find(filter) };
+        return {data: await this.playerRepository.find(filter)};
     }
 
     // @authenticate('jwt')
@@ -402,14 +406,14 @@ export class PlayerController {
     // }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ANY_PLAYER)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ANY_PLAYER)]})
     @get(API_ENDPOINTS.PLAYERS.BY_ID, {
         responses: {
             '200': {
                 description: 'Player model instance',
                 content: {
                     'application/json': {
-                        schema: getModelSchemaRef(Player, { includeRelations: true }),
+                        schema: getModelSchemaRef(Player, {includeRelations: true}),
                     },
                 },
             },
@@ -417,9 +421,9 @@ export class PlayerController {
     })
     async findById(
         @param.path.number('id') id: number,
-        @param.filter(Player, { exclude: 'where' }) filter?: FilterExcludingWhere<Player>,
+        @param.filter(Player, {exclude: 'where'}) filter?: FilterExcludingWhere<Player>,
     ): Promise<ICommonHttpResponse<Player>> {
-        return { data: await this.playerRepository.findById(id, filter) };
+        return {data: await this.playerRepository.findById(id, filter)};
     }
 
     // @patch(API_ENDPOINTS.PLAYERS.BY_ID, {
@@ -466,7 +470,7 @@ export class PlayerController {
     // }
 
     private async upsertPlayer(nflPlayer: IImportedPlayer, row: number): Promise<void> {
-        const team = await this.teamRepository.findOne({ where: { abbr: nflPlayer.team } });
+        const team = await this.teamRepository.findOne({where: {abbr: nflPlayer.team}});
         if (team) {
             const player = await this.playerRepository.findOne({
                 where: {

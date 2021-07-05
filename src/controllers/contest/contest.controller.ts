@@ -215,6 +215,10 @@ export class ContestController {
             creatorPlayer,
             claimerPlayer,
             contestData,
+            text: {
+                title: 'Your contest has been created',
+                subtitle: "We'll let you know when you match with an opponent. Contest details are listed below",
+            },
         });
 
         return {
@@ -326,13 +330,24 @@ export class ContestController {
             creatorPlayer,
             claimerPlayer,
             contestData,
+            text: {
+                title: 'You have claimed a contest',
+                subtitle: 'Contest details are listed below',
+            },
         });
         this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
             claimerPlayer,
+            creatorPlayer,
             user,
             contestData,
             moment: moment,
+            text: {
+                title: 'Top Prop - Your contest has been claimed',
+                subtitle: `Contest claimed by ${user.fullName} on ${moment(contestData.updatedAt).format(
+                    'dddd, MMMM Do YYYY, h:mm:ss a',
+                )}`,
+            },
         });
 
         return {

@@ -513,6 +513,19 @@ export class CronService {
                         winnerPlayer,
                         loserPlayer,
                         netEarnings: favorite.netEarnings,
+                        text: {
+                            title: 'Contest Won',
+                            subtitle: `Congratulations, You have won the contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}',
+                            )}`,
+                        },
                     });
 
                     this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
@@ -521,6 +534,19 @@ export class CronService {
                         winnerPlayer,
                         loserPlayer,
                         netEarnings: underdog.netEarnings,
+                        text: {
+                            title: 'Contest Lost',
+                            subtitle: `Sorry, You have lost the contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(underdog.netEarnings)}',
+                            )}`,
+                        },
                     });
                 } else if (winner === 'underdog') {
                     const winnerUser = await this.userRepository.findById(underdog.userId);
@@ -533,6 +559,19 @@ export class CronService {
                         winnerPlayer,
                         loserPlayer,
                         netEarnings: underdog.netEarnings,
+                        text: {
+                            title: 'Contest Won',
+                            subtitle: `Congratulations, You have won the contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(underdog.netEarnings)}',
+                            )}`,
+                        },
                     });
 
                     this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
@@ -541,16 +580,60 @@ export class CronService {
                         winnerPlayer,
                         loserPlayer,
                         netEarnings: favorite.netEarnings,
+                        text: {
+                            title: 'Contest Lost',
+                            subtitle: `Sorry, You have lost the contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}',
+                            )}`,
+                        },
                     });
                 } else {
                     //Send Draw Email
                     const favoriteUser = await this.userRepository.findById(favorite.userId);
+                    const favoritePlayer = await this.playerRepository.findById(favorite.playerId);
+
+                    const underdogUser = await this.userRepository.findById(underdog.userId);
+                    const underdogPlayer = await this.playerRepository.findById(underdog.playerId);
+
                     this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
-                    });
-                    const underdogUser = await this.userRepository.findById(underdog.userId);
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
                         underdogUser,
+                        favoritePlayer,
+                        underdogPlayer,
+                        text: {
+                            title: 'Contest was a push',
+                            subtitle: `Your contest was a draw. Your net earnings are ${new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }).format(favorite.netEarnings)}',
+                            )}`,
+                        },
+                    });
+
+                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
+                        favoriteUser,
+                        underdogUser,
+                        favoritePlayer,
+                        underdogPlayer,
+                        text: {
+                            title: 'Contest was a push',
+                            subtitle: `Your contest was a draw. Your net earnings are ${new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }).format(underdog.netEarnings)}',
+                            )}`,
+                        },
                     });
                 }
             }

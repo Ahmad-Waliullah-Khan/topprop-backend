@@ -31,13 +31,13 @@ export class UserController {
         public userRepository: UserRepository,
         @service() protected userService: UserService,
         @service() protected jwtService: JwtService,
-    ) {}
+    ) { }
 
     @post(API_ENDPOINTS.USERS.SIGNUP, {
         responses: {
             '200': {
                 description: 'User model instance',
-                content: { 'application/json': { schema: getModelSchemaRef(User) } },
+                content: {'application/json': {schema: getModelSchemaRef(User)}},
             },
         },
     })
@@ -45,12 +45,12 @@ export class UserController {
         @requestBody({
             content: {
                 'application/json': {
-                    schema: { additionalProperties: true },
+                    schema: {additionalProperties: true},
                 },
             },
         })
         body: SignupUserRequest,
-    ): Promise<{ data: string; user: User }> {
+    ): Promise<{data: string; user: User}> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
         const validationSchema = {
@@ -62,7 +62,7 @@ export class UserController {
             signUpState: USER_VALIDATORS.state,
         };
 
-        const validation = new Schema(validationSchema, { strip: false });
+        const validation = new Schema(validationSchema, {strip: false});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -109,9 +109,18 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, { user });
+        this.userService.sendEmail(
+            user,
+            EMAIL_TEMPLATES.WELCOME,
+            {
+                user,
+                text: {
+                    title: `Top Prop - Welcome ${user.fullName}`,
+                    subtitle: `Welcome to Top Prop. Continue exploring the web app and don't forget to add some funds!`,
+                },
+            });
 
-        return { data: token, user };
+        return {data: token, user};
     }
 
     @post(API_ENDPOINTS.USERS.ADMIN_LOGIN, {
@@ -144,7 +153,7 @@ export class UserController {
             emailOrUsername: USER_VALIDATORS.emailOrUsername,
         };
 
-        const validation = new Schema(validationSchema, { strip: false });
+        const validation = new Schema(validationSchema, {strip: false});
         const validationErrors = validation.validate(credentials);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -158,7 +167,7 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        return { data: token };
+        return {data: token};
     }
 
     @post(API_ENDPOINTS.USERS.LOGIN, {
@@ -189,7 +198,7 @@ export class UserController {
             emailOrUsername: USER_VALIDATORS.emailOrUsername,
         };
 
-        const validation = new Schema(validationSchema, { strip: false });
+        const validation = new Schema(validationSchema, {strip: false});
         const validationErrors = validation.validate(credentials);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -203,7 +212,7 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        return { data: { token, type: RUN_TYPE } };
+        return {data: {token, type: RUN_TYPE}};
     }
 
     @authenticate('facebookToken')
@@ -228,7 +237,7 @@ export class UserController {
     })
     async facebookLogin(
         @inject(SecurityBindings.USER) user: ICustomUserProfile,
-        @requestBody() body: { access_token: string },
+        @requestBody() body: {access_token: string},
     ): Promise<ICommonHttpResponse> {
         if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
@@ -239,7 +248,7 @@ export class UserController {
             [securityId]: user.id.toString(),
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
-        return { data: token };
+        return {data: token};
     }
 
     @authenticate('googleToken')
@@ -264,7 +273,7 @@ export class UserController {
     })
     async googleLogin(
         @inject(SecurityBindings.USER) user: ICustomUserProfile,
-        @requestBody() body: { access_token: string },
+        @requestBody() body: {access_token: string},
     ): Promise<ICommonHttpResponse> {
         if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
@@ -275,7 +284,7 @@ export class UserController {
             [securityId]: user.id.toString(),
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
-        return { data: token };
+        return {data: token};
     }
 
     @post(API_ENDPOINTS.USERS.USERNAME_VALIDATE)
@@ -284,7 +293,7 @@ export class UserController {
             username: USER_VALIDATORS.username,
         };
 
-        const validation = new Schema(validationSchema, { strip: true });
+        const validation = new Schema(validationSchema, {strip: true});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -306,11 +315,11 @@ export class UserController {
             email: USER_VALIDATORS.email,
         };
 
-        const validation = new Schema(validationSchema, { strip: false });
+        const validation = new Schema(validationSchema, {strip: false});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        const user = await this.userRepository.findOne({ where: { email: body.email } });
+        const user = await this.userRepository.findOne({where: {email: body.email}});
 
         if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
         if (user.socialId) throw new HttpErrors.NotFound(USER_MESSAGES.LOGGED_IN_WITH_SOCIAL_NETWORK);
@@ -328,10 +337,14 @@ export class UserController {
         this.userService.sendEmail(newUser, EMAIL_TEMPLATES.FORGOT_PASSWORD, {
             user: newUser,
             // forgotPasswordToken: newUser.forgotPasswordToken,
+            text: {
+                title: 'Top Prop - Forgot Password',
+                subtitle: `Please follow the next link to set a new password: ${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
+            },
             link: `${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
         });
 
-        return { message: 'Check you inbox.' };
+        return {message: 'Check you inbox.'};
     }
 
     @patch(API_ENDPOINTS.USERS.RESET_PASSWORD)
@@ -345,12 +358,12 @@ export class UserController {
             forgotPasswordToken: USER_VALIDATORS.forgotPasswordToken,
         };
 
-        const validation = new Schema(validationSchema, { strip: false });
+        const validation = new Schema(validationSchema, {strip: false});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         const user = await this.userRepository.findOne({
-            where: { forgotPasswordToken: body.forgotPasswordToken },
+            where: {forgotPasswordToken: body.forgotPasswordToken},
         });
 
         if (!user) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
@@ -365,27 +378,37 @@ export class UserController {
         user.forgotPasswordToken = null;
         user.forgotPasswordTokenExpiresIn = null;
         const newUser = await this.userRepository.save(user);
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.NEW_PASSWORD_SET, { user: newUser });
+        this.userService.sendEmail(
+            user,
+            EMAIL_TEMPLATES.NEW_PASSWORD_SET,
+            {
+                user: newUser,
+                text: {
+                    title: `Top Prop - New Password Set`,
+                    subtitle: `You have successfully set a new password.`,
+                },
+            }
+        );
 
-        return { message: 'Password reset successfully.' };
+        return {message: 'Password reset successfully.'};
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.COUNT_USERS)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.COUNT_USERS)]})
     @get(API_ENDPOINTS.USERS.COUNT, {
         responses: {
             '200': {
                 description: 'User model count',
-                content: { 'application/json': { schema: CountSchema } },
+                content: {'application/json': {schema: CountSchema}},
             },
         },
     })
     async count(@param.where(User) where?: Where<User>): Promise<ICommonHttpResponse<Count>> {
-        return { data: await this.userRepository.count(where) };
+        return {data: await this.userRepository.count(where)};
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ALL_USERS)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ALL_USERS)]})
     @get(API_ENDPOINTS.USERS.CRUD, {
         responses: {
             '200': {
@@ -394,7 +417,7 @@ export class UserController {
                     'application/json': {
                         schema: {
                             type: 'array',
-                            items: getModelSchemaRef(User, { includeRelations: true }),
+                            items: getModelSchemaRef(User, {includeRelations: true}),
                         },
                     },
                 },
@@ -402,7 +425,7 @@ export class UserController {
         },
     })
     async find(@param.filter(User) filter?: Filter<User>): Promise<ICommonHttpResponse<User[]>> {
-        return { data: await this.userRepository.find(filter) };
+        return {data: await this.userRepository.find(filter)};
     }
 
     // @patch(API_ENDPOINTS.USERS.CRUD, {
@@ -428,14 +451,14 @@ export class UserController {
     // }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_USER)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_USER)]})
     @get(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '200': {
                 description: 'User model instance',
                 content: {
                     'application/json': {
-                        schema: getModelSchemaRef(User, { includeRelations: true }),
+                        schema: getModelSchemaRef(User, {includeRelations: true}),
                     },
                 },
             },
@@ -443,9 +466,9 @@ export class UserController {
     })
     async findById(
         @param.path.number('id') id: number,
-        @param.filter(User, { exclude: 'where' }) filter?: FilterExcludingWhere<User>,
+        @param.filter(User, {exclude: 'where'}) filter?: FilterExcludingWhere<User>,
     ): Promise<ICommonHttpResponse<User>> {
-        return { data: await this.userRepository.findById(id, filter) };
+        return {data: await this.userRepository.findById(id, filter)};
     }
 
     // @authenticate('jwt')
@@ -482,7 +505,7 @@ export class UserController {
     // }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_ANY_USER)] })
+    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_ANY_USER)]})
     @del(API_ENDPOINTS.USERS.BY_ID, {
         responses: {
             '204': {
@@ -523,7 +546,7 @@ export class UserController {
             receiverEmail: USER_VALIDATORS.email,
         };
 
-        const validation = new Schema(validationSchema, { strip: false });
+        const validation = new Schema(validationSchema, {strip: false});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -542,7 +565,7 @@ export class UserController {
 
         return {
             message: USER_MESSAGES.EMIL_SENT,
-            data: { email: receiverEmail },
+            data: {email: receiverEmail},
         };
     }
 }

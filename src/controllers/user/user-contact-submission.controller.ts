@@ -20,7 +20,7 @@ export class UserContactSubmissionController {
     constructor(
         @repository(UserRepository) protected userRepository: UserRepository,
         @service() protected userService: UserService,
-    ) {}
+    ) { }
 
 
     @authenticate('jwt')
@@ -35,7 +35,7 @@ export class UserContactSubmissionController {
                 description: 'Array of User has many ContactSubmission',
                 content: {
                     'application/json': {
-                        schema: { type: 'array', items: getModelSchemaRef(ContactSubmission) },
+                        schema: {type: 'array', items: getModelSchemaRef(ContactSubmission)},
                     },
                 },
             },
@@ -45,7 +45,7 @@ export class UserContactSubmissionController {
         @param.path.number('id') id: number,
         @param.query.object('filter') filter?: Filter<ContactSubmission>,
     ): Promise<ICommonHttpResponse<ContactSubmission[]>> {
-        return { data: await this.userRepository.contactSubmissions(id).find(filter) };
+        return {data: await this.userRepository.contactSubmissions(id).find(filter)};
     }
 
     @authenticate('jwt')
@@ -58,7 +58,7 @@ export class UserContactSubmissionController {
         responses: {
             '200': {
                 description: 'User model instance',
-                content: { 'application/json': { schema: getModelSchemaRef(ContactSubmission) } },
+                content: {'application/json': {schema: getModelSchemaRef(ContactSubmission)}},
             },
         },
     })
@@ -88,7 +88,7 @@ export class UserContactSubmissionController {
             message: CONTACT_SUBMISSION_VALIDATORS.message,
         };
 
-        const validation = new Schema(validationSchema, { strip: true });
+        const validation = new Schema(validationSchema, {strip: true});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -99,17 +99,21 @@ export class UserContactSubmissionController {
         const templateData = {
             user: user,
             email: user.email,
-            message: body.message
+            message: body.message,
+            text: {
+                title: 'Top Prop - Support Ticket Raised',
+                subtitle: `You have received a contact form submission. Here are the details:`,
+            },
         };
 
         await this.userService.sendEmail(
             user,
             EMAIL_TEMPLATES.ADMIN_CONTACT_FORM_SUBMITTED,
             templateData,
-            process.env.SUPPORT_EMAIL_ADDRESS? process.env.SUPPORT_EMAIL_ADDRESS : "ivan05rangel@gmail.com",
+            process.env.SUPPORT_EMAIL_ADDRESS ? process.env.SUPPORT_EMAIL_ADDRESS : "ivan05rangel@gmail.com",
         );
 
-        return { data: data };
+        return {data: data};
     }
 
     // @patch(API_ENDPOINTS.USERS.CONTACT_SUBMISSIONS.CRUD, {

@@ -16,13 +16,13 @@ import {isEqual, isNumber, merge} from 'lodash';
 import moment from 'moment';
 import {EmailService} from './email.service';
 
-@bind({ scope: BindingScope.SINGLETON })
+@bind({scope: BindingScope.SINGLETON})
 export class UserService {
     private HASH_ROUNDS = 10;
     constructor(
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @service() private emailService: EmailService,
-    ) {}
+    ) { }
 
     async setPassword(password: string) {
         return hash(password, this.HASH_ROUNDS);
@@ -38,11 +38,11 @@ export class UserService {
                 and: [
                     {
                         or: [
-                            { email: credentials.emailOrUsername.toLowerCase().trim() },
-                            { username: credentials.emailOrUsername.trim() },
+                            {email: credentials.emailOrUsername.toLowerCase().trim()},
+                            {username: credentials.emailOrUsername.trim()},
                         ],
                     },
-                    { role: verifyAdmin ? ROLES.ADMIN : ROLES.USER },
+                    {role: verifyAdmin ? ROLES.ADMIN : ROLES.USER},
                 ],
             },
         };
@@ -119,7 +119,7 @@ export class UserService {
         };
         if (excludeUserId) {
             const excludeWhere: Where<User> = {
-                id: { nin: [excludeUserId] },
+                id: {nin: [excludeUserId]},
             };
             defaultWhere = merge(defaultWhere, excludeWhere);
         }
@@ -142,7 +142,7 @@ export class UserService {
         };
         if (excludeUserId) {
             const excludeWhere: Where<User> = {
-                id: { nin: [excludeUserId] },
+                id: {nin: [excludeUserId]},
             };
             defaultWhere = merge(defaultWhere, excludeWhere);
         }
@@ -176,7 +176,7 @@ export class UserService {
     async sendEmail(
         user: User | number,
         template: EMAIL_TEMPLATES,
-        locals: { [key: string]: any },
+        locals: {[key: string]: any},
         customEmail?: string,
     ): Promise<void> {
         if (isNumber(user)) {

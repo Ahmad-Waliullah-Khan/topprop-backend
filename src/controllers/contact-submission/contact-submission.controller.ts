@@ -1,26 +1,26 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { ContactSubmission, User } from '@src/models';
-import { ContactSubmissionRepository } from '@src/repositories';
-import { UserService } from '@src/services';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { CONTACT_SUBMISSION_MESSAGES } from '@src/utils/messages';
-import { CONTACT_SUBMISSION_VALIDATORS } from '@src/utils/validators';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {ContactSubmission, User} from '@src/models';
+import {ContactSubmissionRepository} from '@src/repositories';
+import {UserService} from '@src/services';
+import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse} from '@src/utils/interfaces';
+import {CONTACT_SUBMISSION_MESSAGES} from '@src/utils/messages';
+import {CONTACT_SUBMISSION_VALIDATORS} from '@src/utils/validators';
 import moment from 'moment';
-import Schema, { SchemaDefinition } from 'validate';
+import Schema, {SchemaDefinition} from 'validate';
 
 export class ContactSubmissionController {
     constructor(
         @repository(ContactSubmissionRepository)
         public contactSubmissionRepository: ContactSubmissionRepository,
         @service() private userService: UserService,
-    ) {}
+    ) { }
 
     @authenticate('jwt')
     @authorize({
@@ -32,7 +32,7 @@ export class ContactSubmissionController {
         responses: {
             '200': {
                 description: 'ContactSubmission model instance',
-                content: { 'application/json': { schema: getModelSchemaRef(ContactSubmission) } },
+                content: {'application/json': {schema: getModelSchemaRef(ContactSubmission)}},
             },
         },
     })
@@ -54,11 +54,11 @@ export class ContactSubmissionController {
             message: CONTACT_SUBMISSION_VALIDATORS.message,
         };
 
-        const validation = new Schema(validationSchema, { strip: true });
+        const validation = new Schema(validationSchema, {strip: true});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        return { data: await this.contactSubmissionRepository.create(body) };
+        return {data: await this.contactSubmissionRepository.create(body)};
     }
 
     @authenticate('jwt')
@@ -69,12 +69,12 @@ export class ContactSubmissionController {
         responses: {
             '200': {
                 description: 'ContactSubmission model count',
-                content: { 'application/json': { schema: CountSchema } },
+                content: {'application/json': {schema: CountSchema}},
             },
         },
     })
     async count(@param.where(ContactSubmission) where?: Where<ContactSubmission>): Promise<ICommonHttpResponse<Count>> {
-        return { data: await this.contactSubmissionRepository.count(where) };
+        return {data: await this.contactSubmissionRepository.count(where)};
     }
 
     @authenticate('jwt')
@@ -91,7 +91,7 @@ export class ContactSubmissionController {
                     'application/json': {
                         schema: {
                             type: 'array',
-                            items: getModelSchemaRef(ContactSubmission, { includeRelations: true }),
+                            items: getModelSchemaRef(ContactSubmission, {includeRelations: true}),
                         },
                     },
                 },
@@ -101,7 +101,7 @@ export class ContactSubmissionController {
     async find(
         @param.filter(ContactSubmission) filter?: Filter<ContactSubmission>,
     ): Promise<ICommonHttpResponse<ContactSubmission[]>> {
-        return { data: await this.contactSubmissionRepository.find(filter) };
+        return {data: await this.contactSubmissionRepository.find(filter)};
     }
 
     // @patch(API_ENDPOINTS.CONTACT_SUBMISSIONS.CRUD, {
@@ -136,7 +136,7 @@ export class ContactSubmissionController {
                 description: 'ContactSubmission model instance',
                 content: {
                     'application/json': {
-                        schema: getModelSchemaRef(ContactSubmission, { includeRelations: true }),
+                        schema: getModelSchemaRef(ContactSubmission, {includeRelations: true}),
                     },
                 },
             },
@@ -144,9 +144,9 @@ export class ContactSubmissionController {
     })
     async findById(
         @param.path.number('id') id: number,
-        @param.filter(ContactSubmission, { exclude: 'where' }) filter?: FilterExcludingWhere<ContactSubmission>,
+        @param.filter(ContactSubmission, {exclude: 'where'}) filter?: FilterExcludingWhere<ContactSubmission>,
     ): Promise<ICommonHttpResponse<ContactSubmission>> {
-        return { data: await this.contactSubmissionRepository.findById(id, filter) };
+        return {data: await this.contactSubmissionRepository.findById(id, filter)};
     }
 
     @authenticate('jwt')
@@ -172,7 +172,7 @@ export class ContactSubmissionController {
 
         contactSubmission.read = true;
         contactSubmission.readAt = moment().toDate();
-        return { data: await this.contactSubmissionRepository.save(contactSubmission) };
+        return {data: await this.contactSubmissionRepository.save(contactSubmission)};
     }
 
     @authenticate('jwt')
@@ -198,7 +198,7 @@ export class ContactSubmissionController {
 
         contactSubmission.read = false;
         contactSubmission.readAt = null;
-        return { data: await this.contactSubmissionRepository.save(contactSubmission) };
+        return {data: await this.contactSubmissionRepository.save(contactSubmission)};
     }
 
     @authenticate('jwt')
@@ -219,7 +219,7 @@ export class ContactSubmissionController {
         @requestBody({
             content: {
                 'application/json': {
-                    schema: getModelSchemaRef(ContactSubmission, { partial: true }),
+                    schema: getModelSchemaRef(ContactSubmission, {partial: true}),
                 },
             },
         })
@@ -229,7 +229,7 @@ export class ContactSubmissionController {
             message: CONTACT_SUBMISSION_VALIDATORS.message,
         };
 
-        const validation = new Schema(validationSchema, { strip: true });
+        const validation = new Schema(validationSchema, {strip: true});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -237,7 +237,7 @@ export class ContactSubmissionController {
             throw new HttpErrors.NotFound(CONTACT_SUBMISSION_MESSAGES.CONTACT_SUBMISSION_NOT_FOUND);
 
         const contactSubmission = await this.contactSubmissionRepository.findById(id, {
-            include: [{ relation: 'user' }],
+            include: [{relation: 'user'}],
         });
         if (contactSubmission.repliedAt && contactSubmission.reply)
             throw new HttpErrors.NotAcceptable(CONTACT_SUBMISSION_MESSAGES.CONTACT_SUBMISSION_ALREADY_REPLIED);
@@ -251,10 +251,14 @@ export class ContactSubmissionController {
             reply: contactSubmission.reply,
             replyDate: moment(contactSubmission.repliedAt).format('MM/DD/YYYY'),
             replyTime: moment(contactSubmission.repliedAt).format('hh:mm a'),
+            text: {
+                title: `Top Prop - Contact Submission Replied`,
+                subtitle: `The admin team has got back to your contact submission. Here are the details. Original Message sent on ${moment(contactSubmission.createdAt).format('MM/DD/YYYY')}, at ${moment(contactSubmission.createdAt).format('hh:mm a')}: ${contactSubmission.message} | Admin Reply sent on ${moment(contactSubmission.repliedAt).format('MM/DD/YYYY')} at ${moment(contactSubmission.repliedAt).format('hh:mm a')}: ${contactSubmission.reply}`,
+            }
         });
 
         delete contactSubmission.user;
-        return { data: await this.contactSubmissionRepository.save(contactSubmission) };
+        return {data: await this.contactSubmissionRepository.save(contactSubmission)};
     }
 
     // @put(API_ENDPOINTS.CONTACT_SUBMISSIONS.BY_ID, {

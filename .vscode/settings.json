@@ -1,14 +1,15 @@
 {
-    "editor.rulers": [80],
+    "editor.rulers": [
+        80
+    ],
     "editor.tabCompletion": "on",
-    "editor.tabSize": 4,
+    "editor.tabSize": 2,
     "editor.trimAutoWhitespace": true,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true,
         "source.fixAll.eslint": true
     },
-
     "files.exclude": {
         "**/.DS_Store": true,
         "**/.git": true,
@@ -19,13 +20,15 @@
     },
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
-
     "typescript.tsdk": "./node_modules/typescript/lib",
     "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
     "typescript.preferences.quoteStyle": "single",
     "eslint.run": "onSave",
     "eslint.nodePath": "./node_modules",
-    "eslint.validate": ["javascript", "typescript"],
+    "eslint.validate": [
+        "javascript",
+        "typescript"
+    ],
     "files.autoSave": "onFocusChange",
     "workbench.colorCustomizations": {
         "activityBar.background": "#ffcc60",
@@ -44,5 +47,11 @@
         "titleBar.inactiveForeground": "#15202b99"
     },
     "peacock.color": "#ffbc2d",
-    "cSpell.words": ["Headshot", "Rotoworld", "Timeframes", "Undrafted", "fantasydata"]
+    "cSpell.words": [
+        "Headshot",
+        "Rotoworld",
+        "Timeframes",
+        "Undrafted",
+        "fantasydata"
+    ]
 }
