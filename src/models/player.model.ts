@@ -1,7 +1,7 @@
-import { belongsTo, hasMany, model, property } from '@loopback/repository';
-import { Base } from '.';
-import { PlayerResult } from './player-result.model';
-import { Team } from './team.model';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
+import {Base} from '.';
+import {PlayerResult} from './player-result.model';
+import {Team} from './team.model';
 
 @model()
 export class Player extends Base {
@@ -53,6 +53,12 @@ export class Player extends Base {
         required: false,
     })
     photoUrl: string;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    photoUrlHiRes: string;
 
     @property({
         type: 'boolean',

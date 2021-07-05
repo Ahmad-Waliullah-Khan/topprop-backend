@@ -1,32 +1,22 @@
-import { injectable, service, BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import chalk from 'chalk';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
-    PROXY_DAY,
-    PROXY_MONTH,
-    PROXY_YEAR,
-    PROXY_WEEK,
-    PROXY_DAY_OFFSET,
-    CRON_JOBS,
+    ContestRepository,
+    GainRepository, PlayerRepository, TimeframeRepository, UserRepository
+} from '@src/repositories';
+import {SportsDataService, UserService} from '@src/services';
+import chalk from 'chalk';
+import moment from 'moment';
+import {
     CONTEST_STAKEHOLDERS,
-    CONTEST_STATUSES,
+    CONTEST_STATUSES, CRON_JOBS, CRON_RUN_TYPES, EMAIL_TEMPLATES, PROXY_DAY, PROXY_DAY_OFFSET, PROXY_MONTH,
+    PROXY_YEAR, RUN_TYPE, TIMEFRAMES
 } from '../utils/constants';
 
-import { SportsDataService, UserService } from '@src/services';
-import { Timeframe, Player, Gain } from '@src/models';
-import {
-    TimeframeRepository,
-    PlayerRepository,
-    ContestRepository,
-    GainRepository,
-    UserRepository,
-} from '@src/repositories';
 
-import { IDailyFantasyPointsData } from '@src/utils/interfaces';
 
-import { RUN_TYPE, CRON_RUN_TYPES, TIMEFRAMES, EMAIL_TEMPLATES } from '../utils/constants';
 
-import moment from 'moment';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -699,8 +689,10 @@ export class CronService {
         const localPlayers = await this.playerRepository.find();
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            const highResRemotePlayerPhotoUrl = remotePlayer.PhotoUrl.replace('low-res', 'studio-high-res');
             if (foundLocalPlayer) {
                 foundLocalPlayer.photoUrl = remotePlayer.PhotoUrl;
+                foundLocalPlayer.photoUrlHiRes = highResRemotePlayerPhotoUrl;
                 foundLocalPlayer.status = remotePlayer.Status;
                 foundLocalPlayer.available = remotePlayer.Active;
                 foundLocalPlayer.teamName = remotePlayer.Team;
@@ -709,6 +701,7 @@ export class CronService {
                 const newLocalPlayer = new Player();
                 newLocalPlayer.remoteId = remotePlayer.PlayerID;
                 newLocalPlayer.photoUrl = remotePlayer.PhotoUrl;
+                newLocalPlayer.photoUrlHiRes = highResRemotePlayerPhotoUrl;
                 newLocalPlayer.firstName = remotePlayer.FirstName;
                 newLocalPlayer.lastName = remotePlayer.LastName;
                 newLocalPlayer.fullName = `${remotePlayer.FirstName} ${remotePlayer.LastName}`;

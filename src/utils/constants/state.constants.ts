@@ -51,7 +51,7 @@ export const VALID_STATES = [
     'WY',
 ];
 
-export const DEV_VALID_STATES = ['GA', 'UP', 'TN', 'WB'];
+export const DEV_VALID_STATES = ['GA', 'UP', 'TN', 'WB', 'AS'];
 
 // Excluded States:
 // DE, IA, IN, LA, MS, MT, NV, PA, VA, WA.
