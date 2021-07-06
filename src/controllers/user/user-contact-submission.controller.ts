@@ -1,27 +1,25 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Filter, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {ContactSubmission, User} from '@src/models';
-import {UserRepository} from '@src/repositories';
-import {UserService} from '@src/services/user.service';
-import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS} from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
-import {ICommonHttpResponse, ICustomUserProfile} from '@src/utils/interfaces';
-import {USER_MESSAGES} from '@src/utils/messages';
-import {CONTACT_SUBMISSION_VALIDATORS} from '@src/utils/validators';
-import Schema, {SchemaDefinition} from 'validate';
-
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { ContactSubmission, User } from '@src/models';
+import { UserRepository } from '@src/repositories';
+import { UserService } from '@src/services/user.service';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse, ICustomUserProfile } from '@src/utils/interfaces';
+import { USER_MESSAGES } from '@src/utils/messages';
+import { CONTACT_SUBMISSION_VALIDATORS } from '@src/utils/validators';
+import Schema, { SchemaDefinition } from 'validate';
 
 export class UserContactSubmissionController {
     constructor(
         @repository(UserRepository) protected userRepository: UserRepository,
         @service() protected userService: UserService,
-    ) { }
-
+    ) {}
 
     @authenticate('jwt')
     @authorize({
@@ -35,7 +33,7 @@ export class UserContactSubmissionController {
                 description: 'Array of User has many ContactSubmission',
                 content: {
                     'application/json': {
-                        schema: {type: 'array', items: getModelSchemaRef(ContactSubmission)},
+                        schema: { type: 'array', items: getModelSchemaRef(ContactSubmission) },
                     },
                 },
             },
@@ -45,7 +43,7 @@ export class UserContactSubmissionController {
         @param.path.number('id') id: number,
         @param.query.object('filter') filter?: Filter<ContactSubmission>,
     ): Promise<ICommonHttpResponse<ContactSubmission[]>> {
-        return {data: await this.userRepository.contactSubmissions(id).find(filter)};
+        return { data: await this.userRepository.contactSubmissions(id).find(filter) };
     }
 
     @authenticate('jwt')
@@ -58,7 +56,7 @@ export class UserContactSubmissionController {
         responses: {
             '200': {
                 description: 'User model instance',
-                content: {'application/json': {schema: getModelSchemaRef(ContactSubmission)}},
+                content: { 'application/json': { schema: getModelSchemaRef(ContactSubmission) } },
             },
         },
     })
@@ -88,16 +86,19 @@ export class UserContactSubmissionController {
             message: CONTACT_SUBMISSION_VALIDATORS.message,
         };
 
-        const validation = new Schema(validationSchema, {strip: true});
+        const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        const data = await this.userRepository.contactSubmissions(id).create(body)
+        const data = await this.userRepository.contactSubmissions(id).create(body);
 
         const user = await this.userRepository.findById(body.userId);
 
         const templateData = {
-            user: user,
+            user: {
+                fullName: 'Admin',
+            },
+            senderName: user.fullName,
             email: user.email,
             message: body.message,
             text: {
@@ -110,10 +111,10 @@ export class UserContactSubmissionController {
             user,
             EMAIL_TEMPLATES.ADMIN_CONTACT_FORM_SUBMITTED,
             templateData,
-            process.env.SUPPORT_EMAIL_ADDRESS ? process.env.SUPPORT_EMAIL_ADDRESS : "ivan05rangel@gmail.com",
+            process.env.SUPPORT_EMAIL_ADDRESS ? process.env.SUPPORT_EMAIL_ADDRESS : 'ivan05rangel@gmail.com',
         );
 
-        return {data: data};
+        return { data: data };
     }
 
     // @patch(API_ENDPOINTS.USERS.CONTACT_SUBMISSIONS.CRUD, {
