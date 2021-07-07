@@ -321,7 +321,7 @@ export class CronService {
         });
 
         const filteredContests = contests.filter(contest => {
-            return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+            return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
         });
 
         filteredContests.map(async contest => {
@@ -383,7 +383,7 @@ export class CronService {
 
             // TEST BENCH START
             // favorite.fantasyPoints = 6;
-            // underdog.fantasyPoints = 3;
+            // underdog.fantasyPoints = 2;
             // TEST BENCH END
 
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
@@ -457,6 +457,40 @@ export class CronService {
                 // console.log('🚀 ~ refund data for underdog', entryGain);
 
                 await this.gainRepository.create(entryGain);
+
+                //Send Contest Closed mail
+                const contestData = await this.contestRepository.findById(contest.id);
+                const winnerUser = await this.userRepository.findById(favorite.userId);
+                const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
+                const loserUser = await this.userRepository.findById(underdog.userId);
+                const loserPlayer = await this.playerRepository.findById(underdog.playerId);
+                let receiverUser = winnerUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+                    contestData,
+                    winnerUser,
+                    loserUser,
+                    winnerPlayer,
+                    loserPlayer,
+                    receiverUser,
+                    text: {
+                        title: 'Contest Closed',
+                        subtitle: `Your contest has been closed`,
+                    },
+                });
+                receiverUser = loserUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+                    contestData,
+                    winnerUser,
+                    loserUser,
+                    winnerPlayer,
+                    loserPlayer,
+                    receiverUser,
+                    text: {
+                        title: 'Contest Closed',
+                        subtitle: `Your contest has been closed`,
+                    },
+                });
+
             } else {
                 const winnerId = winner === 'favorite' ? favorite.userId : underdog.userId;
                 const winnerLabel = winner === 'favorite' ? favorite.type : underdog.type;
@@ -478,6 +512,8 @@ export class CronService {
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
+
+                const contestDataForEmail = await this.contestRepository.findById(contest.id);
 
                 const userId = winner === 'favorite' ? favorite.userId : underdog.userId;
                 const contenderId = winner === 'favorite' ? underdog.playerId : favorite.playerId;
@@ -503,6 +539,7 @@ export class CronService {
                 await this.gainRepository.create(winningGain);
 
                 if (winner === 'favorite') {
+                    const contestData = contestDataForEmail;
                     const winnerUser = await this.userRepository.findById(favorite.userId);
                     const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
@@ -512,6 +549,7 @@ export class CronService {
                         loserUser,
                         winnerPlayer,
                         loserPlayer,
+                        contestData,
                         netEarnings: favorite.netEarnings,
                         text: {
                             title: 'Contest Won',
@@ -533,6 +571,7 @@ export class CronService {
                         loserUser,
                         winnerPlayer,
                         loserPlayer,
+                        contestData,
                         netEarnings: underdog.netEarnings,
                         text: {
                             title: 'Contest Lost',
@@ -549,6 +588,7 @@ export class CronService {
                         },
                     });
                 } else if (winner === 'underdog') {
+                    const contestData = contestDataForEmail;
                     const winnerUser = await this.userRepository.findById(underdog.userId);
                     const winnerPlayer = await this.playerRepository.findById(underdog.playerId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
@@ -558,6 +598,7 @@ export class CronService {
                         loserUser,
                         winnerPlayer,
                         loserPlayer,
+                        contestData,
                         netEarnings: underdog.netEarnings,
                         text: {
                             title: 'Contest Won',
@@ -579,6 +620,7 @@ export class CronService {
                         loserUser,
                         winnerPlayer,
                         loserPlayer,
+                        contestData,
                         netEarnings: favorite.netEarnings,
                         text: {
                             title: 'Contest Lost',
@@ -596,6 +638,7 @@ export class CronService {
                     });
                 } else {
                     //Send Draw Email
+                    const contestData = contestDataForEmail;
                     const favoriteUser = await this.userRepository.findById(favorite.userId);
                     const favoritePlayer = await this.playerRepository.findById(favorite.playerId);
 
@@ -607,6 +650,7 @@ export class CronService {
                         underdogUser,
                         favoritePlayer,
                         underdogPlayer,
+                        contestData,
                         text: {
                             title: 'Contest was a push',
                             subtitle: `Your contest was a draw. Your net earnings are ${new Intl.NumberFormat('en-US', {
@@ -624,6 +668,7 @@ export class CronService {
                         underdogUser,
                         favoritePlayer,
                         underdogPlayer,
+                        contestData,
                         text: {
                             title: 'Contest was a push',
                             subtitle: `Your contest was a draw. Your net earnings are ${new Intl.NumberFormat('en-US', {
