@@ -88,6 +88,24 @@ export class User extends Entity {
     espnswid: string | null;
 
     @property({
+        type: 'string',
+        default: null,
+    })
+    yahooRefreshToken: string | null;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    espns2: string | null;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    espnswid: string | null;
+
+    @property({
         type: 'date',
         default: null,
     })
