@@ -1,16 +1,17 @@
-import { Getter, inject, service } from '@loopback/core';
-import { DefaultCrudRepository, HasManyRepositoryFactory, repository } from '@loopback/repository';
+import {Getter, inject, service} from '@loopback/core';
+import {DefaultCrudRepository, HasManyRepositoryFactory, repository} from '@loopback/repository';
 //* Added in this way to prevent circular dependency injection
-import { StripeService } from '@src/services/stripe.service';
+import {StripeService} from '@src/services/stripe.service';
 import moment from 'moment';
-import { DbDataSource } from '../datasources';
-import { Bet, ContactSubmission, Contest, Gain, TopUp, User, UserRelations, WithdrawRequest } from '../models';
-import { BetRepository } from './bet.repository';
-import { ContactSubmissionRepository } from './contact-submission.repository';
-import { ContestRepository } from './contest.repository';
-import { GainRepository } from './gain.repository';
-import { TopUpRepository } from './top-up.repository';
-import { WithdrawRequestRepository } from './withdraw-request.repository';
+import {DbDataSource} from '../datasources';
+import {Bet, ContactSubmission, Contest, Gain, Team, TopUp, User, UserRelations, WithdrawRequest} from '../models';
+import {BetRepository} from './bet.repository';
+import {ContactSubmissionRepository} from './contact-submission.repository';
+import {ContestRepository} from './contest.repository';
+import {GainRepository} from './gain.repository';
+import {TeamRepository} from './team.repository';
+import {TopUpRepository} from './top-up.repository';
+import {WithdrawRequestRepository} from './withdraw-request.repository';
 
 export class UserRepository extends DefaultCrudRepository<User, typeof User.prototype.id, UserRelations> {
     public readonly contactSubmissions: HasManyRepositoryFactory<ContactSubmission, typeof User.prototype.id>;
@@ -25,6 +26,8 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
 
     public readonly withdrawRequests: HasManyRepositoryFactory<WithdrawRequest, typeof User.prototype.id>;
 
+    public readonly teams: HasManyRepositoryFactory<Team, typeof User.prototype.id>;
+
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
         @service() private stripeService: StripeService,
@@ -35,7 +38,9 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
         @repository.getter('ContestRepository') protected contestRepositoryGetter: Getter<ContestRepository>,
         @repository.getter('BetRepository') protected betRepositoryGetter: Getter<BetRepository>,
         @repository.getter('GainRepository') protected gainRepositoryGetter: Getter<GainRepository>,
+        @repository.getter('TeamRepository') protected teamRepositoryGetter: Getter<TeamRepository>,
         @repository.getter('WithdrawRequestRepository')
+
         protected withdrawRequestRepositoryGetter: Getter<WithdrawRequestRepository>,
     ) {
         super(User, dataSource);
@@ -56,6 +61,7 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
             'contactSubmissions',
             contactSubmissionRepositoryGetter,
         );
+        this.teams = this.createHasManyRepositoryFactoryFor('teams', teamRepositoryGetter);
 
         // await app.service(UserService).getValue(app);
         // this.ctx.get;
@@ -74,7 +80,7 @@ export class UserRepository extends DefaultCrudRepository<User, typeof User.prot
         this.modelClass.observe('before delete', async ctx => {
             if (!ctx.hookState.skipMarkRemovableStripeCustomerAgain) {
                 try {
-                    let removableUser = await this.findById(ctx.where && ctx.where.id);
+                    const removableUser = await this.findById(ctx.where && ctx.where.id);
                     if (removableUser && removableUser._customerToken)
                         ctx.hookState.stripeCustomerToDelete = removableUser._customerToken;
                     if (removableUser && removableUser._connectToken)
