@@ -5,7 +5,7 @@ head
   meta(name='x-apple-disable-message-reformatting')
   meta(http-equiv='X-UA-Compatible' content='IE=edge')
   meta(content='telephone=no' name='format-detection')
-  title 
+  title
   //
     if (mso 16)
     style(type='text/css').
@@ -22,6 +22,9 @@ head
     o:pixelsperinch 96
   //if !mso
     | [if !mso]
+  link(rel='preconnect' href='https://fonts.googleapis.com')
+  link(rel='preconnect' href='https://fonts.gstatic.com' crossorigin='')
+  link(href='https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@400;700&display=swap' rel='stylesheet')
   link(href='https://fonts.googleapis.com/css?family=Roboto:400,400i,700,700i' rel='stylesheet')
   // <![endif]
   style(type='text/css').
@@ -111,18 +114,18 @@ head
                                 table(width='100%' cellspacing='0' cellpadding='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:separate;border-spacing:0px;border-radius:13px' role='presentation')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-left:10px;padding-right:10px;padding-bottom:15px;font-size:0px')
-                                      img(src=`${creatorPlayer.photoUrl}` alt=`${creatorPlayer.fullName}` title=`${creatorPlayer.fullName}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic')
+                                      img(src=`${creatorPlayer.photoUrl}` alt=`${creatorPlayer.fullName}` title=`${creatorPlayer.fullName}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-top:10px;padding-bottom:10px')
-                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{creatorPlayer.fullName}
+                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{creatorPlayer.fullName}
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorPlayer.position} | #{creatorPlayer.teamName}&nbsp;
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorPlayer.position} | #{creatorPlayer.teamName}&nbsp;
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorPlayer.homeOrAway=== "AWAY"? "@" : ""} #{creatorPlayer.homeOrAway}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorPlayer.homeOrAway=== "AWAY"? "@" : ""} #{creatorPlayer.homeOrAway}
                         td(style='padding:0;Margin:0;width:20px')
-                          h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:bold;color:#164D34") VS
+                          h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:bold;color:#164D34") VS
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
                             tr
@@ -130,16 +133,16 @@ head
                                 table(width='100%' cellspacing='0' cellpadding='0' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-left:10px;padding-right:10px;padding-bottom:15px')
-                                      img(src=`${claimerPlayer.photoUrl}` alt=`${claimerPlayer.fullName}` title=`${claimerPlayer.fullName}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic')
+                                      img(src=`${claimerPlayer.photoUrl}` alt=`${claimerPlayer.fullName}` title=`${claimerPlayer.fullName}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-top:10px;padding-bottom:10px')
-                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{claimerPlayer.fullName}
+                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{claimerPlayer.fullName}
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{claimerPlayer.position} | #{claimerPlayer.teamName}&nbsp;
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{claimerPlayer.position} | #{claimerPlayer.teamName}&nbsp;
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{claimerPlayer.homeOrAway=== "AWAY"? "@" : ""} #{claimerPlayer.homeOrAway}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{claimerPlayer.homeOrAway=== "AWAY"? "@" : ""} #{claimerPlayer.homeOrAway}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -151,7 +154,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Spread
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Spread
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
@@ -160,7 +163,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{contestData.creatorPlayerSpread > 0 ? `+${contestData.creatorPlayerSpread}` : contestData.creatorPlayerSpread}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{contestData.creatorPlayerSpread > 0 ? `+${contestData.creatorPlayerSpread}` : contestData.creatorPlayerSpread}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -172,7 +175,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Entry Amount
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Entry Amount
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
@@ -181,7 +184,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -193,7 +196,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Cover Spread
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Cover Spread
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
@@ -202,7 +205,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px;text-align:right") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.spreadValue)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px;text-align:right") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.spreadValue)}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -214,7 +217,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Win Bonus
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Win Bonus
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
@@ -223,7 +226,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.creatorPlayerWinBonus)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.creatorPlayerWinBonus)}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-left:20px;padding-right:20px;padding-bottom:25px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -235,7 +238,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Max Win
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Max Win
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
@@ -244,5 +247,5 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:roboto, 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.creatorPlayerMaxWin)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.creatorPlayerMaxWin)}
         include ../includes/footer.pug

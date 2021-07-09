@@ -18,7 +18,7 @@ import {
 
 
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({scope: BindingScope.TRANSIENT})
 export class CronService {
     constructor(
         @service() private sportsDataService: SportsDataService,
@@ -28,7 +28,7 @@ export class CronService {
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @repository('UserRepository') private userRepository: UserRepository,
-    ) {}
+    ) { }
 
     async fetchDate() {
         if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
@@ -72,7 +72,7 @@ export class CronService {
             currentDate.add(PROXY_DAY_OFFSET, 'days');
             // console.log("🚀 ~ file: cron.service.ts ~ line 60 ~ CronService ~ fetchTimeframe ~ currentDate", currentDate)
             const [currentTimeFrame] = await this.timeframeRepository.find({
-                where: { and: [{ startDate: { lte: currentDate } }, { endDate: { gte: currentDate } }] },
+                where: {and: [{startDate: {lte: currentDate}}, {endDate: {gte: currentDate}}]},
             });
             return currentTimeFrame;
         }
@@ -561,8 +561,7 @@ export class CronService {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                 },
-                            ).format(favorite.netEarnings)}',
-                            )}`,
+                            ).format(favorite.netEarnings)}`,
                         },
                     });
 
@@ -575,7 +574,8 @@ export class CronService {
                         netEarnings: underdog.netEarnings,
                         text: {
                             title: 'Contest Lost',
-                            subtitle: `Sorry, You have lost the contest. Your net earnings are ${new Intl.NumberFormat(
+                            subtitle: `Sorry, You have lost the contest. Your net earnings are
+                                ${new Intl.NumberFormat(
                                 'en-US',
                                 {
                                     style: 'currency',
@@ -583,8 +583,7 @@ export class CronService {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                 },
-                            ).format(underdog.netEarnings)}',
-                            )}`,
+                            ).format(underdog.netEarnings)}`,
                         },
                     });
                 } else if (winner === 'underdog') {
@@ -610,8 +609,7 @@ export class CronService {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                 },
-                            ).format(underdog.netEarnings)}',
-                            )}`,
+                            ).format(underdog.netEarnings)}`,
                         },
                     });
 
@@ -632,8 +630,7 @@ export class CronService {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                 },
-                            ).format(favorite.netEarnings)}',
-                            )}`,
+                            ).format(favorite.netEarnings)}`,
                         },
                     });
                 } else {
@@ -658,8 +655,7 @@ export class CronService {
                                 currency: 'USD',
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
-                            }).format(favorite.netEarnings)}',
-                            )}`,
+                            }).format(favorite.netEarnings)}`,
                         },
                     });
 
@@ -676,8 +672,7 @@ export class CronService {
                                 currency: 'USD',
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
-                            }).format(underdog.netEarnings)}',
-                            )}`,
+                            }).format(underdog.netEarnings)}`,
                         },
                     });
                 }
