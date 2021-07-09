@@ -1,16 +1,14 @@
-import { authenticate } from '@loopback/authentication';
-import { service } from '@loopback/core';
-import { authorize } from '@loopback/authorization';
-import { get, HttpErrors } from '@loopback/rest';
-
-import { CronService } from '@src/services';
-
-import { API_ENDPOINTS, PERMISSIONS, RUN_TYPE, CRON_JOBS, CRON_RUN_TYPES } from '@src/utils/constants';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { CRON_MESSAGES } from '@src/utils/messages';
-
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {service} from '@loopback/core';
+import {get, HttpErrors} from '@loopback/rest';
+import {CronService} from '@src/services';
+import {API_ENDPOINTS, CRON_JOBS, CRON_RUN_TYPES, PERMISSIONS, RUN_TYPE} from '@src/utils/constants';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse} from '@src/utils/interfaces';
+import {CRON_MESSAGES} from '@src/utils/messages';
 import chalk from 'chalk';
+const logger = require('../../utils/logger');
 
 // import {inject} from '@loopback/core';
 
@@ -71,7 +69,7 @@ export class CronController {
 
             return { data: filteredContests };
         } catch (error) {
-            console.error(chalk.redBright(`Error on win criteria cron job. Error: `, error));
+            logger.error(chalk.redBright(`Error on win criteria cron job. Error: `, error));
         }
 
         return { data: 'Win Check' };

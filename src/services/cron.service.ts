@@ -14,6 +14,8 @@ import {
     PROXY_YEAR, RUN_TYPE, TIMEFRAMES
 } from '../utils/constants';
 
+const logger = require('../utils/logger');
+
 
 
 
@@ -202,6 +204,11 @@ export class CronService {
         }
 
         console.log(chalk.green(`${cronMessage} cron finished at`, moment().format('DD-MM-YYYY hh:mm:ss a')));
+
+        //Log cron messages to info.log file
+        if (process.env.NODE_ENV !== 'production') {
+            logger.info(`${cronMessage} cron finished at ` + moment().format('DD-MM-YYYY hh:mm:ss a'));
+        }
     }
 
     async processPlayerFantasyPoints() {

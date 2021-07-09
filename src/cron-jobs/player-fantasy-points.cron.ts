@@ -1,10 +1,11 @@
-import { service } from '@loopback/core';
-import { CronJob, cronJob } from '@loopback/cron';
-import { CRON_JOBS } from '@src/utils/constants';
+import {service} from '@loopback/core';
+import {CronJob, cronJob} from '@loopback/cron';
+import {CronService} from '@src/services';
+import {CRON_JOBS} from '@src/utils/constants';
+import chalk from 'chalk';
 import cron from 'cron';
 
-import { CronService } from '@src/services';
-import chalk from 'chalk';
+const logger = require('../utils/logger');
 
 @cronJob()
 export class PlayerFantasyPointsCron extends CronJob {
@@ -26,7 +27,7 @@ export class PlayerFantasyPointsCron extends CronJob {
                     this.setTime(updatedCronTime);
                     this.start();
                 } catch (error) {
-                    console.error(chalk.redBright(`Error on player fantasy points cron job. Error: `, error));
+                    logger.error(chalk.redBright(`Error on player fantasy points cron job. Error: `, error));
                 }
             },
         });
