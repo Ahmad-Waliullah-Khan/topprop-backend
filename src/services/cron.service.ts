@@ -27,7 +27,7 @@ import {
 
 const logger = require('../utils/logger');
 
-@injectable({ scope: BindingScope.TRANSIENT })
+@injectable({scope: BindingScope.TRANSIENT})
 export class CronService {
     constructor(
         @service() private sportsDataService: SportsDataService,
@@ -37,7 +37,7 @@ export class CronService {
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @repository('UserRepository') private userRepository: UserRepository,
-    ) {}
+    ) { }
 
     async fetchDate() {
         if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
@@ -81,7 +81,7 @@ export class CronService {
             currentDate.add(PROXY_DAY_OFFSET, 'days');
             // console.log("🚀 ~ file: cron.service.ts ~ line 60 ~ CronService ~ fetchTimeframe ~ currentDate", currentDate)
             const [currentTimeFrame] = await this.timeframeRepository.find({
-                where: { and: [{ startDate: { lte: currentDate } }, { endDate: { gte: currentDate } }] },
+                where: {and: [{startDate: {lte: currentDate}}, {endDate: {gte: currentDate}}]},
             });
             return currentTimeFrame;
         }
