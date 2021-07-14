@@ -109,6 +109,9 @@ export const PERMISSIONS = {
         UPDATE_ANY_WITHDRAW_REQUEST: 'updateAnyWithdrawRequest',
         COUNT_WITHDRAW_REQUESTS: 'countWithdrawRequests',
     },
+    LEAGUE: {
+        VIEW_ALL_LEAGUES: 'viewAllLeagues',
+    },
 };
 
 export enum ROLES {
