@@ -728,8 +728,25 @@ export class CronService {
 
             await this.gainRepository.create(entryGain);
 
-            // TODO:
-            // send "Contest Closed" email
+            //Send Contest Closed mail
+            const contestData = await this.contestRepository.findById(unclaimedContest.id);
+            const winnerUser = await this.userRepository.findById(unclaimedContest.creatorId);
+            const winnerPlayer = await this.playerRepository.findById(unclaimedContest.creatorPlayerId);
+            const loserUser = "";
+            const loserPlayer = await this.playerRepository.findById(unclaimedContest.claimerPlayerId);
+            const receiverUser = winnerUser;
+            await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+                contestData,
+                winnerUser,
+                loserUser,
+                winnerPlayer,
+                loserPlayer,
+                receiverUser,
+                text: {
+                    title: 'Contest Closed',
+                    subtitle: `Your contest has been closed`,
+                },
+            });
 
         });
 
