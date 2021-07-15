@@ -1,11 +1,12 @@
-import { service } from '@loopback/core';
-import { CronJob, cronJob } from '@loopback/cron';
-import { repository } from '@loopback/repository';
-import { GameRepository, TeamRepository } from '@src/repositories';
-import { SportsDataService, TIMEFRAMES } from '@src/services';
-import { CRON_JOBS, GAME_TYPES } from '@src/utils/constants';
+import {service} from '@loopback/core';
+import {CronJob, cronJob} from '@loopback/cron';
+import {repository} from '@loopback/repository';
+import {GameRepository, TeamRepository} from '@src/repositories';
+import {SportsDataService, TIMEFRAMES} from '@src/services';
+import {CRON_JOBS, GAME_TYPES} from '@src/utils/constants';
 import chalk from 'chalk';
-import { isEqual } from 'lodash';
+import {isEqual} from 'lodash';
+const logger = require('../utils/logger');
 
 @cronJob()
 export class SyncGamesCron extends CronJob {
@@ -44,7 +45,7 @@ export class SyncGamesCron extends CronJob {
                                 },
                             });
                             if (game)
-                                console.log(
+                                logger.log(
                                     chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} already exists`),
                                 );
                             else {
@@ -57,24 +58,24 @@ export class SyncGamesCron extends CronJob {
                                     season: remoteGame.Season,
                                     remoteId: remoteGame.GlobalGameID,
                                 });
-                                console.log(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} created`));
+                                logger.log(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} created`));
                             }
                         }
                         if (!visitorTeam)
-                            console.log(
+                            logger.log(
                                 chalk.greenBright(
                                     `Visitor team for ${remoteGame.AwayTeam} could not be found. Team could be in the BYE week.`,
                                 ),
                             );
                         if (!homeTeam)
-                            console.log(
+                            logger.log(
                                 chalk.greenBright(
                                     `Home team for ${remoteGame.HomeTeam} could not be found. Team could be in the BYE week.`,
                                 ),
                             );
                     }
                 } catch (error) {
-                    console.error(chalk.redBright(`Error on sync team cron job. Error: `, error));
+                    logger.error(chalk.redBright(`Error on sync team cron job. Error: `, error));
                 }
             },
             start: true,
