@@ -427,6 +427,14 @@ export class CronService {
                 winner = 'push';
             }
 
+            if (!favorite.gameWin && !underdog.gameWin) {
+                // Draw
+                favorite.netEarnings = entryAmount;
+                underdog.netEarnings = entryAmount;
+                topPropProfit = 0;
+                winner = 'push';
+            }
+
             if (winner === 'push') {
                 const constestData = {
                     topPropProfit: topPropProfit,
@@ -639,7 +647,46 @@ export class CronService {
             }
         });
 
-        return filteredContests;
+        const contestsUnmatched = await this.contestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        });
+
+        const filteredUnclaimedContests = contestsUnmatched.filter(unclaimedContest => {
+            return unclaimedContest.creatorPlayer?.isOver;
+        });
+
+        filteredUnclaimedContests.map(async unclaimedContest => {
+
+            const constestData = {
+                topPropProfit: 0,
+                status: CONTEST_STATUSES.CLOSED,
+                ended: true,
+                endedAt: moment(),
+                winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                creatorWinAmount: 0,
+                claimerWinAmount: 0,
+            };
+
+            await this.contestRepository.updateById(unclaimedContest.id, constestData);
+
+            const entryGain = new Gain();
+
+            entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
+            entryGain.userId = unclaimedContest.creatorPlayerId;
+            entryGain.contenderId = unclaimedContest.creatorPlayerId;
+
+            await this.gainRepository.create(entryGain);
+
+            // TODO:
+            // send "Contest Closed" email
+
+        });
+
+        return filteredUnclaimedContests? filteredUnclaimedContests: filteredContests;
     }
 
     async closeContests() {
