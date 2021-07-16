@@ -19,6 +19,7 @@ export const API_RESOURCES = {
     TOP_UPS: 'top-ups',
     WITHDRAW_REQUESTS: 'withdraw-requests',
     CRONS: 'crons',
+    LEAGUE_IMPORT: 'league-import',
 };
 
 export const API_ENDPOINTS = {
@@ -199,5 +200,9 @@ export const API_ENDPOINTS = {
         FETCH_PROJECTIONS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/fetch-projections`,
         FETCH_POINTS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/fetch-points`,
         WIN_CHECK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/win-check`,
+    },
+    LEAGUE_IMPORT: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_IMPORT}`,
+        FETCH: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_IMPORT}/fetch`,
     },
 };
