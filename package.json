@@ -98,7 +98,8 @@
     "stripe": "^8.69.0",
     "tslib": "^2.0.0",
     "validate": "^5.1.0",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "yahoo-fantasy": "^4.1.5"
   },
   "devDependencies": {
     "@loopback/authentication-passport": "^3.2.0",

@@ -19,6 +19,7 @@ import {FETCH_LEAGUE_VALIDATOR} from '@src/utils/validators/league-import.valida
 import {isEmpty} from 'lodash';
 import Schema from 'validate';
 const { Client } = require('espn-fantasy-football-api/node-dev');
+const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueImportController {
     constructor(
@@ -62,12 +63,16 @@ export class LeagueImportController {
             const espnClient = new Client ();
             espnClient.setCookies({espnS2: body.espnS2, SWID: body.swid});
             const leagueInfo = await espnClient.getTeamsAtWeek(options)
-
-            console.log('...............', leagueInfo);
             league =  JSON.parse(leagueInfo);
 
         } else if ( body.source === 'YAHOO' ) {
-            // fetch yahoo league
+            // const yf = new YahooFantasy(
+            //     Y!APPLICATION_KEY, // Yahoo! Application Key
+            //     Y!APPLICATION_SECRET, // Yahoo! Application Secret
+            // );
+            // yf.auth(
+            //     response // response object to redirect the user to the Yahoo! login screen
+            //   )
         } else {
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.INVALID_SOURCE);
         }
