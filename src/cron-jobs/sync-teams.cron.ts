@@ -1,10 +1,11 @@
-import { service } from '@loopback/core';
-import { CronJob, cronJob } from '@loopback/cron';
-import { repository } from '@loopback/repository';
-import { TeamRepository } from '@src/repositories';
-import { SportsDataService } from '@src/services';
-import { CRON_JOBS } from '@src/utils/constants';
+import {service} from '@loopback/core';
+import {CronJob, cronJob} from '@loopback/cron';
+import {repository} from '@loopback/repository';
+import {TeamRepository} from '@src/repositories';
+import {SportsDataService} from '@src/services';
+import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
+const logger = require('../utils/logger');
 
 @cronJob()
 export class SyncTeamsCron extends CronJob {
@@ -28,10 +29,10 @@ export class SyncTeamsCron extends CronJob {
                             team.logoUrl = remoteTeam.WikipediaLogoUrl;
                             team.wordMarkUrl = remoteTeam.WikipediaWordMarkUrl;
                             await this.teamRepo.save(team);
-                        } else console.log(`remote team with name: ${remoteTeam.Key} does not exists in local records`);
+                        } else logger.log(`remote team with name: ${remoteTeam.Key} does not exists in local records`);
                     }
                 } catch (error) {
-                    console.error(chalk.redBright(`Error on sync team cron job. Error: `, error));
+                    logger.error(chalk.redBright(`Error on sync team cron job. Error: `, error));
                 }
             },
             start: true,

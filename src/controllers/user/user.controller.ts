@@ -115,7 +115,7 @@ export class UserController {
             {
                 user,
                 text: {
-                    title: `Top Prop - Welcome ${user.fullName}`,
+                    title: `Welcome ${user.fullName}`,
                     subtitle: `Welcome to Top Prop. Continue exploring the web app and don't forget to add some funds!`,
                 },
             });
