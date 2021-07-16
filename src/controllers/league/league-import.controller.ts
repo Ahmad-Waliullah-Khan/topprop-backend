@@ -51,28 +51,34 @@ export class LeagueImportController {
 
         let league = null;
 
-        const options = {seasonId: 2021, scoringPeriodId: 1 };
-
         if ( body.source === 'ESPN' ) {
-            if(!body.espnS2 || body.espnS2 == "") {
-                throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.INVALID_ESPNS2);
-            }
-            if(!body.swid || body.swid == "") {
-                throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.INVALID_SWID);
-            }
             const espnClient = new Client ();
             espnClient.setCookies({espnS2: body.espnS2, SWID: body.swid});
-            const leagueInfo = await espnClient.getTeamsAtWeek(options)
-            league =  JSON.parse(leagueInfo);
-
+            const options = {seasonId: 2021, scoringPeriodId: 1 };
+            try {
+                const leagueInfo = await espnClient.getTeamsAtWeek(options)
+                league =  JSON.parse(leagueInfo);
+            } catch(e) {
+                console.log(e);
+            }
         } else if ( body.source === 'YAHOO' ) {
-            // const yf = new YahooFantasy(
-            //     Y!APPLICATION_KEY, // Yahoo! Application Key
-            //     Y!APPLICATION_SECRET, // Yahoo! Application Secret
-            // );
-            // yf.auth(
-            //     response // response object to redirect the user to the Yahoo! login screen
-            //   )
+            const yf = new YahooFantasy(
+                process.env.YAHOO_APPLICATION_KEY,
+                process.env.YAHOO_SECRET_KEY,
+            );
+            // yf.auth();
+
+            yf.league.teams (
+                2021,
+                function cb(err: object, data: object) {
+                    console.log(data);
+                    if(err) {
+                        console.log(err);
+                        throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
+                    }
+                    league = data;
+                }
+            );
         } else {
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.INVALID_SOURCE);
         }
