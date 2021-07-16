@@ -1,11 +1,12 @@
-import { Entity, hasMany, model, property } from '@loopback/repository';
-import { ROLES } from '@src/utils/constants';
-import { Bet } from './bet.model';
-import { ContactSubmission } from './contact-submission.model';
-import { Contest } from './contest.model';
-import { Gain } from './gain.model';
-import { TopUp } from './top-up.model';
-import { WithdrawRequest } from './withdraw-request.model';
+import {Entity, hasMany, model, property} from '@loopback/repository';
+import {ROLES} from '@src/utils/constants';
+import {Bet} from './bet.model';
+import {ContactSubmission} from './contact-submission.model';
+import {Contest} from './contest.model';
+import {Gain} from './gain.model';
+import {Team} from './team.model';
+import {TopUp} from './top-up.model';
+import {WithdrawRequest} from './withdraw-request.model';
 
 @model({
     settings: {
@@ -60,6 +61,24 @@ export class User extends Entity {
         default: null,
     })
     _connectToken: string | null;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    yahooRefreshToken: string | null;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    espns2: string | null;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    espnswid: string | null;
 
     @property({
         type: 'date',
@@ -150,6 +169,9 @@ export class User extends Entity {
     @hasMany(() => WithdrawRequest)
     withdrawRequests: WithdrawRequest[];
 
+    @hasMany(() => Team)
+    teams: Team[];
+
     constructor(data?: Partial<User>) {
         super(data);
     }
@@ -161,6 +183,7 @@ export interface UserRelations {
     topUps?: TopUp[];
     gains?: Gain[];
     bets?: Bet[];
+    teams?: Team[];
 }
 
 export type UserWithRelations = User & UserRelations;

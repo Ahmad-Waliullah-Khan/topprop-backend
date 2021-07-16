@@ -2,23 +2,24 @@ import {belongsTo, model, property} from '@loopback/repository';
 import {Spread, SpreadWithRelations} from '@src/models/spread.model';
 import {CONTEST_STAKEHOLDERS, CONTEST_STATUSES, CONTEST_TYPES} from '@src/utils/constants';
 import {Base} from './base.model';
-import {Player, PlayerWithRelations} from './player.model';
+import {Player} from './player.model';
+import {TeamWithRelations} from './team.model';
 import {User, UserWithRelations} from './user.model';
 
 @model()
-export class Contest extends Base {
+export class LeagueContest extends Base {
   @property({
     id: true,
     generated: true,
     type: 'Number',
-    description: 'The unique identifier for a contest',
+    description: 'The unique identifier for a LeagueContest',
   })
   id: number;
 
   @property({
     type: 'number',
     required: true,
-    description: 'Entry amount in dollars for the contest. Would be the same for creator and claimer',
+    description: 'Entry amount in dollars for the LeagueContest. Would be the same for creator and claimer',
     postgresql: {
       dataType: 'decimal',
     },
@@ -28,7 +29,7 @@ export class Contest extends Base {
   @property({
     type: 'number',
     required: true,
-    description: 'Projected Fantasy points for creator player at the time of contest creation. Posterity purposes ',
+    description: 'Projected Fantasy points for creator player at the time of LeagueContest creation. Posterity purposes ',
     postgresql: {
       dataType: 'decimal',
     },
@@ -38,7 +39,7 @@ export class Contest extends Base {
   @property({
     type: 'number',
     required: true,
-    description: 'Projected Fantasy points for claimer player at the time of contest creation. Posterity purposes ',
+    description: 'Projected Fantasy points for claimer player at the time of LeagueContest creation. Posterity purposes ',
     postgresql: {
       dataType: 'decimal',
     },
@@ -48,80 +49,42 @@ export class Contest extends Base {
   @property({
     type: 'number',
     required: true,
-    description: 'Cover for creator player at the time of contest creation',
+    description: 'Cover for creator player at the time of LeagueContest creation',
     postgresql: {
       dataType: 'decimal',
     },
   })
-  creatorPlayerCover: number;
+  creatorTeamCover: number;
 
   @property({
     type: 'number',
     required: true,
-    description: 'Cover for claimer player at the time of contest creation',
+    description: 'Cover for claimer player at the time of LeagueContest creation',
     postgresql: {
       dataType: 'decimal',
     },
   })
-  claimerPlayerCover: number;
+  claimerTeamCover: number;
 
   @property({
     type: 'number',
     required: true,
-    description: 'Win Bonus for creator player at the time of contest creation. Only >0 if winBonus flag is set',
+    description: 'Win Bonus for creator player at the time of LeagueContest creation. Only >0 if winBonus flag is set',
     postgresql: {
       dataType: 'decimal',
     },
   })
-  creatorPlayerWinBonus: number;
+  creatorTeamWinBonus: number;
 
   @property({
     type: 'number',
     required: true,
-    description: 'Win Bonus for claimer player at the time of contest creation. Only >0 if winBonus flag is set',
+    description: 'Win Bonus for claimer player at the time of LeagueContest creation. Only >0 if winBonus flag is set',
     postgresql: {
       dataType: 'decimal',
     },
   })
-  claimerPlayerWinBonus: number;
-
-  @property({
-    type: 'number',
-    required: true,
-    description: 'FP Spread for creator player at the time of contest creation',
-    postgresql: {
-      dataType: 'decimal',
-    },
-  })
-  creatorPlayerSpread: number;
-
-  @property({
-    type: 'number',
-    required: true,
-    description: 'FP Spread for claimer player at the time of contest creation',
-    postgresql: {
-      dataType: 'decimal',
-    },
-  })
-  claimerPlayerSpread: number;
-
-  @property({
-    type: 'number',
-    required: true,
-    postgresql: {
-      dataType: 'decimal',
-    },
-  })
-  creatorPlayerMaxWin: number;
-
-  @property({
-    type: 'number',
-    required: true,
-    postgresql: {
-      dataType: 'decimal',
-    },
-  })
-  claimerPlayerMaxWin: number;
+  claimerTeamWinBonus: number;
 
   @property({
     type: 'number',
@@ -130,7 +93,7 @@ export class Contest extends Base {
       dataType: 'decimal',
     },
   })
-  creatorPlayerFantasyPoints: number;
+  creatorTeamFantasyPoints: number;
 
   @property({
     type: 'number',
@@ -139,7 +102,45 @@ export class Contest extends Base {
       dataType: 'decimal',
     },
   })
-  claimerPlayerFantasyPoints: number;
+  claimerTeamFantasyPoints: number;
+
+  @property({
+    type: 'number',
+    required: true,
+    description: 'FP Spread for creator player at the time of LeagueContest creation',
+    postgresql: {
+      dataType: 'decimal',
+    },
+  })
+  creatorTeamSpread: number;
+
+  @property({
+    type: 'number',
+    required: true,
+    description: 'FP Spread for claimer player at the time of LeagueContest creation',
+    postgresql: {
+      dataType: 'decimal',
+    },
+  })
+  claimerTeamSpread: number;
+
+  @property({
+    type: 'number',
+    required: true,
+    postgresql: {
+      dataType: 'decimal',
+    },
+  })
+  creatorTeamMaxWin: number;
+
+  @property({
+    type: 'number',
+    required: true,
+    postgresql: {
+      dataType: 'decimal',
+    },
+  })
+  claimerTeamMaxWin: number;
 
   @property({
     type: 'number',
@@ -231,25 +232,25 @@ export class Contest extends Base {
   claimerId: number;
 
   @belongsTo(() => Player)
-  creatorPlayerId: number;
+  creatorTeamId: number;
 
   @belongsTo(() => Player)
-  claimerPlayerId: number;
+  claimerTeamId: number;
 
   @belongsTo(() => Spread)
   spreadId: number;
 
-  constructor(data?: Partial<Contest>) {
+  constructor(data?: Partial<LeagueContest>) {
     super(data);
   }
 }
 
-export interface ContestRelations {
+export interface LeagueContestRelations {
     winner?: UserWithRelations;
     creator?: UserWithRelations;
-    creatorPlayer?: PlayerWithRelations;
-    claimerPlayer?: PlayerWithRelations;
+    creatorTeam?: TeamWithRelations;
+    claimerTeam?: TeamWithRelations;
     spread?: SpreadWithRelations;
 }
 
-export type ContestWithRelations = Contest & ContestRelations;
+export type LeagueContestWithRelations = LeagueContest & LeagueContestRelations;
