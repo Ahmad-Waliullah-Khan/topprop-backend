@@ -52,13 +52,16 @@ export class LeagueImportController {
         let league = null;
 
         if ( body.source === 'ESPN' ) {
-            const espnClient = new Client ();
+            //TODO:
+            // Get the league id
+            const espnClient = new Client (); // Will need to pass in the leagueId from the chrome extension
             espnClient.setCookies({espnS2: body.espnS2, SWID: body.swid});
             const options = {seasonId: 2021, scoringPeriodId: 1 };
             try {
                 const leagueInfo = await espnClient.getTeamsAtWeek(options)
                 league =  JSON.parse(leagueInfo);
             } catch(e) {
+                //Note: Currently gives 400 because the api doesn't receive any leagueId
                 console.log(e);
             }
         } else if ( body.source === 'YAHOO' ) {
