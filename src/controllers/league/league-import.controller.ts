@@ -31,7 +31,7 @@ import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/vali
 // import {Client} from 'espn-fantasy-football-api/node';
 import { isEmpty } from 'lodash';
 import Schema from 'validate';
-const { Client } = require('espn-fantasy-football-api/node-dev');
+const {Client} = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueImportController {
@@ -51,7 +51,7 @@ export class LeagueImportController {
         @repository(MemberRepository)
         public memberRepository: MemberRepository,
         @service() private leagueService: LeagueService,
-    ) {}
+    ) { }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
@@ -72,7 +72,7 @@ export class LeagueImportController {
             code: FETCH_LEAGUE_VALIDATOR.code,
         };
 
-        const validation = new Schema(validationSchema, { strip: true });
+        const validation = new Schema(validationSchema, {strip: true});
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
