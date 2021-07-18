@@ -1,32 +1,73 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {service} from '@loopback/core';
-import {HttpErrors, post, requestBody} from '@loopback/rest';
-import {LeagueService} from '@src/services/league.service';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { service } from '@loopback/core';
+import { HttpErrors, post, requestBody } from '@loopback/rest';
+import { LeagueService } from '@src/services/league.service';
+import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse } from '@src/utils/interfaces';
 import {
-    API_ENDPOINTS, PERMISSIONS
-} from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
-import {
-    ICommonHttpResponse
-} from '@src/utils/interfaces';
-import {ILeagueImportRequestEspn, ILeagueImportRequestYahoo} from '@src/utils/interfaces/league-import.interface';
-import {COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES} from '@src/utils/messages';
-import {FETCH_LEAGUE_VALIDATOR} from '@src/utils/validators/league-import.validators';
+    ILeaguesImportRequestYahoo,
+    ILeagueImportRequestEspn,
+    ILeagueImportRequestYahoo,
+} from '@src/utils/interfaces/league-import.interface';
+import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
+import { FETCH_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
-import {isEmpty} from 'lodash';
+import { isEmpty } from 'lodash';
 import Schema from 'validate';
-const {Client} = require('espn-fantasy-football-api/node-dev');
+const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueImportController {
-    constructor(
-        @service() private leagueService: LeagueService,
-    ) { }
+    constructor(@service() private leagueService: LeagueService) {}
 
     @authenticate('jwt')
-    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)]})
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.LEAGUE_IMPORT.FETCH_YAHOO_LEAGUES, {
+        responses: {
+            '200': {
+                description: 'Fetch Leagues from Yahoo.',
+            },
+        },
+    })
+    async fetchYahooLeagues(
+        @requestBody()
+        body: Partial<ILeaguesImportRequestYahoo>,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const validationSchema = {
+            code: FETCH_LEAGUE_VALIDATOR.code,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        try {
+            const tokenResponse = await this.leagueService.fetchYahooTokens(body.code);
+            const { access_token, refresh_token } = tokenResponse.data;
+            const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
+            yf.setUserToken(access_token);
+            yf.setRefreshToken(refresh_token);
+
+            const leagues = await yf.user.game_leagues('nfl');
+
+            return {
+                message: LEAGUE_IMPORT_MESSAGES.FETCH_SUCCESS,
+                data: {
+                    leagues: leagues,
+                },
+            };
+        } catch (error) {
+            throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
     @post(API_ENDPOINTS.LEAGUE_IMPORT.FETCH_ESPN, {
         responses: {
             '200': {
@@ -46,20 +87,20 @@ export class LeagueImportController {
             swid: FETCH_LEAGUE_VALIDATOR.swid,
         };
 
-        const validation = new Schema(validationSchema, {strip: true});
+        const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         let league = null;
 
-        const leagueObject = {leagueId: body.leagueId};
+        const leagueObject = { leagueId: body.leagueId };
         const espnClient = new Client(leagueObject);
 
-        espnClient.setCookies({espnS2: body.espnS2, SWID: body.swid});
-        const options = {seasonId: 2021, scoringPeriodId: 13};
+        espnClient.setCookies({ espnS2: body.espnS2, SWID: body.swid });
+        const options = { seasonId: 2021, scoringPeriodId: 13 };
 
         try {
-            const leagueInfo = await espnClient.getTeamsAtWeek(options)
+            const leagueInfo = await espnClient.getTeamsAtWeek(options);
             league = leagueInfo;
         } catch (e) {
             console.log(e);
@@ -74,7 +115,7 @@ export class LeagueImportController {
     }
 
     @authenticate('jwt')
-    @authorize({voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)]})
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
     @post(API_ENDPOINTS.LEAGUE_IMPORT.FETCH_YAHOO, {
         responses: {
             '200': {
@@ -92,32 +133,24 @@ export class LeagueImportController {
             leagueKey: FETCH_LEAGUE_VALIDATOR.leagueKey,
         };
 
-        const validation = new Schema(validationSchema, {strip: true});
+        const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         let league = null;
 
-        const yf = new YahooFantasy(
-            process.env.YAHOO_APPLICATION_KEY,
-            process.env.YAHOO_SECRET_KEY,
-        );
+        const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
 
         // yf.auth();
 
-        await yf.league.teams(
-            body.leagueKey,
-            function cb(err: object, data: object) {
-                console.log(data);
-                league = data;
-                if (err) {
-                    console.log(err);
-                    throw new HttpErrors.BadRequest(
-                        LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO
-                    );
-                }
+        await yf.league.teams(body.leagueKey, function cb(err: object, data: object) {
+            console.log(data);
+            league = data;
+            if (err) {
+                console.log(err);
+                throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
             }
-        );
+        });
 
         return {
             message: LEAGUE_IMPORT_MESSAGES.FETCH_SUCCESS,
