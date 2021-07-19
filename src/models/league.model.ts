@@ -1,4 +1,4 @@
-import {belongsTo, hasMany, model, property} from '@loopback/repository';
+import {belongsTo, hasMany, hasOne, model, property} from '@loopback/repository';
 import {Base} from '.';
 import {ImportSource} from './import-source.model';
 import {ScoringType} from './scoring-type.model';
@@ -57,11 +57,11 @@ export class League extends Base {
     @belongsTo(() => User)
     userId: number;
 
-    @hasMany(() => ScoringType)
-    scoringType: ScoringType[];
+    @hasOne(() => ScoringType)
+    scoringId: number;
 
-    @hasMany(() => ImportSource)
-    importSource: ImportSource[];
+    @hasOne(() => ImportSource)
+    importSourceID: number;
 
 
     constructor(data?: Partial<League>) {

@@ -1,6 +1,6 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
-import axios, { AxiosResponse } from 'axios';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class LeagueService {
@@ -10,7 +10,7 @@ export class LeagueService {
         return axios({
             method: 'post',
             url: 'https://api.login.yahoo.com/oauth2/get_token',
-            data: `client_id=${process.env.YAHOO_APPLICATION_KEY}&client_secret=${process.env.YAHOO_SECRET_KEY}&redirect_uri=oob&code=${code}&grant_type=authorization_code`,
+            data: `client_id=${process.env.YAHOO_APPLICATION_KEY}&client_secret=${process.env.YAHOO_SECRET_KEY}&redirect_uri=https://localhost:3000/oauth/yahoo&code=${code}&grant_type=authorization_code`,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
