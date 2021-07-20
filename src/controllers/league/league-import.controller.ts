@@ -2,15 +2,13 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {service} from '@loopback/core';
 import {HttpErrors, post, requestBody} from '@loopback/rest';
-import {League} from '@src/models';
 import {LeagueService} from '@src/services/league.service';
 import {API_ENDPOINTS, PERMISSIONS} from '@src/utils/constants';
 import {ErrorHandler} from '@src/utils/helpers';
 import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {ICommonHttpResponse} from '@src/utils/interfaces';
 import {
-    ILeagueFetchRequestEspn,
-    ILeagueFetchRequestYahoo, ILeagueImportRequestEspn, ILeaguesImportRequestYahoo
+    ILeagueImportRequestEspn, ILeaguesImportRequestYahoo
 } from '@src/utils/interfaces/league-import.interface';
 import {COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES} from '@src/utils/messages';
 import {FETCH_LEAGUE_VALIDATOR} from '@src/utils/validators/league-import.validators';
@@ -53,12 +51,30 @@ export class LeagueImportController {
             yf.setUserToken(access_token);
             yf.setRefreshToken(refresh_token);
 
-            const leagues = await yf.user.game_leagues('nfl');
+            const gameLeagues = await yf.user.game_leagues('nfl');
+            const nfl = gameLeagues.games.find((game: any) => game.code === 'nfl');
+            const yahooleaguesList = nfl ? nfl.leagues : [];
+            const yahooleagues: any = [];
+
+            yahooleaguesList.map((list: any) => {
+                return list.map((league: any) => {
+                    yahooleagues.push(league);
+                });
+            });
+
+            const leagues = await Promise.all(
+                yahooleagues.map(async (leagueMeta: any) => {
+                    const teams = await yf.league.teams(leagueMeta.league_key);
+                    const settings = await yf.league.settings(leagueMeta.league_key);
+
+                    return { ...leagueMeta, teams: teams.teams, settings: settings.settings };
+                }),
+            );
 
             const tokens = {
-                "accessToken": access_token,
-                "refreshToken": refresh_token
-            }
+                accessToken: access_token,
+                refreshToken: refresh_token,
+            };
 
             return {
                 message: LEAGUE_IMPORT_MESSAGES.FETCH_SUCCESS,
@@ -68,8 +84,10 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            console.log(error);
-            throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED);
+            if(error.response){
+                console.log("🚀 ~ file: league-import.controller.ts ~ line 98 ~ LeagueImportController ~ error", error.response.data)
+            }
+            throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
         }
     }
 
