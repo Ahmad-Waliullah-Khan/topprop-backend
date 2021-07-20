@@ -29,7 +29,7 @@ import {
 import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
 import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
-import {isEmpty} from 'lodash';
+import { isEmpty } from 'lodash';
 import Schema from 'validate';
 const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
