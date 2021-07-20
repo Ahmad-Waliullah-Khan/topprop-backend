@@ -63,7 +63,7 @@ export class Team extends Base {
     userId: number;
 
     @belongsTo(() => League)
-    leagueId: number;
+    privateLeagueId: number;
 
     constructor(data?: Partial<Team>) {
         super(data);

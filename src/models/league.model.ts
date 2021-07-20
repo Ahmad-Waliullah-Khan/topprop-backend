@@ -1,4 +1,4 @@
-import {belongsTo, hasMany, hasOne, model, property} from '@loopback/repository';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {Base} from '.';
 import {ImportSource} from './import-source.model';
 import {ScoringType} from './scoring-type.model';
@@ -18,12 +18,6 @@ export class League extends Base {
         type: 'number',
         required: false,
     })
-    sourceId: number;
-
-    @property({
-        type: 'number',
-        required: false,
-    })
     remoteId: number;
 
     @property({
@@ -31,12 +25,6 @@ export class League extends Base {
         required: true,
     })
     name: string;
-
-    @property({
-        type: 'number',
-        required: false,
-    })
-    scoringTypeId: number;
 
     @property({
         type: 'string',
@@ -51,17 +39,29 @@ export class League extends Base {
       })
     lastSyncTime: Date | null;
 
+    @property({
+        type: 'string',
+        required: false,
+    })
+    yahooAccessToken: string;
+
+    @property({
+        type: 'string',
+        required: false,
+    })
+    yahooRefreshToken: string;
+
     @hasMany(() => Team)
     teams: Team[];
 
     @belongsTo(() => User)
     userId: number;
 
-    @hasOne(() => ScoringType)
+    @belongsTo(() => ScoringType)
     scoringId: number;
 
-    @hasOne(() => ImportSource)
-    importSourceID: number;
+    @belongsTo(() => ImportSource)
+    sourceId: number;
 
 
     constructor(data?: Partial<League>) {

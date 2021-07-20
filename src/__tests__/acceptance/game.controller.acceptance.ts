@@ -1,11 +1,9 @@
-import { Filter } from '@loopback/repository';
-import { Client, expect } from '@loopback/testlab';
-import { Player } from '@src/models';
-import { TeamService } from '@src/services';
-import { GameService } from '@src/services/game.service';
-import { API_RESOURCES } from '@src/utils/constants';
-import { TopPropBackendApplication } from '../..';
-import { setupApplication } from './test-helper';
+import {Filter} from '@loopback/repository';
+import {Client, expect} from '@loopback/testlab';
+import {Player} from '@src/models';
+import {API_RESOURCES} from '@src/utils/constants';
+import {TopPropBackendApplication} from '../..';
+import {setupApplication} from './test-helper';
 
 describe('Game Controller', () => {
     let app: TopPropBackendApplication;
@@ -19,9 +17,9 @@ describe('Game Controller', () => {
     let userAuthToken1 = 'Bearer ';
     let testUserId1 = 0;
     let adminId1 = 0;
-    let testContactSubmissionId1 = 0;
-    let testContactSubmissionId2 = 0;
-    let testContactSubmissionId3 = 0;
+    const testContactSubmissionId1 = 0;
+    const testContactSubmissionId2 = 0;
+    const testContactSubmissionId3 = 0;
 
     before('setupApplication', async () => {
         ({ app, client } = await setupApplication());
@@ -52,17 +50,17 @@ describe('Game Controller', () => {
         adminAuthToken1 += adminSignupRes1.body.data;
     });
 
-    before(`Load default teams & games`, async () => {
-        const teamService = await app.service(TeamService).getValue(app);
-        await teamService._init();
+    // before(`Load default teams & games`, async () => {
+    //     const teamService = await app.service(TeamService).getValue(app);
+    //     await teamService._init();
 
-        //*GAMES
-        const gameService = await app.service(GameService).getValue(app);
-        await gameService._init();
-    });
+    //     //*GAMES
+    //     const gameService = await app.service(GameService).getValue(app);
+    //     await gameService._init();
+    // });
 
     after(async () => {
-        let users = await client.get(`${usersBaseAPI}`).set('Authorization', adminAuthToken1);
+        const users = await client.get(`${usersBaseAPI}`).set('Authorization', adminAuthToken1);
         console.log('Removing all users...');
         for (let index = 0; index < users.body.data.length; index++) {
             const user = users.body.data[index];

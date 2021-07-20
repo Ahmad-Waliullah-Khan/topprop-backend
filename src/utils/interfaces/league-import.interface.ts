@@ -1,6 +1,6 @@
 import {League} from '@src/models';
 
-export interface ILeaguesImportRequestYahoo extends League {
+export interface ILeaguesFetchRequestYahoo extends League {
     code: string;
 }
 
@@ -10,7 +10,7 @@ export interface ILeagueFetchRequestEspn extends League {
   leagueId: number;
   importSource?: string;
 }
-export interface ILeagueFetchRequestYahoo extends League {
+export interface ILeagueFetchRequestYahooOld extends League {
   leagueKey: number;
   importSource?: string;
 }
@@ -26,7 +26,8 @@ export interface ILeagueImportRequestEspn extends League {
 
 export interface ILeagueImportRequestYahoo extends League {
   leagueKey: number;
-  scoringType: number;
-  name: string;
-  importSource?: string;
+  scoringTypeId: number;
+  accessToken: string;
+  refreshToken: string;
+  userId: number;
 }

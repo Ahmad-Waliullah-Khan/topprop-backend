@@ -1,9 +1,9 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { TeamRepository } from '@src/repositories';
-import { NFL_TEAMS } from '@src/utils/constants';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {TeamRepository} from '@src/repositories';
+import {NFL_TEAMS} from '@src/utils/constants';
 import chalk from 'chalk';
-import { startCase } from 'lodash';
+import {startCase} from 'lodash';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class TeamService {

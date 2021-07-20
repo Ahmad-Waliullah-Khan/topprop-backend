@@ -63,4 +63,36 @@ export const FETCH_LEAGUE_VALIDATOR = {
         type: 'Scoring Type must be string.',
     },
   },
+  teamIds: {
+    required: true,
+    type: Array,
+    message: {
+        required: 'Team Ids Key is required.',
+        type: 'Team Ids must be an Array of Ids.',
+    },
+  },
+  scoringTypeId: {
+    required: true,
+    type: Number,
+    message: {
+        required: 'Scoring Type Id Key is required.',
+        type: 'Scoring Type Id must be a number.',
+    },
+  },
+  accessToken: {
+    required: true,
+    type: String,
+    message: {
+        required: 'Access Token Key is required.',
+        type: 'Access Token must be a string.',
+    },
+  },
+  refreshToken: {
+    required: true,
+    type: String,
+    message: {
+        required: 'Refresh Token Key is required.',
+        type: 'Refresh Token must be a string.',
+    },
+  },
 };
