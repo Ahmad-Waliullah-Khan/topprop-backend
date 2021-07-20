@@ -10,7 +10,8 @@ import { ICommonHttpResponse } from '@src/utils/interfaces';
 import {
     ILeagueImportRequestEspn,
     ILeagueImportRequestYahoo,
-    ILeaguesImportRequestYahoo,
+    ILeaguesFetchRequestYahoo,
+    ILeagueFetchRequestEspn,
 } from '@src/utils/interfaces/league-import.interface';
 import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
 import { FETCH_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
@@ -34,7 +35,7 @@ export class LeagueImportController {
     })
     async fetchYahooLeagues(
         @requestBody()
-        body: Partial<ILeaguesImportRequestYahoo>,
+        body: Partial<ILeaguesFetchRequestYahoo>,
     ): Promise<ICommonHttpResponse<any>> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
@@ -86,10 +87,84 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            if(error.response){
-                console.log("🚀 ~ file: league-import.controller.ts ~ line 98 ~ LeagueImportController ~ error", error.response.data)
+            if (error.response) {
+                console.log(
+                    '🚀 ~ file: league-import.controller.ts ~ line 98 ~ LeagueImportController ~ error',
+                    error.response.data,
+                );
             }
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.LEAGUE_IMPORT.FETCH_ESPN_LEAGUES, {
+        responses: {
+            '200': {
+                description: 'Fetch Leagues from Espn.',
+            },
+        },
+    })
+    async fetchESPNLeagues(
+        @requestBody()
+        body: Partial<ILeagueFetchRequestEspn>,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const validationSchema = {
+            espnS2: FETCH_LEAGUE_VALIDATOR.espnS2,
+            swid: FETCH_LEAGUE_VALIDATOR.swid,
+        };
+        const { espnS2, swid } = body;
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        try {
+            const gameData = await this.leagueService.fetchESPNAccount(espnS2 || '', swid || '');
+
+            const { preferences } = gameData.data;
+            const leagues = await Promise.all(
+                preferences.map(async (data: any) => {
+                    const { id } = data;
+                    const meta = id.split(':');
+                    const leagueId = meta[1];
+                    const seasonId = meta[3];
+                    const scoringPeriodId = meta[2];
+                    const leagueName = data.metaData.entry.groups[0].groupName;
+                    const logoURL = data.metaData.entry.logoUrl;
+                    const scoringType = data.metaData.entry.entryMetadata.scoringTypeId;
+
+                    const teams = await this.leagueService.fetchESPNLeagueTeams(espnS2 || '', swid || '', leagueId);
+
+                    return {
+                        id: leagueId,
+                        name: leagueName,
+                        seasonId: seasonId,
+                        scoringPeriodId: scoringPeriodId,
+                        logoURL: logoURL,
+                        scoringType: scoringType,
+                        teams: teams,
+                    };
+                }),
+            );
+
+            return {
+                message: LEAGUE_IMPORT_MESSAGES.FETCH_SUCCESS,
+                data: {
+                    leagues: leagues,
+                    gameData: gameData.data,
+                },
+            };
+        } catch (error) {
+            if (error.response) {
+                console.log(
+                    '🚀 ~ file: league-import.controller.ts ~ line 98 ~ LeagueImportController ~ error',
+                    error.response.data,
+                );
+            }
+            throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_ESPN);
         }
     }
 
