@@ -1,7 +1,12 @@
 import { League } from '@src/models';
 
-export interface ILeaguesImportRequestYahoo extends League {
+export interface ILeaguesFetchRequestYahoo extends League {
     code: string;
+}
+
+export interface ILeagueFetchRequestEspn extends League {
+    espnS2: string;
+    swid: string;
 }
 
 export interface ILeagueImportRequestEspn extends League {
