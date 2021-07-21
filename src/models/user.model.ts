@@ -69,6 +69,7 @@ export class User extends Entity {
     })
     yahooAccessToken: string | null;
 
+<<<<<<< HEAD
     @property({
         type: 'string',
         default: null,
@@ -87,6 +88,8 @@ export class User extends Entity {
     })
     espnswid: string | null;
 
+=======
+>>>>>>> e1ecb10 (changelog)
     @property({
         type: 'string',
         default: null,
