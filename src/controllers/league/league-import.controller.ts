@@ -1,20 +1,33 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
+import { inject, service } from '@loopback/core';
 import { HttpErrors, post, requestBody } from '@loopback/rest';
+import { repository, IsolationLevel, DefaultTransactionalRepository } from '@loopback/repository';
 import { LeagueService } from '@src/services/league.service';
+import { SecurityBindings, securityId } from '@loopback/security';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
+import { League, Team, Roster, Member } from '@src/models';
 import {
     ILeagueImportRequestEspn,
     ILeagueImportRequestYahoo,
     ILeaguesFetchRequestYahoo,
     ILeagueFetchRequestEspn,
-} from '@src/utils/interfaces/league-import.interface';
+    ICustomUserProfile,
+} from '@src/utils/interfaces';
+import {
+    LeagueRepository,
+    PlayerRepository,
+    RosterRepository,
+    ScoringTypeRepository,
+    TeamRepository,
+    UserRepository,
+    MemberRepository,
+} from '@src/repositories';
 import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
-import { FETCH_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
+import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
 import { isEmpty } from 'lodash';
 import Schema from 'validate';
@@ -22,7 +35,23 @@ const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueImportController {
-    constructor(@service() private leagueService: LeagueService) {}
+    constructor(
+        @repository(LeagueRepository)
+        public leagueRepository: LeagueRepository,
+        @repository(TeamRepository)
+        public teamRepository: TeamRepository,
+        @repository(ScoringTypeRepository)
+        public scoringTypeRepository: ScoringTypeRepository,
+        @repository(PlayerRepository)
+        public playerRepository: PlayerRepository,
+        @repository(RosterRepository)
+        public rosterRepository: RosterRepository,
+        @repository(UserRepository)
+        public userRepository: UserRepository,
+        @repository(MemberRepository)
+        public memberRepository: MemberRepository,
+        @service() private leagueService: LeagueService,
+    ) {}
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
@@ -87,12 +116,8 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            if (error.response) {
-                console.log(
-                    '🚀 ~ file: league-import.controller.ts ~ line 98 ~ LeagueImportController ~ error',
-                    error.response.data,
-                );
-            }
+            console.log('🚀 ~ file: league-import.controller.ts ~ line 118 ~ LeagueImportController ~ error', error);
+
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
         }
     }
@@ -170,10 +195,10 @@ export class LeagueImportController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
-    @post(API_ENDPOINTS.LEAGUE_IMPORT.FETCH_ESPN, {
+    @post(API_ENDPOINTS.LEAGUE_IMPORT.IMPORT_ESPN, {
         responses: {
             '200': {
-                description: 'Fetch League from ESPN.',
+                description: 'Import League from ESPN.',
             },
         },
     })
@@ -218,47 +243,128 @@ export class LeagueImportController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
-    @post(API_ENDPOINTS.LEAGUE_IMPORT.FETCH_YAHOO, {
+    @post(API_ENDPOINTS.LEAGUE_IMPORT.IMPORT_YAHOO, {
         responses: {
             '200': {
-                description: 'Fetch League from Yahoo.',
+                description: 'Import League from Yahoo.',
             },
         },
     })
-    async fetchYahoo(
+    async importYahooLeague(
         @requestBody()
         body: Partial<ILeagueImportRequestYahoo>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
     ): Promise<ICommonHttpResponse<any>> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
+        const userId = +currentUser[securityId];
+
         const validationSchema = {
-            leagueKey: FETCH_LEAGUE_VALIDATOR.leagueKey,
+            leagueKey: IMPORT_LEAGUE_VALIDATOR.leagueKey,
+            accessToken: IMPORT_LEAGUE_VALIDATOR.accessToken,
+            refreshToken: IMPORT_LEAGUE_VALIDATOR.refreshToken,
+            scoringTypeId: IMPORT_LEAGUE_VALIDATOR.leagueKey,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
-        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+        // if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        let league = null;
+        const { leagueKey, accessToken, refreshToken, scoringTypeId } = body;
 
         const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
+        yf.setUserToken(accessToken);
+        yf.setRefreshToken(refreshToken);
 
-        // yf.auth();
-
-        await yf.league.teams(body.leagueKey, function cb(err: object, data: object) {
-            console.log(data);
-            league = data;
-            if (err) {
-                console.log(err);
-                throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
-            }
+        const league = await this.leagueRepository.find({
+            where: {
+                remoteId: leagueKey,
+            },
         });
 
-        return {
-            message: LEAGUE_IMPORT_MESSAGES.FETCH_SUCCESS,
-            data: {
-                league: league,
-            },
-        };
+        if (league.length > 0) throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.LEAGUE_EXISTS);
+
+        // @ts-ignore
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+
+        try {
+            const localPlayers = await this.playerRepository.find();
+            const league = await yf.league.meta(leagueKey);
+            const leagueData = new League();
+
+            leagueData.importSourceId = 2; // in source table: 1 = espn, 2 = yahoo
+            leagueData.remoteId = league.league_key; //format:{GameKey}.1.{leagueId}
+            leagueData.name = league.name;
+            leagueData.scoringTypeId = Number(scoringTypeId); //1=halfppr, 2=fullppr, 3=noppr
+            leagueData.syncStatus = 'success';
+            leagueData.lastSyncTime = new Date();
+            leagueData.userId = userId;
+
+            const createdLeague = await this.leagueRepository.create(leagueData, { transaction });
+
+            const teams = await yf.league.teams(createdLeague.remoteId);
+            await Promise.all(
+                teams.teams.map(async (team: any) => {
+                    const teamData = new Team();
+
+                    teamData.name = team.name;
+                    teamData.remoteId = team.team_key;
+                    teamData.logoUrl = team.team_logos[0].url;
+                    teamData.wordMarkUrl = team.url;
+                    teamData.userId = userId;
+                    teamData.leagueId = createdLeague.id;
+                    const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                    const roster = await yf.team.roster(createdTeam.remoteId);
+
+                    await Promise.all(
+                        roster.roster.map(async (remotePlayer: any) => {
+                            const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+                            const rosterData = new Roster();
+                            rosterData.teamId = createdTeam.id;
+                            rosterData.playerId = foundPlayer.id;
+                            rosterData.displayPosition = remotePlayer.display_position;
+                            await this.rosterRepository.create(rosterData, { transaction });
+                            return false;
+                        }),
+                    );
+                }),
+            );
+
+            const userData = await this.userRepository.findById(userId);
+
+            if (userData) {
+                userData.yahooRefreshToken = refreshToken || null;
+                userData.yahooAccessToken = refreshToken || null;
+
+                await this.userRepository.save(userData, { transaction });
+            }
+
+            const memberData = new Member();
+            memberData.leagueId = createdLeague.id;
+            memberData.userId = createdLeague.userId;
+
+            await this.memberRepository.create(memberData, { transaction });
+
+            await transaction.commit();
+
+            const newLeague = await this.leagueRepository.find({
+                where: {
+                    remoteId: leagueKey,
+                },
+                include: ['teams'],
+            });
+
+            return {
+                message: LEAGUE_IMPORT_MESSAGES.IMPORT_SUCCESS_YAHOO,
+                data: {
+                    league: newLeague,
+                },
+            };
+        } catch (error) {
+            console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
+            await transaction.rollback();
+            throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.IMPORT_FAILED_YAHOO);
+        }
     }
 }

@@ -1,9 +1,10 @@
-import {belongsTo, hasMany, model, property} from '@loopback/repository';
-import {Base} from '.';
-import {ImportSource} from './import-source.model';
-import {ScoringType} from './scoring-type.model';
-import {Team} from './team.model';
-import {User, UserWithRelations} from './user.model';
+import { belongsTo, hasMany, model, property } from '@loopback/repository';
+import { Base } from '.';
+import { ImportSource } from './import-source.model';
+import { ScoringType, ScoringTypeRelations } from './scoring-type.model';
+import { Team } from './team.model';
+import { User, UserWithRelations } from './user.model';
+import { Member } from './member.model';
 
 @model()
 export class League extends Base {
@@ -12,31 +13,19 @@ export class League extends Base {
         id: true,
         generated: true,
     })
-    id: number;
+    id: number
 
     @property({
-        type: 'number',
+        type: 'string',
         required: false,
     })
-    sourceId: number;
-
-    @property({
-        type: 'number',
-        required: false,
-    })
-    remoteId: number;
+    remoteId: string;
 
     @property({
         type: 'string',
         required: true,
     })
     name: string;
-
-    @property({
-        type: 'number',
-        required: false,
-    })
-    scoringTypeId: number;
 
     @property({
         type: 'string',
@@ -48,21 +37,23 @@ export class League extends Base {
         type: 'date',
         required: false,
         default: null,
-      })
+    })
     lastSyncTime: Date | null;
 
     @hasMany(() => Team)
-    teams: Team[];
+    teams?: Team[];
+
+    @hasMany(() => Member)
+    members?: Member[];
 
     @belongsTo(() => User)
     userId: number;
 
-    @hasMany(() => ScoringType)
-    scoringType: ScoringType[];
+    @belongsTo(() => ScoringType)
+    scoringTypeId: number;
 
-    @hasMany(() => ImportSource)
-    importSource: ImportSource[];
-
+    @belongsTo(() => ImportSource)
+    importSourceId: number;
 
     constructor(data?: Partial<League>) {
         super(data);
@@ -72,9 +63,7 @@ export class League extends Base {
 export interface LeagueRelations {
     // describe navigational properties here
     user?: UserWithRelations;
-    teams?: Team[];
-    scoringTypes?: ScoringType[];
-    importSources?: ImportSource[];
+    scoringType?: ScoringTypeRelations;
 }
 
 export type LeagueWithRelations = League & LeagueRelations;

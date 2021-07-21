@@ -13,21 +13,21 @@ export class Team extends Base {
     })
     id: number;
 
-    @property({
-        type: 'string',
-        required: true,
-    })
-    league: string;
+    // @property({
+    //     type: 'string',
+    //     // required: true,
+    // })
+    // league: string;
 
     @property({
         type: 'string',
-        required: true,
+        // required: true,
     })
     abbr: string;
 
     @property({
         type: 'string',
-        required: true,
+        // required: true,
     })
     slug: string;
 
@@ -38,11 +38,10 @@ export class Team extends Base {
     name: string;
 
     @property({
-        type: 'number',
+        type: 'string',
         required: false,
-        index: true,
     })
-    remoteId: number;
+    remoteId: string;
 
     @property({
         type: 'string',

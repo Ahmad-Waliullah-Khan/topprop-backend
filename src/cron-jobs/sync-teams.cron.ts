@@ -25,7 +25,7 @@ export class SyncTeamsCron extends CronJob {
                         const remoteTeam = remoteTeams[index];
                         const team = await this.teamRepo.findOne({ where: { abbr: remoteTeam.Key } });
                         if (team) {
-                            team.remoteId = remoteTeam.TeamID;
+                            team.remoteId = "";
                             team.logoUrl = remoteTeam.WikipediaLogoUrl;
                             team.wordMarkUrl = remoteTeam.WikipediaWordMarkUrl;
                             await this.teamRepo.save(team);

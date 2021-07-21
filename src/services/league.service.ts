@@ -48,4 +48,14 @@ export class LeagueService {
         const teams = await myClient.getTeamsAtWeek({ seasonId, scoringPeriodId });
         return teams;
     }
+
+    async findPlayer(remotePlayer: any, localPlayers: any): Promise<any> {
+        const foundLocalPlayer = localPlayers.find(
+            (localPlayer: any) =>
+                remotePlayer.name.first === localPlayer.firstName &&
+                remotePlayer.name.last === localPlayer.lastName &&
+                remotePlayer.display_position === localPlayer.position,
+        );
+        return foundLocalPlayer;
+    }
 }

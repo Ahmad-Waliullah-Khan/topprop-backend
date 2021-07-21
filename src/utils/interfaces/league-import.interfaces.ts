@@ -16,6 +16,8 @@ export interface ILeagueImportRequestEspn extends League {
     source?: string;
 }
 export interface ILeagueImportRequestYahoo extends League {
-    leagueKey: number;
-    source?: string;
+    leagueKey: string;
+    accessToken: string;
+    refreshToken: string;
+    scoringTypeId: number;
 }

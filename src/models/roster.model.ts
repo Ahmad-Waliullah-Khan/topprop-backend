@@ -12,6 +12,12 @@ export class Roster extends Base {
     })
     id: number;
 
+    @property({
+        type: 'string',
+        required: true,
+    })
+    displayPosition: string;
+
     @belongsTo(() => Team)
     teamId: number;
 

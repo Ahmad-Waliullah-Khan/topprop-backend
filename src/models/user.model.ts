@@ -62,6 +62,13 @@ export class User extends Entity {
     })
     _connectToken: string | null;
 
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    yahooAccessToken: string | null;
+
     @property({
         type: 'string',
         default: null,
