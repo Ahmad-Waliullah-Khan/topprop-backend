@@ -36,3 +36,6 @@ export * from './wallet/wallet.controller';
 // export * from './withdraw-request-user.controller';
 export * from './withdraw-request/withdraw-request.controller';
 export * from './cron/cron.controller';
+
+export * from './league/league-import.controller';
+export * from './league/league.controller';

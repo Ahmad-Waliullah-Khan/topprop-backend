@@ -15,7 +15,7 @@ export class TeamService {
             const team = await this.teamRepository.findOne({ where: { slug: nflTeam.slug } });
             if (!team) {
                 await this.teamRepository.create({
-                    league: 'nfl',
+                    // league: 'nfl',
                     slug: nflTeam.slug,
                     name: startCase(nflTeam.slug),
                     abbr: nflTeam.abbr,

@@ -16,16 +16,16 @@ export class MiscHelpers {
     // };
 
     static toCurrency = (amount: number): string => {
-        let maskedAmount = `$${amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+        const maskedAmount = `$${amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
         if (amount < 0) '-' + maskedAmount;
         return maskedAmount;
     };
 
     static appendRandomStr = (str: string, customLength?: number): string => {
         customLength = customLength || 15;
-        let difference = customLength - str.length;
+        const difference = customLength - str.length;
         if (difference <= 0) return str;
-        let appendableStr = randomString.generate({
+        const appendableStr = randomString.generate({
             length: difference,
             charset: 'alphanumeric',
         });
@@ -43,4 +43,22 @@ export class MiscHelpers {
         }
         return total;
     };
+
+    static parseCookie(cookie: string) {
+        const value = '; ' + document.cookie;
+        const parts = value.split('; ' + name + '=');
+        console.log('Parsing cookie: ' + name);
+        if (parts.length === 2) {
+          console.log(
+            parts
+              .pop()
+              ?.split(';')
+              .shift()
+          );
+          return parts
+            .pop()
+            ?.split(';')
+            .shift();
+        }
+      }
 }

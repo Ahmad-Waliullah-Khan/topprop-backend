@@ -1,6 +1,8 @@
-import { hasMany, model, property } from '@loopback/repository';
-import { Base } from '.';
-import { Player } from './player.model';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
+import {Base} from '.';
+import {League, LeagueWithRelations} from './league.model';
+import {Player} from './player.model';
+import {User, UserWithRelations} from './user.model';
 
 @model()
 export class Team extends Base {
@@ -11,21 +13,21 @@ export class Team extends Base {
     })
     id: number;
 
-    @property({
-        type: 'string',
-        required: true,
-    })
-    league: string;
+    // @property({
+    //     type: 'string',
+    //     // required: true,
+    // })
+    // league: string;
 
     @property({
         type: 'string',
-        required: true,
+        // required: true,
     })
     abbr: string;
 
     @property({
         type: 'string',
-        required: true,
+        // required: true,
     })
     slug: string;
 
@@ -36,11 +38,10 @@ export class Team extends Base {
     name: string;
 
     @property({
-        type: 'number',
+        type: 'string',
         required: false,
-        index: true,
     })
-    remoteId: number;
+    remoteId: string;
 
     @property({
         type: 'string',
@@ -57,6 +58,12 @@ export class Team extends Base {
     @hasMany(() => Player)
     players: Player[];
 
+    @belongsTo(() => User)
+    userId: number;
+
+    @belongsTo(() => League)
+    leagueId: number;
+
     constructor(data?: Partial<Team>) {
         super(data);
     }
@@ -65,6 +72,8 @@ export class Team extends Base {
 export interface TeamRelations {
     // describe navigational properties here
     players?: Player[];
+    user?: UserWithRelations;
+    league?: LeagueWithRelations;
 }
 
 export type TeamWithRelations = Team & TeamRelations;

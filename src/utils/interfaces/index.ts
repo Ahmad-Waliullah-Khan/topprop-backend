@@ -9,3 +9,4 @@ export * from './stripe.interfaces';
 export * from './team.interfaces';
 export * from './user.interfaces';
 export * from './wallet.interfaces';
+export * from './league-import.interfaces';

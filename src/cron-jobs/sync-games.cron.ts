@@ -28,10 +28,10 @@ export class SyncGamesCron extends CronJob {
                     for (let index = 0; index < currentWeekSchedule.length; index++) {
                         const remoteGame = currentWeekSchedule[index];
                         const visitorTeam = await this.teamRepo.findOne({
-                            where: { remoteId: remoteGame.GlobalAwayTeamID },
+                            where: { remoteId: "" },
                         });
                         const homeTeam = await this.teamRepo.findOne({
-                            where: { remoteId: remoteGame.GlobalHomeTeamID },
+                            where: { remoteId: "" },
                         });
 
                         if (visitorTeam && homeTeam) {

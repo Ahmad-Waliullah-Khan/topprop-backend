@@ -19,6 +19,8 @@ export const API_RESOURCES = {
     TOP_UPS: 'top-ups',
     WITHDRAW_REQUESTS: 'withdraw-requests',
     CRONS: 'crons',
+    LEAGUE_IMPORT: 'league-import',
+    LEAGUE: 'league',
 };
 
 export const API_ENDPOINTS = {
@@ -199,5 +201,14 @@ export const API_ENDPOINTS = {
         FETCH_PROJECTIONS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/fetch-projections`,
         FETCH_POINTS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/fetch-points`,
         WIN_CHECK: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.CRONS}/win-check`,
+    },
+    LEAGUE_IMPORT: {
+        FETCH_YAHOO_LEAGUES: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_IMPORT}/fetch-yahoo-leagues`,
+        FETCH_ESPN_LEAGUES: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_IMPORT}/fetch-espn-leagues`,
+        IMPORT_YAHOO: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_IMPORT}/import-yahoo-league`,
+        IMPORT_ESPN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_IMPORT}/import-espn-league`,
+    },
+    LEAGUE: {
+        CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE}`,
     },
 };
