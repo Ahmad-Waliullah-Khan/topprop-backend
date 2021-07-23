@@ -3,7 +3,6 @@ import {repository} from '@loopback/repository';
 import {PlayerRepository, SpreadRepository} from '@src/repositories';
 import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
-import chalk from 'chalk';
 const { Client } = require('espn-fantasy-football-api/node');
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -73,37 +72,29 @@ export class LeagueService {
         return foundLocalPlayer;
     }
 
-    async calculateSpread(playerId: number, opponentId: number, type: string) {
+    async calculateSpread(
+        creatorProjectedPoints: number,
+        opponentProjectedPoints: number,
+        type: string,
+        ) {
         let spread = 0;
 
-        const playerData = await this.playerRepo.findById(playerId);
-        if (!playerData) {
-            console.log(chalk.redBright(`Player with id: ${playerId} not found`));
-        }
-
-        const opponentData = await this.playerRepo.findById(opponentId);
-        if (!opponentData) {
-            console.log(chalk.redBright(`Opponent with id: ${opponentId} not found`));
-        }
-
-        const playerProjectedPoints = playerData ? playerData.projectedFantasyPoints : 0;
-        const opponentProjectedPoints = opponentData ? opponentData.projectedFantasyPoints : 0;
         if (type === 'creator') {
-            spread = MiscHelpers.roundValue(opponentProjectedPoints - playerProjectedPoints, 0.5);
+            spread = MiscHelpers.roundValue(opponentProjectedPoints - creatorProjectedPoints, 0.5);
         } else {
-            spread = MiscHelpers.roundValue(playerProjectedPoints - opponentProjectedPoints, 0.5);
+            spread = MiscHelpers.roundValue(creatorProjectedPoints - opponentProjectedPoints, 0.5);
         }
 
         return spread;
     }
 
-    async calculateCover(spread: number, entry: number, winBonus: boolean) {
+    async calculateCover(spread: number, entry: number, winBonus: boolean, spreadType: string) {
         let cover = 0;
         const spreadData = await this.spreadRepo.findOne({
-            order: ['updatedat DESC'],
+            order: ['updatedAt DESC'],
             where: {
                 projectionSpread: spread,
-                spreadType: 'lobby',
+                spreadType: spreadType,
             },
         });
 
@@ -115,38 +106,17 @@ export class LeagueService {
         return cover;
     }
 
-    async calculateWinBonus(spread: number, entry: number) {
+    async calculateWinBonus(spread: number, entry: number, spreadType: string) {
         let winBonus = 0;
         const spreadData = await this.spreadRepo.findOne({
-            order: ['updatedat DESC'],
+            order: ['updatedAt DESC'],
             where: {
                 projectionSpread: spread,
-                spreadType: 'lobby',
+                spreadType: spreadType,
             },
         });
         const MLPay = spreadData ? spreadData.mlPay : 0;
         winBonus = entry * 0.15 * MLPay;
         return winBonus;
-    }
-
-    async checkPlayerStatus(playerId: number, opponentId: number) {
-        const playerData = await this.playerRepo.findById(playerId);
-        if (!playerData) {
-            console.log(chalk.redBright(`Player with id: ${playerId} not found`));
-            return false;
-        }
-
-        const opponentData = await this.playerRepo.findById(opponentId);
-        if (!opponentData) {
-            console.log(chalk.redBright(`Opponent with id: ${opponentId} not found`));
-            return false;
-        }
-
-        if (playerData.isOver || opponentData.isOver) {
-            console.log(chalk.redBright(`Player(s) not available for contest`));
-            return false;
-        }
-
-        return true;
     }
 }
