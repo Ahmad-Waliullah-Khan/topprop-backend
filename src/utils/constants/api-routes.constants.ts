@@ -210,5 +210,6 @@ export const API_ENDPOINTS = {
     },
     LEAGUE: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE}`,
+        CREATE_CONTEST: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE}/create-contest`,
     },
 };
