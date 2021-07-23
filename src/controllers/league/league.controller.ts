@@ -18,14 +18,18 @@ import {
     ICustomUserProfile,
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
+    ILeagueCreateRequest
 } from '@src/utils/interfaces';
-import { INVITE_VALIDATOR } from '@src/utils/validators';
+import { INVITE_VALIDATOR, LEAGUE_CONTEST_VALIDATOR } from '@src/utils/validators';
 import {
     LeagueRepository,
     MemberRepository,
     TeamRepository,
     InviteRepository,
     UserRepository,
+    PlayerRepository,
+    RosterRepository,
+    ContestRosterRepository,
 } from '@src/repositories';
 import { COMMON_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
 
@@ -44,6 +48,12 @@ export class LeagueController {
         @repository(UserRepository)
         public userRepository: UserRepository,
         @service() protected userService: UserService,
+        @repository(PlayerRepository)
+        public playerRepository: PlayerRepository,
+        @repository(RosterRepository)
+        public rosterRepository: RosterRepository,
+        @repository(ContestRosterRepository)
+        public contestRosterRepository: ContestRosterRepository,
     ) {}
 
     @authenticate('jwt')
@@ -384,7 +394,7 @@ export class LeagueController {
             const memberData = new Member();
             memberData.leagueId = invite.leagueId;
             memberData.userId = user.id;
-            
+
             await this.memberRepository.create(memberData);
 
             if (invite.teamId) {
@@ -446,5 +456,75 @@ export class LeagueController {
             console.log('🚀 ~ file: league.controller.ts ~ line 206 ~ LeagueController ~ error', error);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_JOINING_FAILED);
         }
+    }
+
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.LEAGUE.CREATE_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Create a League Contest.',
+            },
+        },
+    })
+    async createLeagueContest(
+        @requestBody()
+        body: Partial<ILeagueCreateRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        if (!body.creatorId) body.creatorId = +currentUser[securityId];
+
+        const validationSchema = {
+            creatorTeamId: LEAGUE_CONTEST_VALIDATOR.creatorTeamId,
+            claimerTeamId: LEAGUE_CONTEST_VALIDATOR.claimerTeamId,
+            entryAmount: LEAGUE_CONTEST_VALIDATOR.entryAmount,
+            winBonus: LEAGUE_CONTEST_VALIDATOR.winBonus,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const { creatorTeamId, claimerTeamId, entryAmount, winBonus, creatorId } = body;
+
+        const creatorTeam = await this.teamRepository.findById(Number(creatorTeamId));
+        if (!creatorTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATOR_TEAM_DOES_NOT_EXIST);
+
+        const claimerTeam = await this.teamRepository.findById(Number(claimerTeamId));
+        if (!claimerTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CLAIMER_TEAM_DOES_NOT_EXIST);
+
+        const member = await this.memberRepository.find({
+            where: {
+                and: [{ userId: creatorId }, { leagueId: creatorTeamId }],
+            },
+        });
+        if (member.length <= 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_A_MEMBER);
+
+        if (creatorTeam.leagueId !== claimerTeam.leagueId)
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_SAME_LEAGUE);
+
+        //Do contest calculation
+        //Clone roster to contest-roster
+        //Save DB
+
+        // fetch the creatorTeam along with players
+        // fetch the claimerTeam along with players
+        // find the number of players available in the creator team
+        // find the number of players available in the claimer team
+        // if any of the team contains number of available players <=2 then first sheet calculation
+        // if any of the team contains number of available players >=3 and <=6 then second sheet calculation
+        // if any of the team contains number of available players >=7 and <=18 then third sheet calculation
+        // calculate total projectedFantasy of the players of both team which will be team's projected fantasy
+        // Calculate the spread according to spread table
+        // calculate winBonus if boolean is set
+        // calculate cover
+        // calculate maxWin
+        //
+
+        return {
+            message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
+            data: {},
+        };
     }
 }

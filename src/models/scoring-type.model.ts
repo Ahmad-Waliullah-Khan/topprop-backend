@@ -1,12 +1,13 @@
-import { model, property, hasMany } from '@loopback/repository';
-import { Base } from '.';
-import { League } from './league.model';
+import {hasMany, model, property} from '@loopback/repository';
+import {Base} from '.';
+import {League} from './league.model';
 
 @model()
 export class ScoringType extends Base {
     @property({
         type: 'number',
         id: true,
+        generated: true,
     })
     id: number;
 
