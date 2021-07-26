@@ -163,7 +163,7 @@ export class LeagueContest extends Base {
   @property({
     type: 'string',
     required: true,
-    default: CONTEST_TYPES.LOBBY,
+    default: CONTEST_TYPES.LEAGUE,
   })
   type: CONTEST_TYPES;
 
@@ -248,6 +248,7 @@ export class LeagueContest extends Base {
 export interface LeagueContestRelations {
     winner?: UserWithRelations;
     creator?: UserWithRelations;
+    claimer?: UserWithRelations;
     creatorTeam?: TeamWithRelations;
     claimerTeam?: TeamWithRelations;
     spread?: SpreadWithRelations;
