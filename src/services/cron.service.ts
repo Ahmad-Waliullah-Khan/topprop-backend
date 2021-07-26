@@ -205,10 +205,7 @@ export class CronService {
 
         console.log(chalk.green(`${cronMessage} cron finished at`, moment().format('DD-MM-YYYY hh:mm:ss a')));
 
-        //Log cron messages to info.log file
-        if (process.env.NODE_ENV !== 'production') {
-            logger.info(`${cronMessage} cron finished at ` + moment().format('DD-MM-YYYY hh:mm:ss a'));
-        }
+        logger.info(`${cronMessage} cron finished at ` + moment().format('DD-MM-YYYY hh:mm:ss a'));
     }
 
     async processPlayerFantasyPoints() {
@@ -460,6 +457,7 @@ export class CronService {
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
                 entryGain.contenderId = underdog.playerId;
+                entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for favorite', entryGain);
 
@@ -468,6 +466,7 @@ export class CronService {
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = underdog.userId;
                 entryGain.contenderId = favorite.playerId;
+                entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for underdog', entryGain);
 
@@ -538,6 +537,7 @@ export class CronService {
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = userId;
                 entryGain.contenderId = contenderId;
+                entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
 
@@ -548,6 +548,7 @@ export class CronService {
                 winningGain.amount = Number(winningAmount) * 100;
                 winningGain.userId = userId;
                 winningGain.contenderId = contenderId;
+                entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
@@ -725,6 +726,7 @@ export class CronService {
             entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
             entryGain.userId = unclaimedContest.creatorPlayerId;
             entryGain.contenderId = unclaimedContest.creatorPlayerId;
+            entryGain.contestId = unclaimedContest.id;
 
             await this.gainRepository.create(entryGain);
 
@@ -814,6 +816,7 @@ export class CronService {
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
                 entryGain.contenderId = favorite.playerId;
+                entryGain.contestId = contest.id;
                 await this.gainRepository.create(entryGain);
             } else {
                 // No data so autoclose
@@ -832,6 +835,8 @@ export class CronService {
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
                 entryGain.contenderId = underdog.playerId;
+                entryGain.contestId = contest.id;
+                
 
                 await this.gainRepository.create(entryGain);
 

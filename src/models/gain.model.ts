@@ -2,6 +2,7 @@ import { belongsTo, model, property } from '@loopback/repository';
 import { Base } from '.';
 import { Contender } from './contender.model';
 import { User } from './user.model';
+import { Contest } from './contest.model';
 
 @model()
 export class Gain extends Base {
@@ -32,6 +33,15 @@ export class Gain extends Base {
 
     @belongsTo(() => Contender)
     contenderId: number;
+
+    @belongsTo(() => Contest)
+    contestId: number;
+
+    @property({
+        type: 'string',
+        default: 'battleground',
+    })
+    contestType: string;
 
     @property({
         type: 'boolean',

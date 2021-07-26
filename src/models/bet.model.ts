@@ -2,6 +2,7 @@ import { belongsTo, model, property } from '@loopback/repository';
 import { Base } from '.';
 import { Contender } from './contender.model';
 import { User } from './user.model';
+import { Contest } from './contest.model';
 
 @model()
 export class Bet extends Base {
@@ -26,6 +27,15 @@ export class Bet extends Base {
 
     @belongsTo(() => Contender)
     contenderId: number;
+
+    @belongsTo(() => Contest)
+    contestId: number;
+
+    @property({
+        type: 'string',
+        default: 'battleground',
+    })
+    contestType: string;
 
     @property({
         type: 'boolean',
@@ -71,6 +81,7 @@ export class Bet extends Base {
 export interface BetRelations {
     user?: User;
     contender?: Contender;
+    contest?: Contest;
 }
 
 export type BetWithRelations = Bet & BetRelations;

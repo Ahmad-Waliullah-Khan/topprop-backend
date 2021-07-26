@@ -170,12 +170,14 @@ export class ContestController {
         contestData.ended = false;
 
         const createdContest = await this.contestRepository.create(contestData);
+        console.log("🚀 ~ file: contest.controller.ts ~ line 173 ~ ContestController ~ createdContest", createdContest)
 
         const bet = new Bet();
 
         bet.contenderId = creatorPlayerId;
         bet.userId = userId;
         bet.amount = entryAmount * 100;
+        bet.contestId = createdContest.id;
 
         await this.betRepository.create(bet);
 
@@ -289,6 +291,7 @@ export class ContestController {
         bet.contenderId = contestData.claimerPlayerId;
         bet.userId = userId;
         bet.amount = contestData.entryAmount * 100;
+        bet.contestId = contestId;
 
         await this.betRepository.create(bet);
 
