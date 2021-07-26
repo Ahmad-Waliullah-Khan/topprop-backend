@@ -36,7 +36,7 @@ import {
     BetRepository,
 } from '@src/repositories';
 import { COMMON_MESSAGES, LEAGUE_MESSAGES, CONTEST_MESSAGES } from '@src/utils/messages';
-import { SPREAD_TYPE, CONTEST_STATUSES } from '@src/utils/constants';
+import { SPREAD_TYPE, CONTEST_STATUSES, CONTEST_TYPES } from '@src/utils/constants';
 
 import moment from 'moment';
 
@@ -501,10 +501,10 @@ export class LeagueController {
         const claimerTeamId = body.claimerTeamId || 0;
         const creatorId = body.creatorId || 0;
 
-        const creatorTeam = await this.teamRepository.findById(creatorTeamId);
+        const creatorTeam = await this.teamRepository.findById(creatorTeamId, { include: ['players'] });
         if (!creatorTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATOR_TEAM_DOES_NOT_EXIST);
 
-        const claimerTeam = await this.teamRepository.findById(claimerTeamId);
+        const claimerTeam = await this.teamRepository.findById(claimerTeamId, { include: ['players'] });
         if (!claimerTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CLAIMER_TEAM_DOES_NOT_EXIST);
 
         const member = await this.memberRepository.find({
@@ -569,6 +569,8 @@ export class LeagueController {
             let creatorTeamWinBonus = 0;
             let claimerTeamWinBonus = 0;
 
+            let contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
+
             if (remainingClaimerPlayers.length <= 2 || remainingCreatorPlayers.length <= 2) {
                 creatorTeamCover = await this.leagueService.calculateCover(
                     creatorTeamSpread,
@@ -598,6 +600,8 @@ export class LeagueController {
                           SPREAD_TYPE.LEAGUE_1_TO_2,
                       )
                     : 0;
+
+                contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
             }
 
             if (
@@ -632,6 +636,8 @@ export class LeagueController {
                           SPREAD_TYPE.LEAGUE_3_TO_6,
                       )
                     : 0;
+
+                contestType = SPREAD_TYPE.LEAGUE_3_TO_6;
             }
 
             if (
@@ -666,6 +672,8 @@ export class LeagueController {
                           SPREAD_TYPE.LEAGUE_7_TO_18,
                       )
                     : 0;
+
+                contestType = SPREAD_TYPE.LEAGUE_7_TO_18;
             }
 
             const creatorTeamMaxWin = Number(creatorTeamCover) + Number(creatorTeamWinBonus);
@@ -683,7 +691,7 @@ export class LeagueController {
             leagueContestData.entryAmount = entryAmount;
             leagueContestData.creatorPlayerProjFantasyPoints = totalCreatorTeamProjFantasy;
             leagueContestData.claimerPlayerProjFantasyPoints = totalClaimerTeamProjFantasy;
-            leagueContestData.claimerTeamCover = creatorTeamCover;
+            leagueContestData.creatorTeamCover = creatorTeamCover;
             leagueContestData.claimerTeamCover = claimerTeamCover;
             leagueContestData.creatorTeamMaxWin = creatorTeamMaxWin;
             leagueContestData.claimerTeamMaxWin = claimerTeamMaxWin;
@@ -693,12 +701,13 @@ export class LeagueController {
             leagueContestData.claimerTeamSpread = claimerTeamSpread;
             leagueContestData.spreadValue = spreadValue;
             leagueContestData.mlValue = mlValue;
+            leagueContestData.type = CONTEST_TYPES.LEAGUE;
             leagueContestData.status = CONTEST_STATUSES.OPEN;
             leagueContestData.ended = false;
 
             const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData);
 
-            creatorTeam.players.map(async (player: any) => {
+            creatorTeam.players.map(async player => {
                 const contestRosterData = new ContestRoster();
                 contestRosterData.teamId = creatorTeamId;
                 contestRosterData.playerId = player.id;
@@ -706,7 +715,7 @@ export class LeagueController {
                 return false;
             });
 
-            claimerTeam.players.map(async (player: any) => {
+            claimerTeam.players.map(async player => {
                 const contestRosterData = new ContestRoster();
                 contestRosterData.teamId = claimerTeamId;
                 contestRosterData.playerId = player.id;
@@ -722,39 +731,10 @@ export class LeagueController {
 
             await this.betRepository.create(bet);
 
-            const myContestFilter = {
-                where: {
-                    and: [
-                        { ended: false },
-                        { or: [{ creatorId: userId }, { claimerId: userId }] },
-                        {
-                            or: [
-                                { status: CONTEST_STATUSES.OPEN },
-                                { status: CONTEST_STATUSES.MATCHED },
-                                { status: CONTEST_STATUSES.UNMATCHED },
-                            ],
-                        },
-                    ],
-                },
-                include: ['creator', 'claimer', 'winner', 'creatorTeam', 'claimerTeam'],
-            };
-
-            const contestFilter = {
-                where: {
-                    status: CONTEST_STATUSES.OPEN,
-                    ended: false,
-                    creatorId: { neq: userId },
-                },
-                include: ['creator', 'claimer', 'winner', 'creatorTeam', 'claimerTeam'],
-            };
-            const myContests = await this.leagueContestRepository.find(myContestFilter);
-            const contests = await this.leagueContestRepository.find(contestFilter);
-
             return {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
                 data: {
-                    myContests: myContests,
-                    contests: contests,
+                    contest: createdLeagueContest,
                 },
             };
         } catch (error) {
