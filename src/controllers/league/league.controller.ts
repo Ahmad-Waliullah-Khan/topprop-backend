@@ -4,7 +4,7 @@ import { inject, service } from '@loopback/core';
 import { isEmpty, find } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { repository, FilterExcludingWhere } from '@loopback/repository';
+import { repository, FilterExcludingWhere, Filter } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -470,7 +470,7 @@ export class LeagueController {
     }
 
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
-    @post(API_ENDPOINTS.LEAGUE.CREATE_CONTEST, {
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.CREATE_CONTEST, {
         responses: {
             '200': {
                 description: 'Create a League Contest.',
@@ -735,11 +735,35 @@ export class LeagueController {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
                 data: {
                     contest: createdLeagueContest,
+                    // myContests: myContests
                 },
             };
         } catch (error) {
             console.log(error);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_FAILED);
         }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @get(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
+        responses: {
+            '200': {
+                description: 'Array of League Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(LeagueContest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async find(
+        @param.filter(LeagueContest) filter?: Filter<LeagueContest>,
+    ): Promise<ICommonHttpResponse<LeagueContest[]>> {
+        return { data: await this.leagueContestRepository.find(filter) };
     }
 }
