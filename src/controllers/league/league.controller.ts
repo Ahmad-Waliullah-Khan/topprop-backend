@@ -2,7 +2,7 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {inject, service} from '@loopback/core';
 import {Filter, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
+import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
 import {Bet, ContestRoster, League, LeagueContest} from '@src/models';
 import {BetRepository, ContestRosterRepository, LeagueContestRepository, LeagueRepository, MemberRepository, PlayerRepository, RosterRepository, TeamRepository, UserRepository} from '@src/repositories';
@@ -12,9 +12,9 @@ import {API_ENDPOINTS, CONTEST_STATUSES, CONTEST_TYPES, PERMISSIONS, SPREAD_TYPE
 import {ErrorHandler} from '@src/utils/helpers';
 import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {ICommonHttpResponse, ICustomUserProfile} from '@src/utils/interfaces';
-import {ILeagueCreateRequest} from '@src/utils/interfaces/league.interface';
+import {ILeagueClaimContestRequest, ILeagueCreateRequest} from '@src/utils/interfaces/league.interface';
 import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_IMPORT_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
-import {LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
+import {LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
 import {isEmpty} from 'lodash';
 import Schema from 'validate';
 
@@ -88,7 +88,7 @@ export class LeagueController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
-    @post(API_ENDPOINTS.LEAGUE.CONTEST.CREATE_CONTEST, {
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
         responses: {
             '200': {
                 description: 'Create a League Contest.',
@@ -352,5 +352,105 @@ export class LeagueController {
     })
     async find(@param.filter(LeagueContest) filter?: Filter<LeagueContest>): Promise<ICommonHttpResponse<LeagueContest[]>> {
         return { data: await this.leagueContestRepository.find(filter) };
+    }
+
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @patch(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
+        responses: {
+            '200': {
+                description: 'League Contest model instance',
+                content: {
+                    'application/json': {
+                        schema: {
+                            message: { type: 'string' },
+                            data: {
+                                myContests: { type: 'array', items: getModelSchemaRef(LeagueContest) },
+                                contests: { type: 'array', items: getModelSchemaRef(LeagueContest) },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async claim(
+        @requestBody()
+        body: Partial<ILeagueClaimContestRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        if (!body.claimerId) body.claimerId = +currentUser[securityId];
+
+        const validationSchema = {
+            leagueContestId: LEAGUE_CONTEST_CLAIM_VALIDATOR.leagueContestId,
+            claimerId: LEAGUE_CONTEST_CLAIM_VALIDATOR.claimerId,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const leagueContestId = body.leagueContestId || 0;
+        const userId = body.claimerId || 0;
+        const leagueContestData = await this.leagueContestRepository.findById(leagueContestId);
+        if (!leagueContestData) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_NOT_FOUND);
+
+        if (leagueContestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
+
+        const funds = await this.walletService.userBalance(userId);
+        const entryAmount = leagueContestData.entryAmount || 0;
+        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+
+        leagueContestData.claimerId = body.claimerId;
+        leagueContestData.status = CONTEST_STATUSES.MATCHED;
+
+        const updatedContest = await this.leagueContestRepository.updateById(leagueContestId, leagueContestData);
+
+        const bet = new Bet();
+
+        bet.contenderId = leagueContestData.claimerTeamId;
+        bet.userId = userId;
+        bet.amount = leagueContestData.entryAmount * 100;
+
+        await this.betRepository.create(bet);
+
+        const myContestFilter = {
+            where: {
+                and: [
+                    { ended: false },
+                    { or: [{ creatorId: userId }, { claimerId: userId }] },
+                    {
+                        or: [
+                            { status: CONTEST_STATUSES.OPEN },
+                            { status: CONTEST_STATUSES.MATCHED },
+                            { status: CONTEST_STATUSES.UNMATCHED },
+                        ],
+                    },
+                ],
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorTeam', 'claimerTeam'],
+        };
+
+        const contestFilter = {
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+                creatorId: { neq: userId },
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorTeam', 'claimerTeam'],
+        };
+        const myContests = await this.leagueContestRepository.find(myContestFilter);
+        const contests = await this.leagueContestRepository.find(contestFilter);
+
+        return {
+            message: CONTEST_MESSAGES.CLAIM_SUCCESS,
+            data: {
+                myContests: myContests,
+                contests: contests,
+            },
+        };
     }
 }

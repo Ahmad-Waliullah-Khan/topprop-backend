@@ -33,3 +33,22 @@ export const LEAGUE_CONTEST_VALIDATOR = {
     },
 
 };
+
+export const LEAGUE_CONTEST_CLAIM_VALIDATOR = {
+    leagueContestId: {
+        required: true,
+        type: Number,
+        message: {
+            required: 'League Contest id is required.',
+            type: 'League Contest id must be a number.',
+        },
+    },
+    claimerId: {
+        required: true,
+        type: Number,
+        message: {
+            required: 'Claimer id is required.',
+            type: 'Claimer id must be a number.',
+        },
+    },
+};

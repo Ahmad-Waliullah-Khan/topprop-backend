@@ -6,3 +6,7 @@ export interface ILeagueCreateRequest extends LeagueContest {
     entryAmount: number;
     winBonus: boolean;
 }
+
+export interface ILeagueClaimContestRequest extends LeagueContest {
+    leagueContestId: number;
+}
