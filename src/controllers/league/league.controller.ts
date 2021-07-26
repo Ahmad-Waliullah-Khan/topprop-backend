@@ -1,8 +1,8 @@
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {inject, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, post, requestBody} from '@loopback/rest';
+import {Filter, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
 import {Bet, ContestRoster, League, LeagueContest} from '@src/models';
 import {BetRepository, ContestRosterRepository, LeagueContestRepository, LeagueRepository, MemberRepository, PlayerRepository, RosterRepository, TeamRepository, UserRepository} from '@src/repositories';
@@ -88,7 +88,7 @@ export class LeagueController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
-    @post(API_ENDPOINTS.LEAGUE.CREATE_CONTEST, {
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.CREATE_CONTEST, {
         responses: {
             '200': {
                 description: 'Create a League Contest.',
@@ -322,6 +322,7 @@ export class LeagueController {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
                 data: {
                     contest: createdLeagueContest,
+                    // myContests: myContests
                 },
             };
 
@@ -330,5 +331,26 @@ export class LeagueController {
             console.log(error);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_FAILED,);
         }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @get(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
+        responses: {
+            '200': {
+                description: 'Array of League Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(LeagueContest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async find(@param.filter(LeagueContest) filter?: Filter<LeagueContest>): Promise<ICommonHttpResponse<LeagueContest[]>> {
+        return { data: await this.leagueContestRepository.find(filter) };
     }
 }
