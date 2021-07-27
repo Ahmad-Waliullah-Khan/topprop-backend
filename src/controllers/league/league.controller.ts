@@ -128,34 +128,46 @@ export class LeagueController {
         const member = await this.memberRepository.find({
             where: {
                 and: [
-                    { userId: creatorId },
-                    { leagueId: creatorTeamId},
+                    { userId: body.creatorId },
+                    { leagueId: creatorTeam.leagueId},
                 ],
             },
         });
+
         if (member.length <= 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_A_MEMBER);
 
         if(creatorTeam.leagueId !== claimerTeam.leagueId) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_SAME_LEAGUE);
 
         try {
 
-            const creatorPlayers = creatorTeam.players;
-            const claimerPlayers = claimerTeam.players;
-
-            const remainingCreatorPlayers = creatorPlayers.filter((player) => {
-                return !player?.isOver;
+            const creatorTeamRoster = await this.rosterRepository.find({
+                where: {
+                    teamId: creatorTeamId
+                },
+                include: ['player', 'team'],
             });
 
-            const remainingClaimerPlayers = claimerPlayers.filter((player) => {
-                return !player?.isOver;
+            const claimerTeamRoster = await this.rosterRepository.find({
+                where: {
+                    teamId: claimerTeamId
+                },
+                include: ['player', 'team'],
             });
 
-            const creatorTeamPlayerProjFantasy = remainingCreatorPlayers.map((player) => {
-                return player.projectedFantasyPoints;
+            const remainingCreatorPlayers = creatorTeamRoster.filter((roster) => {
+                return !roster.player?.isOver;
             });
 
-            const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map((player) => {
-                return player.projectedFantasyPoints;
+            const remainingClaimerPlayers = claimerTeamRoster.filter((roster) => {
+                return !roster.player?.isOver;
+            });
+
+            const creatorTeamPlayerProjFantasy = remainingCreatorPlayers.map((roster) => {
+                return roster.player? roster.player.projectedFantasyPoints: 0;
+            });
+
+            const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map((roster) => {
+                return roster.player? roster.player.projectedFantasyPoints: 0;
             });
 
             let totalCreatorTeamProjFantasy = 0;
@@ -453,4 +465,60 @@ export class LeagueController {
             },
         };
     }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
+    @get(API_ENDPOINTS.LEAGUE.CONTEST.TEAM_ROSTER, {
+        responses: {
+            '200': {
+                description: 'Contest Roster model instance',
+                content: {
+                    'application/json': {
+                        schema: getModelSchemaRef(ContestRoster, { includeRelations: true }),
+                    },
+                },
+            },
+        },
+    })
+    async findById(
+        @param.path.number('id') id: number,
+    ): Promise<ICommonHttpResponse<any>> {
+
+        try{
+
+            const leagueContest = await this.leagueContestRepository.findById(
+                id,
+                {include: ['creatorTeam', 'claimerTeam']}
+            );
+
+            const creatorTeam = leagueContest.creatorTeam;
+            const claimerTeam = leagueContest.claimerTeam;
+
+            const creatorTeamRoster = await this.contestRosterRepository.find({
+                where: {teamId: creatorTeam? creatorTeam.id : 0
+                    },
+                    include: ['player', 'team']
+            })
+
+            const claimerTeamRoster = await this.contestRosterRepository.find({
+                where: {teamId: claimerTeam? claimerTeam.id : 0
+                    },
+                    include: ['player', 'team']
+            })
+
+            const data = {
+                "creatorTeamRoster": creatorTeamRoster,
+                "claimerTeamRoster": claimerTeamRoster
+            }
+
+            return { data: data  };
+
+        }catch(error) {
+            console.log(error);
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.LEAGUE_CONTEST_ROSTER_FAILED,);
+        }
+
+    }
 }
+
+

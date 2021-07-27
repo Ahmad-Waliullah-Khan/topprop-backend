@@ -213,6 +213,7 @@ export const API_ENDPOINTS = {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE}`,
         CONTEST: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_CONTEST}`,
+            TEAM_ROSTER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_CONTEST}/team-roster/{id}`,
         }
     },
 };

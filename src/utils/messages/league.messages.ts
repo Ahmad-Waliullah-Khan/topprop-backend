@@ -5,4 +5,5 @@ export const LEAGUE_MESSAGES = {
     CLAIMER_TEAM_DOES_NOT_EXIST: `Claimer Team does not exist.`,
     NOT_A_MEMBER: `User is not a member of the league.`,
     NOT_SAME_LEAGUE: `Teams do not belong to the same league.`,
+    LEAGUE_CONTEST_ROSTER_FAILED: `Failed to fetch team roster for the league contest.`,
 };
