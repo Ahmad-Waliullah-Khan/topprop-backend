@@ -13,7 +13,9 @@ export const USER_MESSAGES = {
     LOGGED_IN_WITH_SOCIAL_NETWORK: `You have logged in with a social network.`,
     EMIL_SENT: `Email has been sent successfully.`,
     STATE_INVALID: `is not one of our supported states yet. Please check back later.`,
+    STATE_NOT_DETECTED: `Your state could not be detected. We apologise for any inconvenience caused`,
     COUNTRY_INVALID: `is not one of our supported countries yet. Please check back later.`,
+    CONUTRY_NOT_DETECTED: `Your country could not be detected. We apologise for any inconvenience caused`,
 };
 export const WALLET_MESSAGES = {
     MISSING_WALLET: `User does not a wallet yet. Add a card first.`,

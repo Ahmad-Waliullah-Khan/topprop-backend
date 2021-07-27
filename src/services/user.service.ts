@@ -55,7 +55,15 @@ export class UserService {
 
         if (!foundUser || !passwordMatched) throw new HttpErrors.BadRequest(USER_MESSAGES.INVALID_CREDENTIALS);
 
+        if (credentials.state === undefined || credentials.state === null || credentials.state === '') {
+            throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_NOT_DETECTED);
+        }
+
         if (!(await this.validState(credentials.state))) throw new HttpErrors.BadRequest(`${credentials.state} ${USER_MESSAGES.STATE_INVALID}`);
+
+        if (credentials.country === undefined || credentials.country === null || credentials.country === '') {
+            throw new HttpErrors.BadRequest(USER_MESSAGES.CONUTRY_NOT_DETECTED);
+        }
 
         if (!(await this.validCountry(credentials.country)))
             throw new HttpErrors.BadRequest(`${credentials.country} ${USER_MESSAGES.COUNTRY_INVALID}`);
