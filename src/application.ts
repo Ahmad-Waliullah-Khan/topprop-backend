@@ -27,10 +27,7 @@ import {
     SyncTeamsCron,
     TimeframeCron,
     WinCriteriaCron,
-<<<<<<< HEAD
     CloseContestsCron,
-=======
->>>>>>> e1ecb10 (changelog)
 } from './cron-jobs';
 import { SpreadRepository, ScoringTypeRepository } from './repositories';
 import { SpreadSeeder, ScoringTypeSeeder } from './seeders';

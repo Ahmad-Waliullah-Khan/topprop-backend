@@ -311,6 +311,7 @@ export class LeagueImportController {
                     teamData.remoteId = team.team_key;
                     teamData.logoUrl = team.team_logos[0].url;
                     teamData.wordMarkUrl = team.url;
+                    teamData.userId = userId;
                     teamData.leagueId = createdLeague.id;
                     const createdTeam = await this.teamRepository.create(teamData, { transaction });
 

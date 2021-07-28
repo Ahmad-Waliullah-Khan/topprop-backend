@@ -69,27 +69,7 @@ export class User extends Entity {
     })
     yahooAccessToken: string | null;
 
-<<<<<<< HEAD
-    @property({
-        type: 'string',
-        default: null,
-    })
-    yahooRefreshToken: string | null;
 
-    @property({
-        type: 'string',
-        default: null,
-    })
-    espns2: string | null;
-
-    @property({
-        type: 'string',
-        default: null,
-    })
-    espnswid: string | null;
-
-=======
->>>>>>> e1ecb10 (changelog)
     @property({
         type: 'string',
         default: null,
