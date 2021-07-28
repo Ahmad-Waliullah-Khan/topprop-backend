@@ -470,6 +470,7 @@ export class LeagueController {
         }
     }
 
+    @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
     @post(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
         responses: {
@@ -486,6 +487,8 @@ export class LeagueController {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
         if (!body.creatorId) body.creatorId = +currentUser[securityId];
+        
+        const userId = +currentUser[securityId];
 
         const validationSchema = {
             creatorTeamId: LEAGUE_CONTEST_VALIDATOR.creatorTeamId,
@@ -502,18 +505,15 @@ export class LeagueController {
         const claimerTeamId = body.claimerTeamId || 0;
         const creatorId = body.creatorId || 0;
 
-        const creatorTeam = await this.teamRepository.findById(creatorTeamId, { include: ['players'] });
+        const creatorTeam = await this.teamRepository.findById(creatorTeamId, { include: ['rosters'] });
         if (!creatorTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATOR_TEAM_DOES_NOT_EXIST);
 
-        const claimerTeam = await this.teamRepository.findById(claimerTeamId, { include: ['players'] });
+        const claimerTeam = await this.teamRepository.findById(claimerTeamId, { include: ['rosters'] });
         if (!claimerTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CLAIMER_TEAM_DOES_NOT_EXIST);
 
         const member = await this.memberRepository.find({
             where: {
-                and: [
-                    { userId: body.creatorId },
-                    { leagueId: creatorTeam.leagueId},
-                ],
+                and: [{ userId: body.creatorId }, { leagueId: creatorTeam.leagueId }],
             },
         });
 
@@ -523,64 +523,100 @@ export class LeagueController {
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_SAME_LEAGUE);
 
         try {
-
             const creatorTeamRoster = await this.rosterRepository.find({
                 where: {
-                    teamId: creatorTeamId
+                    teamId: creatorTeamId,
                 },
                 include: ['player', 'team'],
             });
 
             const claimerTeamRoster = await this.rosterRepository.find({
                 where: {
-                    teamId: claimerTeamId
+                    teamId: claimerTeamId,
                 },
                 include: ['player', 'team'],
             });
 
-            const remainingCreatorPlayers = creatorTeamRoster.filter((roster) => {
+            const remainingCreatorPlayers = creatorTeamRoster.filter(roster => {
                 return !roster.player?.isOver;
             });
 
-            const remainingClaimerPlayers = claimerTeamRoster.filter((roster) => {
+            const completedCreatorPlayers = creatorTeamRoster.filter(roster => {
+                return roster.player?.isOver;
+            });
+
+            const remainingClaimerPlayers = claimerTeamRoster.filter(roster => {
                 return !roster.player?.isOver;
             });
 
-            const creatorTeamPlayerProjFantasy = remainingCreatorPlayers.map((roster) => {
-                return roster.player? roster.player.projectedFantasyPoints: 0;
+            const completedClaimerPlayers = claimerTeamRoster.filter(roster => {
+                return roster.player?.isOver;
             });
 
-            const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map((roster) => {
-                return roster.player? roster.player.projectedFantasyPoints: 0;
+            const creatorTeamPlayerProjFantasy = remainingCreatorPlayers.map(roster => {
+                return roster.player ? roster.player.projectedFantasyPoints : 0;
             });
 
-            let totalCreatorTeamProjFantasy = 0;
-            for (const i in creatorTeamPlayerProjFantasy) {
-                totalCreatorTeamProjFantasy += creatorTeamPlayerProjFantasy[i];
-            }
+            const creatorTeamPlayerFantasy = remainingCreatorPlayers.map(roster => {
+                return roster.player ? roster.player.fantasyPoints : 0;
+            });
 
-            let totalClaimerTeamProjFantasy = 0;
-            for (const i in claimerTeamPlayerProjFantasy) {
-                totalClaimerTeamProjFantasy += claimerTeamPlayerProjFantasy[i];
-            }
+            const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map(roster => {
+                return roster.player ? roster.player.projectedFantasyPoints : 0;
+            });
+
+            const claimerTeamPlayerFantasy = remainingClaimerPlayers.map(roster => {
+                return roster.player ? roster.player.fantasyPoints : 0;
+            });
+
+            let totalCreatorTeamProjFantasy =
+                creatorTeamPlayerProjFantasy.length > 0
+                    ? creatorTeamPlayerProjFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      })
+                    : 0;
+
+            totalCreatorTeamProjFantasy =
+                totalCreatorTeamProjFantasy + creatorTeamPlayerFantasy.length > 0
+                    ? creatorTeamPlayerFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      })
+                    : 0;
+
+            let totalClaimerTeamProjFantasy =
+                creatorTeamPlayerProjFantasy.length > 0
+                    ? claimerTeamPlayerProjFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      })
+                    : 0;
+
+            totalClaimerTeamProjFantasy =
+                totalClaimerTeamProjFantasy + claimerTeamPlayerFantasy.length > 0
+                    ? claimerTeamPlayerFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      })
+                    : 0;
+
+            // TODO remove the following lines
+            // totalCreatorTeamProjFantasy = 200;
+            // totalClaimerTeamProjFantasy = 210;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
             if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
-            const winBonusFlag = body.winBonus || false;
+            const winBonusFlag = body.winBonus || true;
 
-            const creatorTeamSpread = await this.leagueService.calculateSpread(
-                totalCreatorTeamProjFantasy,
-                totalClaimerTeamProjFantasy,
-                'creator',
-            );
-            const claimerTeamSpread = await this.leagueService.calculateSpread(
-                totalCreatorTeamProjFantasy,
-                totalClaimerTeamProjFantasy,
-                'claimer',
-            );
-
+            let creatorTeamSpread = 0;
+            let claimerTeamSpread = 0;
             let creatorTeamCover = 0;
             let claimerTeamCover = 0;
             let creatorTeamWinBonus = 0;
@@ -589,6 +625,20 @@ export class LeagueController {
             let contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
 
             if (remainingClaimerPlayers.length <= 2 || remainingCreatorPlayers.length <= 2) {
+                creatorTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'creator',
+                    SPREAD_TYPE.LEAGUE_1_TO_2,
+                );
+
+                claimerTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'claimer',
+                    SPREAD_TYPE.LEAGUE_1_TO_2,
+                );
+
                 creatorTeamCover = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
@@ -625,6 +675,20 @@ export class LeagueController {
                 (remainingClaimerPlayers.length > 2 && remainingClaimerPlayers.length <= 6) ||
                 (remainingCreatorPlayers.length > 2 && remainingCreatorPlayers.length <= 6)
             ) {
+                creatorTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'creator',
+                    SPREAD_TYPE.LEAGUE_3_TO_6,
+                );
+
+                claimerTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'claimer',
+                    SPREAD_TYPE.LEAGUE_3_TO_6,
+                );
+
                 creatorTeamCover = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
@@ -661,6 +725,20 @@ export class LeagueController {
                 (remainingClaimerPlayers.length >= 7 && remainingClaimerPlayers.length <= 18) ||
                 (remainingCreatorPlayers.length >= 7 && remainingCreatorPlayers.length <= 18)
             ) {
+                creatorTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'creator',
+                    SPREAD_TYPE.LEAGUE_7_TO_18,
+                );
+                
+                claimerTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'claimer',
+                    SPREAD_TYPE.LEAGUE_7_TO_18,
+                );
+                
                 creatorTeamCover = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
@@ -682,6 +760,7 @@ export class LeagueController {
                           SPREAD_TYPE.LEAGUE_7_TO_18,
                       )
                     : 0;
+
                 claimerTeamWinBonus = winBonusFlag
                     ? await this.leagueService.calculateWinBonus(
                           claimerTeamSpread,
@@ -695,19 +774,19 @@ export class LeagueController {
 
             const creatorTeamMaxWin = Number(creatorTeamCover) + Number(creatorTeamWinBonus);
             const claimerTeamMaxWin = Number(claimerTeamCover) + Number(claimerTeamWinBonus);
-
+            
             const spreadValue = entryAmount * 0.85;
             const mlValue = entryAmount - spreadValue;
 
             const leagueContestData = new LeagueContest();
-            const userId = body.creatorId;
+            // const userId = body.creatorId;
 
             leagueContestData.creatorId = userId;
             leagueContestData.creatorTeamId = creatorTeamId;
             leagueContestData.claimerTeamId = claimerTeamId;
             leagueContestData.entryAmount = entryAmount;
-            leagueContestData.creatorPlayerProjFantasyPoints = totalCreatorTeamProjFantasy;
-            leagueContestData.claimerPlayerProjFantasyPoints = totalClaimerTeamProjFantasy;
+            leagueContestData.creatorTeamProjFantasyPoints = totalCreatorTeamProjFantasy;
+            leagueContestData.claimerTeamProjFantasyPoints = totalClaimerTeamProjFantasy;
             leagueContestData.creatorTeamCover = creatorTeamCover;
             leagueContestData.claimerTeamCover = claimerTeamCover;
             leagueContestData.creatorTeamMaxWin = creatorTeamMaxWin;
@@ -721,10 +800,10 @@ export class LeagueController {
             leagueContestData.type = CONTEST_TYPES.LEAGUE;
             leagueContestData.status = CONTEST_STATUSES.OPEN;
             leagueContestData.ended = false;
+            
 
             const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData);
-
-            creatorTeam.players.map(async player => {
+            creatorTeam.rosters.map(async player => {
                 const contestRosterData = new ContestRoster();
                 contestRosterData.teamId = creatorTeamId;
                 contestRosterData.playerId = player.id;
@@ -732,7 +811,8 @@ export class LeagueController {
                 return false;
             });
 
-            claimerTeam.players.map(async player => {
+            
+            claimerTeam.rosters.map(async player => {
                 const contestRosterData = new ContestRoster();
                 contestRosterData.teamId = claimerTeamId;
                 contestRosterData.playerId = player.id;
@@ -897,45 +977,34 @@ export class LeagueController {
             },
         },
     })
-    async findById(
-        @param.path.number('id') id: number,
-    ): Promise<ICommonHttpResponse<any>> {
-
-        try{
-
-            const leagueContest = await this.leagueContestRepository.findById(
-                id,
-                {include: ['creatorTeam', 'claimerTeam']}
-            );
+    async findById(@param.path.number('id') id: number): Promise<ICommonHttpResponse<any>> {
+        try {
+            const leagueContest = await this.leagueContestRepository.findById(id, {
+                include: ['creatorTeam', 'claimerTeam'],
+            });
 
             const creatorTeam = leagueContest.creatorTeam;
             const claimerTeam = leagueContest.claimerTeam;
 
             const creatorTeamRoster = await this.contestRosterRepository.find({
-                where: {teamId: creatorTeam? creatorTeam.id : 0
-                    },
-                    include: ['player', 'team']
-            })
+                where: { teamId: creatorTeam ? creatorTeam.id : 0 },
+                include: ['player', 'team'],
+            });
 
             const claimerTeamRoster = await this.contestRosterRepository.find({
-                where: {teamId: claimerTeam? claimerTeam.id : 0
-                    },
-                    include: ['player', 'team']
-            })
+                where: { teamId: claimerTeam ? claimerTeam.id : 0 },
+                include: ['player', 'team'],
+            });
 
             const data = {
-                "creatorTeamRoster": creatorTeamRoster,
-                "claimerTeamRoster": claimerTeamRoster
-            }
+                creatorTeamRoster: creatorTeamRoster,
+                claimerTeamRoster: claimerTeamRoster,
+            };
 
-            return { data: data  };
-
-        }catch(error) {
+            return { data: data };
+        } catch (error) {
             console.log(error);
-            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.LEAGUE_CONTEST_ROSTER_FAILED,);
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.LEAGUE_CONTEST_ROSTER_FAILED);
         }
-
     }
 }
-
-

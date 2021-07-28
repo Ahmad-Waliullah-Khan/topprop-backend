@@ -34,7 +34,7 @@ export class LeagueContest extends Base {
       dataType: 'decimal',
     },
   })
-  creatorPlayerProjFantasyPoints: number;
+  creatorTeamProjFantasyPoints: number;
 
   @property({
     type: 'number',
@@ -44,7 +44,7 @@ export class LeagueContest extends Base {
       dataType: 'decimal',
     },
   })
-  claimerPlayerProjFantasyPoints: number;
+  claimerTeamProjFantasyPoints: number;
 
   @property({
     type: 'number',
