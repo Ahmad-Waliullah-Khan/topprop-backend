@@ -102,7 +102,7 @@ export class UserContactSubmissionController {
             email: user.email,
             message: body.message,
             text: {
-                title: 'Top Prop - Support Ticket Raised',
+                title: 'TopProp - Support Ticket Raised',
                 subtitle: `You have received a contact form submission. Here are the details:`,
             },
         };

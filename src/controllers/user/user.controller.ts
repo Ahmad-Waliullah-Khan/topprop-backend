@@ -344,7 +344,7 @@ export class UserController {
             user: newUser,
             // forgotPasswordToken: newUser.forgotPasswordToken,
             text: {
-                title: 'Top Prop - Forgot Password',
+                title: 'TopProp - Forgot Password',
                 subtitle: `Please follow the next link to set a new password: ${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
             },
             link: `${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
@@ -555,12 +555,32 @@ export class UserController {
         if (!body.senderId) body.senderId = +currentUser[securityId];
 
         const user = await this.userRepository.findById(body.senderId);
+
+        const league = {
+            name: 'League Name',
+        };
+
+        const invitee = {
+            name: '',
+        };
+
         const receiverEmail = body.receiverEmail;
         await this.userService.sendEmail(
             user,
-            EMAIL_TEMPLATES.USER_EMAIL,
+            EMAIL_TEMPLATES.LEAGUE_INVITE,
             {
+                user: {
+                    fullName: invitee.name,
+                },
                 receiverEmail,
+                text: {
+                    title: `You have invited to ${league.name}`,
+                    subtitle: `This league invite was sent to you by ${user.fullName}.Please click on the link below to accept the join the league`,
+                },
+                link: {
+                    url: 'https://google.com/',
+                    text: 'Join League',
+                },
             },
             body.receiverEmail,
         );

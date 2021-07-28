@@ -143,7 +143,7 @@ export class WalletController {
                     payment_method: paymentMethod.id,
                     email: user.email,
                     name: user.fullName,
-                    description: `Top Prop customer for ${user.email}`,
+                    description: `TopProp customer for ${user.email}`,
                     invoice_settings: {
                         default_payment_method: paymentMethod.id,
                     },
@@ -287,7 +287,7 @@ export class WalletController {
                     currency: 'usd',
                     confirm: true,
                     customer: user._customerToken,
-                    description: `Top Prop. Funds added.`,
+                    description: `TopProp. Funds added.`,
                     statement_descriptor_suffix: 'TOPPROP',
                     payment_method: paymentMethod,
                     metadata: {

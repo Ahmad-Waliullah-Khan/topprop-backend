@@ -205,7 +205,7 @@ export class WithdrawRequestController {
             this.userService.sendEmail(withdraw.user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_ACCEPTED, {
                 user: withdraw.user,
                 text: {
-                    title: "Top Prop - Withdraw Request Accepted",
+                    title: "TopProp - Withdraw Request Accepted",
                     subtitle: "Your withdraw request was accepted and your funds will be in you bank account very soon, we will keep you in the loop."
                 }
             });
@@ -243,7 +243,7 @@ export class WithdrawRequestController {
         this.userService.sendEmail(withdraw.user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_DENIED, {
             user: withdraw.user,
             text: {
-                title: "Top Prop - Withdraw Request Denied",
+                title: "TopProp - Withdraw Request Denied",
                 subtitle: "Your withdraw request was denied please reach out to us for more details. Do not worry, your funds are still in your account."
             }
         });

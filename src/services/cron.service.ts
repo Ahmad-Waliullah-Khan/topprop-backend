@@ -1,26 +1,33 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
-    GainRepository, PlayerRepository, TimeframeRepository, UserRepository
+    GainRepository,
+    PlayerRepository,
+    TimeframeRepository,
+    UserRepository,
 } from '@src/repositories';
-import {SportsDataService, UserService} from '@src/services';
+import { SportsDataService, UserService } from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import {
     CONTEST_STAKEHOLDERS,
-    CONTEST_STATUSES, CRON_JOBS, CRON_RUN_TYPES, EMAIL_TEMPLATES, PROXY_DAY, PROXY_DAY_OFFSET, PROXY_MONTH,
-    PROXY_YEAR, RUN_TYPE, TIMEFRAMES
+    CONTEST_STATUSES,
+    CRON_JOBS,
+    CRON_RUN_TYPES,
+    EMAIL_TEMPLATES,
+    PROXY_DAY,
+    PROXY_DAY_OFFSET,
+    PROXY_MONTH,
+    PROXY_YEAR,
+    RUN_TYPE,
+    TIMEFRAMES,
 } from '../utils/constants';
 
 const logger = require('../utils/logger');
 
-
-
-
-
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
     constructor(
         @service() private sportsDataService: SportsDataService,
@@ -30,7 +37,7 @@ export class CronService {
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @repository('UserRepository') private userRepository: UserRepository,
-    ) { }
+    ) {}
 
     async fetchDate() {
         if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
@@ -74,7 +81,7 @@ export class CronService {
             currentDate.add(PROXY_DAY_OFFSET, 'days');
             // console.log("🚀 ~ file: cron.service.ts ~ line 60 ~ CronService ~ fetchTimeframe ~ currentDate", currentDate)
             const [currentTimeFrame] = await this.timeframeRepository.find({
-                where: {and: [{startDate: {lte: currentDate}}, {endDate: {gte: currentDate}}]},
+                where: { and: [{ startDate: { lte: currentDate } }, { endDate: { gte: currentDate } }] },
             });
             return currentTimeFrame;
         }
@@ -200,6 +207,9 @@ export class CronService {
                 break;
             case CRON_JOBS.TIMEFRAME_CRON:
                 cronMessage = 'Timeframe';
+                break;
+            case CRON_JOBS.CLOSE_CONTEST_CRON:
+                cronMessage = 'Close';
                 break;
         }
 
@@ -504,7 +514,6 @@ export class CronService {
                         subtitle: `Your contest has been closed`,
                     },
                 });
-
             } else {
                 const winnerId = winner === 'favorite' ? favorite.userId : underdog.userId;
                 const winnerLabel = winner === 'favorite' ? favorite.type : underdog.type;
@@ -532,6 +541,7 @@ export class CronService {
                 const userId = winner === 'favorite' ? favorite.userId : underdog.userId;
                 const contenderId = winner === 'favorite' ? underdog.playerId : favorite.playerId;
                 const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
+
                 const entryGain = new Gain();
 
                 entryGain.amount = Number(entryAmount) * 100;
@@ -548,7 +558,7 @@ export class CronService {
                 winningGain.amount = Number(winningAmount) * 100;
                 winningGain.userId = userId;
                 winningGain.contenderId = contenderId;
-                entryGain.contestId = contest.id;
+                winningGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
@@ -591,15 +601,12 @@ export class CronService {
                         text: {
                             title: 'Contest Lost',
                             subtitle: `Sorry, You have lost the contest. Your net earnings are
-                                ${new Intl.NumberFormat(
-                                'en-US',
-                                {
+                                ${new Intl.NumberFormat('en-US', {
                                     style: 'currency',
                                     currency: 'USD',
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
-                                },
-                            ).format(underdog.netEarnings)}`,
+                                }).format(underdog.netEarnings)}`,
                         },
                     });
                 } else if (winner === 'underdog') {
@@ -708,7 +715,6 @@ export class CronService {
         });
 
         filteredUnclaimedContests.map(async unclaimedContest => {
-
             const constestData = {
                 topPropProfit: 0,
                 status: CONTEST_STATUSES.CLOSED,
@@ -734,7 +740,7 @@ export class CronService {
             const contestData = await this.contestRepository.findById(unclaimedContest.id);
             const winnerUser = await this.userRepository.findById(unclaimedContest.creatorId);
             const winnerPlayer = await this.playerRepository.findById(unclaimedContest.creatorPlayerId);
-            const loserUser = "";
+            const loserUser = '';
             const loserPlayer = await this.playerRepository.findById(unclaimedContest.claimerPlayerId);
             const receiverUser = winnerUser;
             await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
@@ -749,10 +755,9 @@ export class CronService {
                     subtitle: `Your contest has been closed`,
                 },
             });
-
         });
 
-        return filteredUnclaimedContests? filteredUnclaimedContests: filteredContests;
+        return filteredUnclaimedContests ? filteredUnclaimedContests : filteredContests;
     }
 
     async closeContests() {
@@ -836,13 +841,15 @@ export class CronService {
                 entryGain.userId = favorite.userId;
                 entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
-                
 
                 await this.gainRepository.create(entryGain);
 
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = underdog.userId;
                 entryGain.contenderId = favorite.playerId;
+                entryGain.contestId = contest.id;
+
+                await this.gainRepository.create(entryGain);
             }
         });
 

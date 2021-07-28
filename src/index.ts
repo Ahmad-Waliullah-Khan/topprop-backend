@@ -19,7 +19,7 @@ export async function main(options: ApplicationConfig = {}) {
     await app.start();
 
     const url = app.restServer.url;
-    console.log(`Top Prop server is running at ${url}`);
+    console.log(`TopProp server is running at ${url}`);
 
     //* UPDATE PERMISSIONS ON EVERY START
     const userService = await app.service(UserService).getValue(app);

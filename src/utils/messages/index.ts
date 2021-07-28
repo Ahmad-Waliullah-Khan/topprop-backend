@@ -9,4 +9,5 @@ export * from './league-import.messages';
 export * from './player.messages';
 export * from './team.messages';
 export * from './user.messages';
+export * from './league.messages';
 

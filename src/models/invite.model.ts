@@ -19,11 +19,21 @@ export class Invite extends Base {
     })
     email: string;
 
+    @property({
+        type: 'string',
+    })
+    token: string;
+
+    @property({
+        type: 'boolean',
+    })
+    tokenExpired: boolean;
+
     @belongsTo(() => League)
     leagueId: number;
 
     @belongsTo(() => Team)
-    teamId: number;
+    teamId?: number;
 
     @belongsTo(() => Member)
     memberId: number;
@@ -35,9 +45,9 @@ export class Invite extends Base {
 
 export interface InviteRelations {
     // describe navigational properties here
-    league?: LeagueWithRelations;
-    team?: TeamWithRelations;
-    member?: MemberWithRelations;
+    // league?: LeagueWithRelations;
+    // team?: TeamWithRelations;
+    // member?: MemberWithRelations;
 }
 
 export type InviteWithRelations = Invite & InviteRelations;

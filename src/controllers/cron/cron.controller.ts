@@ -74,4 +74,28 @@ export class CronController {
 
         return { data: 'Win Check' };
     }
+
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @get(API_ENDPOINTS.CRONS.CLOSE_CONTESTS, {
+        responses: {
+            '200': {
+                description: 'Run Cron Job',
+            },
+        },
+    })
+    async closeContests(): Promise<ICommonHttpResponse> {
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        try {
+            const filteredContests = await this.cronService.closeContests();
+            this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
+
+            return { data: filteredContests };
+        } catch (error) {
+            logger.error(chalk.redBright(`Error on close contests cron job. Error: `, error));
+        }
+
+        return { data: 'Win Check' };
+    }
 }

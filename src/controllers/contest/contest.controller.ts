@@ -170,8 +170,7 @@ export class ContestController {
         contestData.ended = false;
 
         const createdContest = await this.contestRepository.create(contestData);
-        console.log("🚀 ~ file: contest.controller.ts ~ line 173 ~ ContestController ~ createdContest", createdContest)
-
+        
         const bet = new Bet();
 
         bet.contenderId = creatorPlayerId;
@@ -346,7 +345,7 @@ export class ContestController {
             contestData,
             moment: moment,
             text: {
-                title: 'Top Prop - Your contest has been claimed',
+                title: 'TopProp - Your contest has been claimed',
                 subtitle: `Contest claimed by ${user.fullName} on ${moment(contestData.updatedAt).format(
                     'dddd, MMMM Do YYYY, h:mm:ss a',
                 )}`,

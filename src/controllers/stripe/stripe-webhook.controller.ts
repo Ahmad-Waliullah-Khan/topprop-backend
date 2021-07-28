@@ -203,7 +203,7 @@ export class StripeWebhookController {
                 details,
                 user: signedEventData.user,
                 text: {
-                    title: "Top Prop - Verification Failed",
+                    title: "TopProp - Verification Failed",
                     subtitle: "",
                 },
             });
@@ -234,7 +234,7 @@ export class StripeWebhookController {
                 side,
                 user: signedEventData.user,
                 text: {
-                    title: "Top Prop - Verification Successful",
+                    title: "TopProp - Verification Successful",
                     subtitle: ""
                 },
             });
@@ -265,7 +265,7 @@ export class StripeWebhookController {
                 side,
                 user: signedEventData.user,
                 text: {
-                    title: "Top Prop - Verification Successful",
+                    title: "TopProp - Verification Successful",
                     subtitle: ""
                 },
             });
@@ -298,7 +298,7 @@ export class StripeWebhookController {
                 side,
                 user: signedEventData.user,
                 text: {
-                    title: "Top Prop - Verification Successful",
+                    title: "TopProp - Verification Successful",
                     subtitle: ""
                 },
             });
@@ -366,7 +366,7 @@ export class StripeWebhookController {
             details: payout.failure_message,
             user: signedEventData.user,
             text: {
-                title: "Top Prop - Withdraw Failed",
+                title: "TopProp - Withdraw Failed",
                 subtitle: `We had some troubles completing your withdraw. We recommend you to double-check your bank account information (or add a new one) and try again.`
             }
         });
@@ -416,7 +416,7 @@ export class StripeWebhookController {
         this.userService.sendEmail(signedEventData.user, EMAIL_TEMPLATES.PAYOUT_PAID, {
             user: signedEventData.user,
             text: {
-                title: "Top Prop - Withdraw Almost Ready",
+                title: "TopProp - Withdraw Almost Ready",
                 subtitle: "Your funds are almost ready and they should be in your bank account soon."
             },
         });

@@ -109,7 +109,7 @@ export class PlayerController {
             targetResources: 'Players - Google Sheets',
             importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
             text: {
-                title: `Top Prop - Imported Players Update`,
+                title: `TopProp - Imported Players Update`,
                 subtitle: `Here is an update regarding the imported players.`
             },
             errors,

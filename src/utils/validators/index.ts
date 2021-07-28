@@ -5,4 +5,5 @@ export * from './league-import.validators';
 export * from './player.validators';
 export * from './user.validators';
 export * from './wallet.validators';
+export * from './invite.validators';
 

@@ -27,6 +27,7 @@ import {
     SyncTeamsCron,
     TimeframeCron,
     WinCriteriaCron,
+    CloseContestsCron,
 } from './cron-jobs';
 import { SpreadRepository, ScoringTypeRepository } from './repositories';
 import { SpreadSeeder, ScoringTypeSeeder } from './seeders';
@@ -135,6 +136,9 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const TimeframeCronBinding = createBindingFromClass(TimeframeCron);
         this.add(TimeframeCronBinding);
+        
+        const CloseContestsCronBinding = createBindingFromClass(CloseContestsCron);
+        this.add(CloseContestsCronBinding);
 
         // const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
         // this.add(fakeResultsCronBinding);

@@ -39,6 +39,7 @@ export enum EMAIL_TEMPLATES {
     CONTEST_DRAW_UNDERDOG = 'contest-draw-underdog',
     USER_EMAIL = 'user-email',
     CONTEST_CLOSED = 'contest-close',
+    LEAGUE_INVITE = 'league-invite',
 }
 
 // export enum PUSH_NOTIFICATIONS {

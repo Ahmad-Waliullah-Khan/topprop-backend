@@ -7,3 +7,4 @@ export * from './win-criteria.cron';
 // export * from './player-results.cron';
 export * from './sync-games.cron';
 export * from './sync-teams.cron';
+export * from './close-contests.cron';

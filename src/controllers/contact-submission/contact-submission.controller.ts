@@ -252,7 +252,7 @@ export class ContactSubmissionController {
             replyDate: moment(contactSubmission.repliedAt).format('MM/DD/YYYY'),
             replyTime: moment(contactSubmission.repliedAt).format('hh:mm a'),
             text: {
-                title: `Top Prop - Contact Submission Replied`,
+                title: `TopProp - Contact Submission Replied`,
                 subtitle: `The admin team has got back to your contact submission. Here are the details. Original Message sent on ${moment(contactSubmission.createdAt).format('MM/DD/YYYY')}, at ${moment(contactSubmission.createdAt).format('hh:mm a')}: ${contactSubmission.message} | Admin Reply sent on ${moment(contactSubmission.repliedAt).format('MM/DD/YYYY')} at ${moment(contactSubmission.repliedAt).format('hh:mm a')}: ${contactSubmission.reply}`,
             }
         });
