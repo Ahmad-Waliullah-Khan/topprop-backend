@@ -1,20 +1,25 @@
-import {Getter, inject} from '@loopback/core';
-import {BelongsToAccessor, DefaultCrudRepository, repository} from '@loopback/repository';
+import { Getter, inject } from '@loopback/core';
+import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
 import moment from 'moment';
-import {DbDataSource} from '../datasources';
-import {LeagueContest, LeagueContestRelations, Team, User} from '../models';
-import {PlayerRepository} from './player.repository';
-import {SpreadRepository} from './spread.repository';
-import {TeamRepository} from './team.repository';
-import {UserRepository} from './user.repository';
+import { DbDataSource } from '../datasources';
+import { LeagueContest, LeagueContestRelations, Team, User, League } from '../models';
+import { PlayerRepository } from './player.repository';
+import { SpreadRepository } from './spread.repository';
+import { TeamRepository } from './team.repository';
+import { UserRepository } from './user.repository';
+import { LeagueRepository } from './league.repository';
 
-
-export class LeagueContestRepository extends DefaultCrudRepository<LeagueContest, typeof LeagueContest.prototype.id, LeagueContestRelations> {
+export class LeagueContestRepository extends DefaultCrudRepository<
+    LeagueContest,
+    typeof LeagueContest.prototype.id,
+    LeagueContestRelations
+> {
     public readonly winner: BelongsToAccessor<User, typeof LeagueContest.prototype.id>;
     public readonly creator: BelongsToAccessor<User, typeof LeagueContest.prototype.id>;
     public readonly claimer: BelongsToAccessor<User, typeof LeagueContest.prototype.id>;
     public readonly creatorTeam: BelongsToAccessor<Team, typeof LeagueContest.prototype.id>;
     public readonly claimerTeam: BelongsToAccessor<Team, typeof LeagueContest.prototype.id>;
+    public readonly league: BelongsToAccessor<League, typeof LeagueContest.prototype.id>;
 
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
@@ -22,6 +27,7 @@ export class LeagueContestRepository extends DefaultCrudRepository<LeagueContest
         @repository.getter('PlayerRepository') protected playerRepositoryGetter: Getter<PlayerRepository>,
         @repository.getter('TeamRepository') protected teamRepositoryGetter: Getter<TeamRepository>,
         @repository.getter('SpreadRepository') protected spreadRepositoryGetter: Getter<SpreadRepository>,
+        @repository.getter('LeagueRepository') protected leagueRepositoryGetter: Getter<LeagueRepository>,
     ) {
         super(LeagueContest, dataSource);
 
@@ -39,6 +45,9 @@ export class LeagueContestRepository extends DefaultCrudRepository<LeagueContest
 
         this.claimerTeam = this.createBelongsToAccessorFor('claimerTeam', teamRepositoryGetter);
         this.registerInclusionResolver('claimerTeam', this.claimerTeam.inclusionResolver);
+
+        this.league = this.createBelongsToAccessorFor('league', leagueRepositoryGetter);
+        this.registerInclusionResolver('league', this.league.inclusionResolver);
 
         //* BEFORE SAVE HOOK
         //* ASSIGN UPDATED AT

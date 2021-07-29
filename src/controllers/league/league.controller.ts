@@ -102,7 +102,23 @@ export class LeagueController {
                 id: { inq: leagueIdList },
             },
             order: ['createdAt DESC'],
-            include: ['teams', 'members', 'scoringType'],
+            include: [
+                {
+                    relation: 'teams',
+                    scope: {
+                        include: ['user'],
+                    },
+                },
+                {
+                    relation: 'members',
+                    scope: {
+                        include: ['user'],
+                    },
+                },
+                {
+                    relation: 'scoringType',
+                },
+            ],
         });
         return {
             message: LEAGUE_MESSAGES.FETCH_LEAGUES_SUCCESS,
@@ -609,8 +625,8 @@ export class LeagueController {
                     : 0;
 
             // TODO remove the following lines
-            // totalCreatorTeamProjFantasy = 200;
-            // totalClaimerTeamProjFantasy = 200;
+            totalCreatorTeamProjFantasy = 200;
+            totalClaimerTeamProjFantasy = 207;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
@@ -804,12 +820,12 @@ export class LeagueController {
             leagueContestData.claimerTeamWinBonus = claimerTeamWinBonus;
             leagueContestData.creatorTeamSpread = creatorTeamSpread;
             leagueContestData.claimerTeamSpread = claimerTeamSpread;
+            leagueContestData.leagueId = creatorTeam.leagueId;
             leagueContestData.spreadValue = spreadValue;
             leagueContestData.mlValue = mlValue;
             leagueContestData.type = CONTEST_TYPES.LEAGUE;
             leagueContestData.status = CONTEST_STATUSES.OPEN;
             leagueContestData.ended = false;
-            
 
             const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData);
             creatorTeam?.rosters?.map(async player => {

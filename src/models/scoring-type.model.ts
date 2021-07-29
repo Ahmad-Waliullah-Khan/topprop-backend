@@ -7,7 +7,6 @@ export class ScoringType extends Base {
     @property({
         type: 'number',
         id: true,
-        generated: true,
     })
     id: number;
 
