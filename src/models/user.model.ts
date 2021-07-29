@@ -3,6 +3,7 @@ import {ROLES} from '@src/utils/constants';
 import {Bet} from './bet.model';
 import {ContactSubmission} from './contact-submission.model';
 import {Contest} from './contest.model';
+import {LeagueContest} from './league-contest.model';
 import {Gain} from './gain.model';
 import {Team} from './team.model';
 import {TopUp} from './top-up.model';
@@ -167,6 +168,9 @@ export class User extends Entity {
 
     @hasMany(() => Contest, { keyTo: 'creatorId' })
     contests: Contest[];
+
+    @hasMany(() => LeagueContest, { keyTo: 'creatorId' })
+    leagueContests: Contest[];
 
     @hasMany(() => Bet)
     bets: Bet[];

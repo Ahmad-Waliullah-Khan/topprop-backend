@@ -3,6 +3,7 @@ import {Spread, SpreadWithRelations} from '@src/models/spread.model';
 import {CONTEST_STAKEHOLDERS, CONTEST_STATUSES, CONTEST_TYPES} from '@src/utils/constants';
 import {Base} from './base.model';
 import {Player} from './player.model';
+import {Team} from './team.model';
 import {TeamWithRelations} from './team.model';
 import {User, UserWithRelations} from './user.model';
 
@@ -231,10 +232,10 @@ export class LeagueContest extends Base {
   @belongsTo(() => User)
   claimerId: number;
 
-  @belongsTo(() => Player)
+  @belongsTo(() => Team)
   creatorTeamId: number;
 
-  @belongsTo(() => Player)
+  @belongsTo(() => Team)
   claimerTeamId: number;
 
   @belongsTo(() => Spread)
