@@ -51,7 +51,7 @@ export class LeagueImportController {
         @repository(MemberRepository)
         public memberRepository: MemberRepository,
         @service() private leagueService: LeagueService,
-    ) { }
+    ) {}
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
@@ -72,7 +72,7 @@ export class LeagueImportController {
             code: FETCH_LEAGUE_VALIDATOR.code,
         };
 
-        const validation = new Schema(validationSchema, {strip: true});
+        const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
@@ -319,12 +319,15 @@ export class LeagueImportController {
 
                     await Promise.all(
                         roster.roster.map(async (remotePlayer: any) => {
-                            const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
-                            const rosterData = new Roster();
-                            rosterData.teamId = createdTeam.id;
-                            rosterData.playerId = foundPlayer.id;
-                            rosterData.displayPosition = remotePlayer.display_position;
-                            await this.rosterRepository.create(rosterData, { transaction });
+                            if (remotePlayer.selected_position !== 'BN') {
+                                const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+                                const rosterData = new Roster();
+                                rosterData.teamId = createdTeam.id;
+                                rosterData.playerId = foundPlayer.id;
+                                rosterData.displayPosition = remotePlayer.display_position;
+                                await this.rosterRepository.create(rosterData, { transaction });
+                            }
+
                             return false;
                         }),
                     );
@@ -346,6 +349,7 @@ export class LeagueImportController {
 
             await this.memberRepository.create(memberData, { transaction });
 
+            // await transaction.rollback();
             await transaction.commit();
 
             const newLeague = await this.leagueRepository.find({

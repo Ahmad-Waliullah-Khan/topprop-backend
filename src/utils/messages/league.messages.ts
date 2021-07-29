@@ -17,4 +17,7 @@ export const LEAGUE_MESSAGES = {
     NOT_A_MEMBER: `User is not a member of the league.`,
     NOT_SAME_LEAGUE: `Teams do not belong to the same league.`,
     LEAGUE_CONTEST_ROSTER_FAILED: `Failed to fetch team roster for the league contest.`,
+    POINT_SPREAD_TOO_LARGE: `The projected point spread between the teams is too large. Please pick other teams`,
+    EMPTY_ROSTER_CLAIMER: `Opponents team has an empty roster. Please sync the leagues to get the latest rosters`,
+    EMPTY_ROSTER_CREATOR: `Your team has an empty roster. Please sync the leagues to get the latest rosters`,
 };

@@ -487,7 +487,7 @@ export class LeagueController {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
         if (!body.creatorId) body.creatorId = +currentUser[securityId];
-        
+
         const userId = +currentUser[securityId];
 
         const validationSchema = {
@@ -530,12 +530,15 @@ export class LeagueController {
                 include: ['player', 'team'],
             });
 
+            if (creatorTeamRoster.length === 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.EMPTY_ROSTER_CREATOR);
+
             const claimerTeamRoster = await this.rosterRepository.find({
                 where: {
                     teamId: claimerTeamId,
                 },
                 include: ['player', 'team'],
             });
+            if (claimerTeamRoster.length === 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.EMPTY_ROSTER_CLAIMER);
 
             const remainingCreatorPlayers = creatorTeamRoster.filter(roster => {
                 return !roster.player?.isOver;
@@ -575,7 +578,7 @@ export class LeagueController {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      })
+                      }, 0)
                     : 0;
 
             totalCreatorTeamProjFantasy =
@@ -584,7 +587,7 @@ export class LeagueController {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      })
+                      }, 0)
                     : 0;
 
             let totalClaimerTeamProjFantasy =
@@ -593,7 +596,7 @@ export class LeagueController {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      })
+                      }, 0)
                     : 0;
 
             totalClaimerTeamProjFantasy =
@@ -602,12 +605,12 @@ export class LeagueController {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      })
+                      }, 0)
                     : 0;
 
             // TODO remove the following lines
-            // totalCreatorTeamProjFantasy = 200;
-            // totalClaimerTeamProjFantasy = 210;
+            totalCreatorTeamProjFantasy = 200;
+            totalClaimerTeamProjFantasy = 200;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
@@ -623,6 +626,12 @@ export class LeagueController {
             let claimerTeamWinBonus = 0;
 
             let contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
+
+            const projSpreadDiff = Number(totalCreatorTeamProjFantasy) - Number(totalClaimerTeamProjFantasy);
+
+            const spreadDiff = Math.abs(projSpreadDiff);
+
+            if (spreadDiff > 20) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
 
             if (remainingClaimerPlayers.length <= 2 || remainingCreatorPlayers.length <= 2) {
                 creatorTeamSpread = await this.leagueService.calculateSpread(
@@ -731,14 +740,14 @@ export class LeagueController {
                     'creator',
                     SPREAD_TYPE.LEAGUE_7_TO_18,
                 );
-                
+
                 claimerTeamSpread = await this.leagueService.calculateSpread(
                     Number(totalCreatorTeamProjFantasy),
                     Number(totalClaimerTeamProjFantasy),
                     'claimer',
                     SPREAD_TYPE.LEAGUE_7_TO_18,
                 );
-                
+
                 creatorTeamCover = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
@@ -774,7 +783,7 @@ export class LeagueController {
 
             const creatorTeamMaxWin = Number(creatorTeamCover) + Number(creatorTeamWinBonus);
             const claimerTeamMaxWin = Number(claimerTeamCover) + Number(claimerTeamWinBonus);
-            
+
             const spreadValue = entryAmount * 0.85;
             const mlValue = entryAmount - spreadValue;
 
@@ -803,7 +812,7 @@ export class LeagueController {
             
 
             const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData);
-            creatorTeam.rosters.map(async player => {
+            creatorTeam?.rosters?.map(async player => {
                 const contestRosterData = new ContestRoster();
                 contestRosterData.teamId = creatorTeamId;
                 contestRosterData.playerId = player.id;
@@ -811,8 +820,7 @@ export class LeagueController {
                 return false;
             });
 
-            
-            claimerTeam.rosters.map(async player => {
+            claimerTeam?.rosters?.map(async player => {
                 const contestRosterData = new ContestRoster();
                 contestRosterData.teamId = claimerTeamId;
                 contestRosterData.playerId = player.id;
@@ -836,7 +844,10 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log(error);
+            console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            if (error.name === 'BadRequestError') {
+                throw new HttpErrors.BadRequest(error.message);
+            }
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_FAILED);
         }
     }
