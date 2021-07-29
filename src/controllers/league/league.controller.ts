@@ -609,8 +609,8 @@ export class LeagueController {
                     : 0;
 
             // TODO remove the following lines
-            totalCreatorTeamProjFantasy = 200;
-            totalClaimerTeamProjFantasy = 200;
+            // totalCreatorTeamProjFantasy = 200;
+            // totalClaimerTeamProjFantasy = 200;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
