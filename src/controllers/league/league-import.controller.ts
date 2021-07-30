@@ -320,6 +320,10 @@ export class LeagueImportController {
                         roster.roster.map(async (remotePlayer: any) => {
                             if (remotePlayer.selected_position !== 'BN') {
                                 const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+                                if(!foundPlayer){
+                                    await transaction.rollback();
+                                    throw new HttpErrors.BadRequest(`${remotePlayer.name.first} ${remotePlayer.name.last} does not exist in our system. Our team is working on it. We apologies for the inconvenience`);
+                                }
                                 const rosterData = new Roster();
                                 rosterData.teamId = createdTeam.id;
                                 rosterData.playerId = foundPlayer.id;
@@ -367,6 +371,9 @@ export class LeagueImportController {
         } catch (error) {
             console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
             await transaction.rollback();
+            if (error.name === 'BadRequestError') {
+                throw new HttpErrors.BadRequest(error.message);
+            }
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.IMPORT_FAILED_YAHOO);
         }
     }
