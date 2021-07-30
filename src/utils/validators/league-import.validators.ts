@@ -106,4 +106,12 @@ export const IMPORT_LEAGUE_VALIDATOR = {
             type: 'Scoring Type must be string.',
         },
     },
+    importSourceId: {
+        required: true,
+        type: Number,
+        message: {
+            required: 'Import Source Id is required.',
+            type: 'Import Source Id be numeric.',
+        },
+    },
 };

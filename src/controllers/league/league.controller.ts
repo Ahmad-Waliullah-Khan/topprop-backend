@@ -1,45 +1,33 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { isEmpty, find } from 'lodash';
-import { v4 as uuidv4 } from 'uuid';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { repository, FilterExcludingWhere, Filter } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, patch } from '@loopback/rest';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { League, Invite, Member, LeagueContest, ContestRoster, Bet } from '@src/models';
-import Schema from 'validate';
-import { ErrorHandler } from '@src/utils/helpers';
-import { UserService } from '@src/services/user.service';
-import { LeagueService } from '@src/services/league.service';
-import { WalletService } from '@src/services/wallet.service';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, ContestRoster, Invite, League, LeagueContest, Member, Roster, Team} from '@src/models';
 import {
-    ILeagueInvitesRequest,
-    ICustomUserProfile,
-    ILeagueInvitesFetchRequest,
-    ILeagueInvitesJoinRequest,
-    ILeagueCreateRequest,
-    ILeagueClaimContestRequest,
-} from '@src/utils/interfaces';
-import { INVITE_VALIDATOR, LEAGUE_CONTEST_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR } from '@src/utils/validators';
-import {
-    LeagueRepository,
-    MemberRepository,
-    TeamRepository,
-    InviteRepository,
-    UserRepository,
-    PlayerRepository,
-    RosterRepository,
-    ContestRosterRepository,
-    LeagueContestRepository,
-    BetRepository,
+    BetRepository, ContestRosterRepository, InviteRepository, LeagueContestRepository, LeagueRepository,
+    MemberRepository, PlayerRepository,
+    RosterRepository, TeamRepository, UserRepository
 } from '@src/repositories';
-import { COMMON_MESSAGES, LEAGUE_MESSAGES, CONTEST_MESSAGES } from '@src/utils/messages';
-import { SPREAD_TYPE, CONTEST_STATUSES, CONTEST_TYPES } from '@src/utils/constants';
-
+import {LeagueService} from '@src/services/league.service';
+import {UserService} from '@src/services/user.service';
+import {WalletService} from '@src/services/wallet.service';
+import {API_ENDPOINTS, CONTEST_STATUSES, CONTEST_TYPES, EMAIL_TEMPLATES, PERMISSIONS, SPREAD_TYPE} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {
+    ICommonHttpResponse, ICustomUserProfile, ILeagueClaimContestRequest, ILeagueCreateRequest, ILeagueInvitesFetchRequest,
+    ILeagueInvitesJoinRequest, ILeagueInvitesRequest, ILeagueResync
+} from '@src/utils/interfaces';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
+import {IMPORT_LEAGUE_VALIDATOR, INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
+import {find, isEmpty} from 'lodash';
 import moment from 'moment';
+import {v4 as uuidv4} from 'uuid';
+import Schema from 'validate';
+const YahooFantasy = require('yahoo-fantasy');
+
 
 export class LeagueController {
     constructor(
@@ -1043,5 +1031,219 @@ export class LeagueController {
             console.log(error);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.LEAGUE_CONTEST_ROSTER_FAILED);
         }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @patch(API_ENDPOINTS.LEAGUE.RESYNC, {
+        responses: {
+            '200': {
+                description: 'Resync League.',
+            },
+        },
+    })
+    async resyncLeague(
+        @requestBody()
+        body: Partial<ILeagueResync>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const validationSchema = {
+            leagueKey: IMPORT_LEAGUE_VALIDATOR.leagueKey,
+            importSourceId: IMPORT_LEAGUE_VALIDATOR.importSourceId,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const { leagueKey, importSourceId } = body;
+
+        if(importSourceId === 2) {
+            //Call yahoo sync method from league service
+
+            // await this.leagueService.resyncYahoo(leagueKey);
+
+            const localLeague = await this.leagueRepository.findOne({
+                where: {
+                    remoteId: leagueKey,
+                },
+            });
+
+            const userId = localLeague? localLeague.userId: 0;
+
+            const userData = await this.userRepository.findById(userId);
+
+            const localLeagueId = localLeague? localLeague.id: 0;
+            const leagueId = localLeague? Number(localLeague.remoteId): 0;
+
+
+            const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
+            yf.setUserToken(userData.yahooAccessToken);
+            yf.setRefreshToken(userData.yahooRefreshToken);
+
+            // @ts-ignore
+            const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+
+            try {
+                const localPlayers = await this.playerRepository.find();
+                const localTeams = await this.teamRepository.find({
+                    where: {
+                        leagueId: leagueId
+                    }
+                });
+
+                const teams = await yf.league.teams(leagueId);
+                await Promise.all(
+                    teams.teams.map(async (team: any) => {
+                        const foundLocalTeam = localTeams.find(localTeam => team.team_key === localTeam.remoteId);
+                        if (foundLocalTeam) {
+                            foundLocalTeam.name = team.name;
+                            foundLocalTeam.remoteId = team.team_key;
+                            foundLocalTeam.logoUrl = team.team_logos[0].url;
+                            foundLocalTeam.wordMarkUrl = team.url;
+                            foundLocalTeam.leagueId = leagueId;
+                            await this.teamRepository.save(foundLocalTeam);
+
+                            await this.rosterRepository.deleteAll({
+                                    teamId: foundLocalTeam.id
+                            });
+
+                            const roster = await yf.team.roster(team.team_key);
+
+                            await Promise.all(
+                                roster.roster.map(async (remotePlayer: any) => {
+                                    if (remotePlayer.selected_position !== 'BN') {
+                                        const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+
+                                        const rosterData = new Roster();
+                                        rosterData.teamId = team.team_key;
+                                        rosterData.playerId = foundPlayer.id;
+                                        rosterData.displayPosition = remotePlayer.display_position;
+                                        await this.rosterRepository.create(rosterData, { transaction });
+                                    }
+
+                                    return false;
+                                }),
+                            );
+                         }
+
+                        const teamData = new Team();
+
+                        teamData.name = team.name;
+                        teamData.remoteId = team.team_key;
+                        teamData.logoUrl = team.team_logos[0].url;
+                        teamData.wordMarkUrl = team.url;
+                        teamData.leagueId = leagueId;
+                        const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                        const roster = await yf.team.roster(createdTeam.remoteId);
+
+                        await Promise.all(
+                            roster.roster.map(async (remotePlayer: any) => {
+                                if (remotePlayer.selected_position !== 'BN') {
+                                    const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+                                    const rosterData = new Roster();
+                                    rosterData.teamId = createdTeam.id;
+                                    rosterData.playerId = foundPlayer.id;
+                                    rosterData.displayPosition = remotePlayer.display_position;
+                                    await this.rosterRepository.create(rosterData, { transaction });
+                                }
+
+                                return false;
+                            }),
+                        );
+                    }),
+                );
+
+                const league = await yf.league.meta(leagueKey);
+                const leagueData = new League();
+
+                leagueData.name = league.name;
+                leagueData.syncStatus = 'success';
+                leagueData.lastSyncTime = new Date();
+                leagueData.userId = userId;
+
+                const updatedLeague = await this.leagueRepository.updateById(localLeagueId, leagueData, { transaction });
+
+                // await transaction.rollback();
+                await transaction.commit();
+
+
+            } catch (error) {
+                console.log('🚀 ~ file: league.controller.ts ~ error', error);
+                await transaction.rollback();
+                throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
+            }
+
+            const newLeague = await this.leagueRepository.find({
+                where: {
+                    remoteId: leagueKey,
+                },
+                order: ['createdAt DESC'],
+                include: [
+                    {
+                        relation: 'teams',
+                        scope: {
+                            include: ['user'],
+                        },
+                    },
+                    {
+                        relation: 'members',
+                        scope: {
+                            include: ['user'],
+                        },
+                    },
+                    {
+                        relation: 'scoringType',
+                    },
+                ],
+            });
+
+            return {
+                message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
+                data: {
+                    league: newLeague,
+                },
+            };
+        } else {
+            //Call espn sync method from league service
+
+            // await this.leagueService.resyncESPN(espnS2, swid, leagueKey);
+
+            const newLeague = await this.leagueRepository.find({
+                where: {
+                    remoteId: leagueKey,
+                },
+                order: ['createdAt DESC'],
+                include: [
+                    {
+                        relation: 'teams',
+                        scope: {
+                            include: ['user'],
+                        },
+                    },
+                    {
+                        relation: 'members',
+                        scope: {
+                            include: ['user'],
+                        },
+                    },
+                    {
+                        relation: 'scoringType',
+                    },
+                ],
+            });
+
+            return {
+                message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
+                data: {
+                    league: newLeague,
+                },
+            };
+        }
+
+
     }
 }

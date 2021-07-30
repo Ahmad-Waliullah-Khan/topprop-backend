@@ -20,4 +20,6 @@ export const LEAGUE_MESSAGES = {
     POINT_SPREAD_TOO_LARGE: `The projected point spread between the teams is too large. Please pick other teams`,
     EMPTY_ROSTER_CLAIMER: `Opponents team has an empty roster. Please sync the leagues to get the latest rosters`,
     EMPTY_ROSTER_CREATOR: `Your team has an empty roster. Please sync the leagues to get the latest rosters`,
+    RESYNC_SUCCESS: `Resynced League successfully`,
+    RESYNC_FAILED: `Failed to resync League data`,
 };

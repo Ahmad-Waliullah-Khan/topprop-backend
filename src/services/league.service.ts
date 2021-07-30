@@ -1,7 +1,7 @@
-import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { PlayerRepository, SpreadRepository } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {bind, /* inject, */ BindingScope, Getter} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {PlayerRepository, SpreadRepository} from '@src/repositories';
+import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
 
@@ -123,5 +123,19 @@ export class LeagueService {
         const MLPay = spreadData ? spreadData.mlPay : 0;
         winBonus = entry * 0.15 * MLPay;
         return winBonus;
+    }
+
+    async resyncYahoo(leagueKey: string) {
+
+        return true;
+
+    }
+
+    async resyncESPN(leagueKey: string) {
+        //TODO:
+        //Fetch league data from ESPN and update local data
+
+        return true;
+
     }
 }
