@@ -1,10 +1,10 @@
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {inject, service} from '@loopback/core';
-import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
 import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
-import {Bet, ContestRoster, Invite, League, LeagueContest, Member, Roster, Team} from '@src/models';
+import {Bet, ContestRoster, Invite, League, LeagueContest, Member} from '@src/models';
 import {
     BetRepository, ContestRosterRepository, InviteRepository, LeagueContestRepository, LeagueRepository,
     MemberRepository, PlayerRepository,
@@ -1060,154 +1060,43 @@ export class LeagueController {
 
         const { leagueKey, importSourceId } = body;
 
-        if(importSourceId === 2) {
-            //Call yahoo sync method from league service
+        if(importSourceId === 2) { //TODO: Fetch the source name from table. 1=espn, 2=yahoo
 
-            // await this.leagueService.resyncYahoo(leagueKey);
-
-            const localLeague = await this.leagueRepository.findOne({
-                where: {
-                    remoteId: leagueKey,
-                },
-            });
-
-            const userId = localLeague? localLeague.userId: 0;
-
-            const userData = await this.userRepository.findById(userId);
-
-            const localLeagueId = localLeague? localLeague.id: 0;
-            const leagueId = localLeague? localLeague.remoteId: 0;
-
-
-            const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
-            yf.setUserToken(userData.yahooAccessToken);
-            yf.setRefreshToken(userData.yahooRefreshToken);
-
-
-            // @ts-ignore
-            const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
-
-            try {
-                const localPlayers = await this.playerRepository.find();
-                const localTeams = await this.teamRepository.find({
+            if (await this.leagueService.resyncYahoo(leagueKey)) {
+                const newLeague = await this.leagueRepository.find({
                     where: {
-                        leagueId: localLeagueId
-                    }
+                        remoteId: leagueKey,
+                    },
+                    order: ['createdAt DESC'],
+                    include: [
+                        {
+                            relation: 'teams',
+                            scope: {
+                                include: ['user'],
+                            },
+                        },
+                        {
+                            relation: 'members',
+                            scope: {
+                                include: ['user'],
+                            },
+                        },
+                        {
+                            relation: 'scoringType',
+                        },
+                    ],
                 });
 
-                const teams = await yf.league.teams(leagueId);
-                await Promise.all(
-                    teams.teams.map(async (team: any) => {
-                        const foundLocalTeam = localTeams.find(localTeam => team.team_key === localTeam.remoteId);
-                        if (foundLocalTeam) {
-                            foundLocalTeam.name = team.name;
-                            foundLocalTeam.remoteId = team.team_key;
-                            foundLocalTeam.logoUrl = team.team_logos[0].url;
-                            foundLocalTeam.wordMarkUrl = team.url;
-                            foundLocalTeam.leagueId = localLeagueId;
-                            await this.teamRepository.save(foundLocalTeam);
-
-                            await this.rosterRepository.deleteAll({
-                                    teamId: foundLocalTeam.id
-                            });
-
-                            const roster = await yf.team.roster(team.team_key);
-
-                            await Promise.all(
-                                roster.roster.map(async (remotePlayer: any) => {
-                                    if (remotePlayer.selected_position !== 'BN') {
-                                        const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
-
-                                        const rosterData = new Roster();
-                                        rosterData.teamId = foundLocalTeam.id;
-                                        rosterData.playerId = foundPlayer.id;
-                                        rosterData.displayPosition = remotePlayer.display_position;
-                                        await this.rosterRepository.create(rosterData, { transaction });
-                                    }
-
-                                    return false;
-                                }),
-                            );
-                         }
-
-                        const teamData = new Team();
-
-                        teamData.name = team.name;
-                        teamData.remoteId = team.team_key;
-                        teamData.logoUrl = team.team_logos[0].url;
-                        teamData.wordMarkUrl = team.url;
-                        teamData.leagueId = localLeagueId;
-                        const createdTeam = await this.teamRepository.create(teamData, { transaction });
-
-                        const roster = await yf.team.roster(createdTeam.remoteId);
-
-                        await Promise.all(
-                            roster.roster.map(async (remotePlayer: any) => {
-                                if (remotePlayer.selected_position !== 'BN') {
-                                    const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
-                                    const rosterData = new Roster();
-                                    rosterData.teamId = createdTeam.id;
-                                    rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = remotePlayer.display_position;
-                                    await this.rosterRepository.create(rosterData, { transaction });
-                                }
-
-                                return false;
-                            }),
-                        );
-                    }),
-                );
-
-                const league = await yf.league.meta(leagueKey);
-                const leagueData = new League();
-
-                leagueData.name = league.name;
-                leagueData.syncStatus = 'success';
-                leagueData.lastSyncTime = new Date();
-                leagueData.userId = userId;
-
-                const updatedLeague = await this.leagueRepository.updateById(localLeagueId, leagueData, { transaction });
-
-                // await transaction.rollback();
-                await transaction.commit();
-
-
-            } catch (error) {
-                console.log('🚀 ~ file: league.controller.ts ~ error', error);
-                await transaction.rollback();
+                return {
+                    message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
+                    data: {
+                        league: newLeague,
+                    },
+                };
+            } else {
                 throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
             }
 
-            const newLeague = await this.leagueRepository.find({
-                where: {
-                    remoteId: leagueKey,
-                },
-                order: ['createdAt DESC'],
-                include: [
-                    {
-                        relation: 'teams',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'members',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'scoringType',
-                    },
-                ],
-            });
-
-            return {
-                message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
-                data: {
-                    league: newLeague,
-                },
-            };
         } else {
             //Call espn sync method from league service
 
@@ -1245,6 +1134,7 @@ export class LeagueController {
             };
         }
 
+        throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
 
     }
 }

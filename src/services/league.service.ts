@@ -1,22 +1,42 @@
 import {bind, /* inject, */ BindingScope, Getter} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {PlayerRepository, SpreadRepository} from '@src/repositories';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {League, Roster, Team} from '@src/models';
+import {InviteRepository, LeagueRepository, MemberRepository, PlayerRepository, RosterRepository, SpreadRepository, TeamRepository, UserRepository} from '@src/repositories';
 import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
+const YahooFantasy = require('yahoo-fantasy');
 
 @bind({ scope: BindingScope.SINGLETON })
 export class LeagueService {
     playerRepo: PlayerRepository;
     spreadRepo: SpreadRepository;
+    leagueRepository: LeagueRepository;
+    memberRepository: MemberRepository;
+    teamRepository: TeamRepository;
+    inviteRepository: InviteRepository;
+    userRepository: UserRepository;
+    rosterRepository: RosterRepository;
 
     constructor(
         @repository.getter('PlayerRepository') private playerRepoGetter: Getter<PlayerRepository>,
         @repository.getter('SpreadRepository') private spreadRepoGetter: Getter<SpreadRepository>,
+        @repository.getter('LeagueRepository') private leagueRepositoryGetter: Getter<LeagueRepository>,
+        @repository.getter('MemberRepository') private memberRepositoryGetter: Getter<MemberRepository>,
+        @repository.getter('TeamRepository') private teamRepositoryGetter: Getter<TeamRepository>,
+        @repository.getter('InviteRepository') private inviteRepositoryGetter: Getter<InviteRepository>,
+        @repository.getter('UserRepository') private userRepositoryGetter: Getter<UserRepository>,
+        @repository.getter('RosterRepository') private rosterRepositoryGetter: Getter<RosterRepository>,
     ) {
         (async () => {
             this.playerRepo = await this.playerRepoGetter();
             this.spreadRepo = await this.spreadRepoGetter();
+            this.leagueRepository = await this.leagueRepositoryGetter();
+            this.memberRepository = await this.memberRepositoryGetter();
+            this.teamRepository = await this.teamRepositoryGetter();
+            this.inviteRepository = await this.inviteRepositoryGetter();
+            this.userRepository = await this.userRepositoryGetter();
+            this.rosterRepository = await this.rosterRepositoryGetter();
         })();
     }
 
@@ -125,7 +145,140 @@ export class LeagueService {
         return winBonus;
     }
 
-    async resyncYahoo(leagueKey: string) {
+    async resyncYahoo(leagueKey?: string) {
+
+        const localLeague = await this.leagueRepository.findOne({
+            where: {
+                remoteId: leagueKey,
+            },
+        });
+
+        const userId = localLeague? localLeague.userId: 0;
+
+        const userData = await this.userRepository.findById(userId);
+
+        const localLeagueId = localLeague? localLeague.id: 0;
+        const leagueId = localLeague? localLeague.remoteId: 0;
+
+
+        //TODO: Fetch new access token incase of token expiry
+
+        const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
+        yf.setUserToken(userData.yahooAccessToken);
+        yf.setRefreshToken(userData.yahooRefreshToken);
+
+        let newAccessToken;
+        let newRefreshToken;
+
+        const authTest = await yf.league.teams(leagueId).catch((err: Error) => {
+            console.log("Yahoo auth failed.", err);
+            yf.refreshToken((error: Error, tokenData: any) => {
+                newAccessToken = tokenData.access_token;
+                newRefreshToken = tokenData.refresh_token;
+            });
+        });
+
+        yf.setUserToken(newAccessToken);
+        yf.setRefreshToken(newRefreshToken);
+
+        userData.yahooAccessToken = newAccessToken? newAccessToken: userData.yahooAccessToken;
+        userData.yahooRefreshToken = newRefreshToken? newRefreshToken: userData.yahooRefreshToken;
+
+        await this.userRepository.save(userData);
+
+        // @ts-ignore
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+
+        try {
+            const localPlayers = await this.playerRepo.find();
+            const localTeams = await this.teamRepository.find({
+                where: {
+                    leagueId: localLeagueId
+                }
+            });
+
+            const teams = await yf.league.teams(leagueId);
+            await Promise.all(
+                teams.teams.map(async (team: any) => {
+                    const foundLocalTeam = localTeams.find(localTeam => team.team_key === localTeam.remoteId);
+                    if (foundLocalTeam) {
+                        foundLocalTeam.name = team.name;
+                        foundLocalTeam.remoteId = team.team_key;
+                        foundLocalTeam.logoUrl = team.team_logos[0].url;
+                        foundLocalTeam.wordMarkUrl = team.url;
+                        foundLocalTeam.leagueId = localLeagueId;
+                        await this.teamRepository.save(foundLocalTeam);
+
+                        await this.rosterRepository.deleteAll({
+                                teamId: foundLocalTeam.id
+                        });
+
+                        const roster = await yf.team.roster(team.team_key);
+
+                        await Promise.all(
+                            roster.roster.map(async (remotePlayer: any) => {
+                                if (remotePlayer.selected_position !== 'BN') {
+                                    const foundPlayer = await this.findPlayer(remotePlayer, localPlayers);
+
+                                    const rosterData = new Roster();
+                                    rosterData.teamId = foundLocalTeam.id;
+                                    rosterData.playerId = foundPlayer.id;
+                                    rosterData.displayPosition = remotePlayer.display_position;
+                                    await this.rosterRepository.create(rosterData, { transaction });
+                                }
+
+                                return false;
+                            }),
+                        );
+                     }
+
+                    const teamData = new Team();
+
+                    teamData.name = team.name;
+                    teamData.remoteId = team.team_key;
+                    teamData.logoUrl = team.team_logos[0].url;
+                    teamData.wordMarkUrl = team.url;
+                    teamData.leagueId = localLeagueId;
+                    const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                    const roster = await yf.team.roster(createdTeam.remoteId);
+
+                    await Promise.all(
+                        roster.roster.map(async (remotePlayer: any) => {
+                            if (remotePlayer.selected_position !== 'BN') {
+                                const foundPlayer = await this.findPlayer(remotePlayer, localPlayers);
+                                const rosterData = new Roster();
+                                rosterData.teamId = createdTeam.id;
+                                rosterData.playerId = foundPlayer.id;
+                                rosterData.displayPosition = remotePlayer.display_position;
+                                await this.rosterRepository.create(rosterData, { transaction });
+                            }
+
+                            return false;
+                        }),
+                    );
+                }),
+            );
+
+            const league = await yf.league.meta(leagueKey);
+            const leagueData = new League();
+
+            leagueData.name = league.name;
+            leagueData.syncStatus = 'success';
+            leagueData.lastSyncTime = new Date();
+            leagueData.userId = userId;
+
+            const updatedLeague = await this.leagueRepository.updateById(localLeagueId, leagueData, { transaction });
+
+            // await transaction.rollback();
+            await transaction.commit();
+
+
+        } catch (error) {
+            console.log('🚀 ~ file: league.service.ts ~ error', error);
+            await transaction.rollback();
+            return false;
+        }
 
         return true;
 
@@ -133,7 +286,7 @@ export class LeagueService {
 
     async resyncESPN(leagueKey: string) {
         //TODO:
-        //Fetch league data from ESPN and update local data
+        //Fetch league data from ESPN and update local data, just like yahoo resync
 
         return true;
 
