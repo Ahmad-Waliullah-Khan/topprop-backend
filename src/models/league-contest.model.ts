@@ -2,7 +2,8 @@ import {belongsTo, model, property} from '@loopback/repository';
 import {Spread, SpreadWithRelations} from '@src/models/spread.model';
 import {CONTEST_STAKEHOLDERS, CONTEST_STATUSES, CONTEST_TYPES} from '@src/utils/constants';
 import {Base} from './base.model';
-import {Player} from './player.model';
+import {League} from './league.model';
+import {Team} from './team.model';
 import {TeamWithRelations} from './team.model';
 import {User, UserWithRelations} from './user.model';
 
@@ -34,7 +35,7 @@ export class LeagueContest extends Base {
       dataType: 'decimal',
     },
   })
-  creatorPlayerProjFantasyPoints: number;
+  creatorTeamProjFantasyPoints: number;
 
   @property({
     type: 'number',
@@ -44,7 +45,7 @@ export class LeagueContest extends Base {
       dataType: 'decimal',
     },
   })
-  claimerPlayerProjFantasyPoints: number;
+  claimerTeamProjFantasyPoints: number;
 
   @property({
     type: 'number',
@@ -163,7 +164,7 @@ export class LeagueContest extends Base {
   @property({
     type: 'string',
     required: true,
-    default: CONTEST_TYPES.LOBBY,
+    default: CONTEST_TYPES.LEAGUE,
   })
   type: CONTEST_TYPES;
 
@@ -231,14 +232,17 @@ export class LeagueContest extends Base {
   @belongsTo(() => User)
   claimerId: number;
 
-  @belongsTo(() => Player)
+  @belongsTo(() => Team)
   creatorTeamId: number;
 
-  @belongsTo(() => Player)
+  @belongsTo(() => Team)
   claimerTeamId: number;
 
   @belongsTo(() => Spread)
   spreadId: number;
+
+  @belongsTo(() => League)
+  leagueId: number;
 
   constructor(data?: Partial<LeagueContest>) {
     super(data);
@@ -248,6 +252,7 @@ export class LeagueContest extends Base {
 export interface LeagueContestRelations {
     winner?: UserWithRelations;
     creator?: UserWithRelations;
+    claimer?: UserWithRelations;
     creatorTeam?: TeamWithRelations;
     claimerTeam?: TeamWithRelations;
     spread?: SpreadWithRelations;

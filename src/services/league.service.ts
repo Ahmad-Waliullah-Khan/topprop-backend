@@ -1,11 +1,24 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-var { Client } = require('espn-fantasy-football-api/node');
-import axios, { AxiosResponse } from 'axios';
-import moment from 'moment';
+import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { PlayerRepository, SpreadRepository } from '@src/repositories';
+import { MiscHelpers } from '@src/utils/helpers';
+import axios from 'axios';
+const { Client } = require('espn-fantasy-football-api/node');
 
 @bind({ scope: BindingScope.SINGLETON })
 export class LeagueService {
-    constructor() {}
+    playerRepo: PlayerRepository;
+    spreadRepo: SpreadRepository;
+
+    constructor(
+        @repository.getter('PlayerRepository') private playerRepoGetter: Getter<PlayerRepository>,
+        @repository.getter('SpreadRepository') private spreadRepoGetter: Getter<SpreadRepository>,
+    ) {
+        (async () => {
+            this.playerRepo = await this.playerRepoGetter();
+            this.spreadRepo = await this.spreadRepoGetter();
+        })();
+    }
 
     async fetchYahooTokens(code: string | undefined): Promise<any> {
         return axios({
@@ -57,5 +70,58 @@ export class LeagueService {
                 remotePlayer.display_position === localPlayer.position,
         );
         return foundLocalPlayer;
+    }
+
+    async calculateSpread(
+        creatorProjectedPoints: number,
+        opponentProjectedPoints: number,
+        type: string,
+        spreadType: string,
+    ) {
+        let spread = 0;
+
+        if (type === 'creator') {
+            spread = MiscHelpers.roundValue(opponentProjectedPoints - creatorProjectedPoints, 0.5);
+        } else {
+            spread = MiscHelpers.roundValue(creatorProjectedPoints - opponentProjectedPoints, 0.5);
+        }
+        const spreadData = await this.spreadRepo.findOne({
+            where: {
+                projectionSpread: spread,
+                spreadType: spreadType,
+            },
+        });
+
+        return spreadData ? spreadData.spread : 0;
+    }
+
+    async calculateCover(spread: number, entry: number, winBonus: boolean, spreadType: string) {
+        let cover = 0;
+        const spreadData = await this.spreadRepo.findOne({
+            where: {
+                spread: spread,
+                spreadType: spreadType,
+            },
+        });
+
+        if (winBonus) {
+            cover = entry * 0.85 * (spreadData ? spreadData.spreadPay : 0);
+        } else {
+            cover = entry * (spreadData ? spreadData.spreadPay : 0);
+        }
+        return cover;
+    }
+
+    async calculateWinBonus(spread: number, entry: number, spreadType: string) {
+        let winBonus = 0;
+        const spreadData = await this.spreadRepo.findOne({
+            where: {
+                spread: spread,
+                spreadType: spreadType,
+            },
+        });
+        const MLPay = spreadData ? spreadData.mlPay : 0;
+        winBonus = entry * 0.15 * MLPay;
+        return winBonus;
     }
 }

@@ -2,6 +2,7 @@ import {belongsTo, hasMany, model, property} from '@loopback/repository';
 import {Base} from '.';
 import {League, LeagueWithRelations} from './league.model';
 import {Player} from './player.model';
+import {Roster} from './roster.model';
 import {User, UserWithRelations} from './user.model';
 
 @model()
@@ -55,8 +56,8 @@ export class Team extends Base {
     })
     wordMarkUrl: string;
 
-    @hasMany(() => Player)
-    players: Player[];
+    @hasMany(() => Roster)
+    rosters: Roster[];
 
     @belongsTo(() => User)
     userId: number;
@@ -71,7 +72,7 @@ export class Team extends Base {
 
 export interface TeamRelations {
     // describe navigational properties here
-    players?: Player[];
+    // players?: Player[];
     user?: UserWithRelations;
     league?: LeagueWithRelations;
 }

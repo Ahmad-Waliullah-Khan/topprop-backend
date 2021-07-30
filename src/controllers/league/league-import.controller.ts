@@ -33,6 +33,7 @@ import { isEmpty } from 'lodash';
 import Schema from 'validate';
 const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
+const logger = require('../../utils/logger');
 
 export class LeagueImportController {
     constructor(
@@ -318,12 +319,20 @@ export class LeagueImportController {
 
                     await Promise.all(
                         roster.roster.map(async (remotePlayer: any) => {
-                            const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
-                            const rosterData = new Roster();
-                            rosterData.teamId = createdTeam.id;
-                            rosterData.playerId = foundPlayer.id;
-                            rosterData.displayPosition = remotePlayer.display_position;
-                            await this.rosterRepository.create(rosterData, { transaction });
+                            if (remotePlayer.selected_position !== 'BN') {
+                                const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+                                if (!foundPlayer) {
+                                    throw new HttpErrors.BadRequest(
+                                        `${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                    );
+                                }
+                                const rosterData = new Roster();
+                                rosterData.teamId = createdTeam.id;
+                                rosterData.playerId = foundPlayer.id;
+                                rosterData.displayPosition = remotePlayer.display_position;
+                                await this.rosterRepository.create(rosterData, { transaction });
+                            }
+
                             return false;
                         }),
                     );
@@ -334,7 +343,7 @@ export class LeagueImportController {
 
             if (userData) {
                 userData.yahooRefreshToken = refreshToken || null;
-                userData.yahooAccessToken = refreshToken || null;
+                userData.yahooAccessToken = accessToken || null;
 
                 await this.userRepository.save(userData, { transaction });
             }
@@ -345,6 +354,7 @@ export class LeagueImportController {
 
             await this.memberRepository.create(memberData, { transaction });
 
+            // await transaction.rollback();
             await transaction.commit();
 
             const newLeague = await this.leagueRepository.find({
@@ -362,7 +372,11 @@ export class LeagueImportController {
             };
         } catch (error) {
             console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
+            logger.error(error.message);
             await transaction.rollback();
+            if (error.name === 'BadRequestError') {
+                throw new HttpErrors.BadRequest(error.message);
+            }
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.IMPORT_FAILED_YAHOO);
         }
     }

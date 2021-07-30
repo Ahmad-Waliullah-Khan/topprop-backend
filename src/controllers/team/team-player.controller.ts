@@ -11,26 +11,26 @@ import { ICommonHttpResponse } from '@src/utils/interfaces';
 export class TeamPlayerController {
     constructor(@repository(TeamRepository) protected teamRepository: TeamRepository) {}
 
-    @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
-    @get(API_ENDPOINTS.TEAMS.PLAYERS.CRUD, {
-        responses: {
-            '200': {
-                description: 'Array of Team has many Player',
-                content: {
-                    'application/json': {
-                        schema: { type: 'array', items: getModelSchemaRef(Player) },
-                    },
-                },
-            },
-        },
-    })
-    async find(
-        @param.path.number('id') id: number,
-        @param.query.object('filter') filter?: Filter<Player>,
-    ): Promise<ICommonHttpResponse<Player[]>> {
-        return { data: await this.teamRepository.players(id).find(filter) };
-    }
+    // @authenticate('jwt')
+    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
+    // @get(API_ENDPOINTS.TEAMS.PLAYERS.CRUD, {
+    //     responses: {
+    //         '200': {
+    //             description: 'Array of Team has many Player',
+    //             content: {
+    //                 'application/json': {
+    //                     schema: { type: 'array', items: getModelSchemaRef(Player) },
+    //                 },
+    //             },
+    //         },
+    //     },
+    // })
+    // async find(
+    //     @param.path.number('id') id: number,
+    //     @param.query.object('filter') filter?: Filter<Player>,
+    // ): Promise<ICommonHttpResponse<Player[]>> {
+    //     return { data: await this.teamRepository.find(filter) };
+    // }
 
     // @authenticate('jwt')
     // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
