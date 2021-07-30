@@ -33,6 +33,7 @@ import { isEmpty } from 'lodash';
 import Schema from 'validate';
 const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
+const logger = require('../../utils/logger');
 
 export class LeagueImportController {
     constructor(
@@ -320,9 +321,10 @@ export class LeagueImportController {
                         roster.roster.map(async (remotePlayer: any) => {
                             if (remotePlayer.selected_position !== 'BN') {
                                 const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
-                                if(!foundPlayer){
-                                    await transaction.rollback();
-                                    throw new HttpErrors.BadRequest(`${remotePlayer.name.first} ${remotePlayer.name.last} does not exist in our system. Our team is working on it. We apologies for the inconvenience`);
+                                if (!foundPlayer) {
+                                    throw new HttpErrors.BadRequest(
+                                        `${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                    );
                                 }
                                 const rosterData = new Roster();
                                 rosterData.teamId = createdTeam.id;
@@ -370,6 +372,7 @@ export class LeagueImportController {
             };
         } catch (error) {
             console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
+            logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
