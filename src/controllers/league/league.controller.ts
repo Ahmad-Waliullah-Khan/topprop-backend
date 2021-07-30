@@ -1076,12 +1076,13 @@ export class LeagueController {
             const userData = await this.userRepository.findById(userId);
 
             const localLeagueId = localLeague? localLeague.id: 0;
-            const leagueId = localLeague? Number(localLeague.remoteId): 0;
+            const leagueId = localLeague? localLeague.remoteId: 0;
 
 
             const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
             yf.setUserToken(userData.yahooAccessToken);
             yf.setRefreshToken(userData.yahooRefreshToken);
+
 
             // @ts-ignore
             const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
@@ -1090,7 +1091,7 @@ export class LeagueController {
                 const localPlayers = await this.playerRepository.find();
                 const localTeams = await this.teamRepository.find({
                     where: {
-                        leagueId: leagueId
+                        leagueId: localLeagueId
                     }
                 });
 
@@ -1103,7 +1104,7 @@ export class LeagueController {
                             foundLocalTeam.remoteId = team.team_key;
                             foundLocalTeam.logoUrl = team.team_logos[0].url;
                             foundLocalTeam.wordMarkUrl = team.url;
-                            foundLocalTeam.leagueId = leagueId;
+                            foundLocalTeam.leagueId = localLeagueId;
                             await this.teamRepository.save(foundLocalTeam);
 
                             await this.rosterRepository.deleteAll({
@@ -1118,7 +1119,7 @@ export class LeagueController {
                                         const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
 
                                         const rosterData = new Roster();
-                                        rosterData.teamId = team.team_key;
+                                        rosterData.teamId = foundLocalTeam.id;
                                         rosterData.playerId = foundPlayer.id;
                                         rosterData.displayPosition = remotePlayer.display_position;
                                         await this.rosterRepository.create(rosterData, { transaction });
@@ -1135,7 +1136,7 @@ export class LeagueController {
                         teamData.remoteId = team.team_key;
                         teamData.logoUrl = team.team_logos[0].url;
                         teamData.wordMarkUrl = team.url;
-                        teamData.leagueId = leagueId;
+                        teamData.leagueId = localLeagueId;
                         const createdTeam = await this.teamRepository.create(teamData, { transaction });
 
                         const roster = await yf.team.roster(createdTeam.remoteId);
