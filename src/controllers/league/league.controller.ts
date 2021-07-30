@@ -152,7 +152,17 @@ export class LeagueController {
                 {
                     relation: 'teams',
                     scope: {
-                        include: ['user'],
+                        include: [
+                            {
+                                relation: 'user',
+                            },
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [{ relation: 'player' }],
+                                },
+                            },
+                        ],
                     },
                 },
                 {
