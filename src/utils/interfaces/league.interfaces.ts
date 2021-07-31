@@ -25,6 +25,6 @@ export interface ILeagueClaimContestRequest extends LeagueContest {
 }
 
 export interface ILeagueResync extends League {
-   leagueKey: string;
-   importSourceId: number;
+    leagueId: number;
+//    importSourceId: number;
 }

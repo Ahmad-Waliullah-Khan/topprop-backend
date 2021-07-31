@@ -6,7 +6,7 @@ import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} fro
 import {SecurityBindings, securityId} from '@loopback/security';
 import {Bet, ContestRoster, Invite, League, LeagueContest, Member} from '@src/models';
 import {
-    BetRepository, ContestRosterRepository, InviteRepository, LeagueContestRepository, LeagueRepository,
+    BetRepository, ContestRosterRepository, ImportSourceRepository, InviteRepository, LeagueContestRepository, LeagueRepository,
     MemberRepository, PlayerRepository,
     RosterRepository, TeamRepository, UserRepository
 } from '@src/repositories';
@@ -21,7 +21,7 @@ import {
     ILeagueInvitesJoinRequest, ILeagueInvitesRequest, ILeagueResync
 } from '@src/utils/interfaces';
 import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
-import {IMPORT_LEAGUE_VALIDATOR, INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
+import {FETCH_LEAGUE_VALIDATOR, INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
 import {find, isEmpty} from 'lodash';
 import moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
@@ -51,6 +51,8 @@ export class LeagueController {
         public contestRosterRepository: ContestRosterRepository,
         @repository(BetRepository)
         public betRepository: BetRepository,
+        @repository(ImportSourceRepository)
+        public importSourceRepository: ImportSourceRepository,
         @service() private leagueService: LeagueService,
         @service() private walletService: WalletService,
         @service() private userService: UserService,
@@ -1050,22 +1052,28 @@ export class LeagueController {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
         const validationSchema = {
-            leagueKey: IMPORT_LEAGUE_VALIDATOR.leagueKey,
-            importSourceId: IMPORT_LEAGUE_VALIDATOR.importSourceId,
+            leagueId: FETCH_LEAGUE_VALIDATOR.leagueId,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        const { leagueKey, importSourceId } = body;
+        const { leagueId } = body;
 
-        if(importSourceId === 2) { //TODO: Fetch the source name from table. 1=espn, 2=yahoo
+        const existingLeague = await this.leagueRepository.findById(Number(leagueId));
 
-            if (await this.leagueService.resyncYahoo(leagueKey)) {
+        const importSourceData = await this.importSourceRepository.findById(existingLeague.importSourceId)
+        const importSource = importSourceData.name;
+
+        // const importSource = 'yahoo'; //TODO: Create seeders for import-source table
+
+        if(importSource === 'yahoo') {
+
+            if (await this.leagueService.resyncYahoo(leagueId)) {
                 const newLeague = await this.leagueRepository.find({
                     where: {
-                        remoteId: leagueKey,
+                        id: leagueId,
                     },
                     order: ['createdAt DESC'],
                     include: [
@@ -1097,14 +1105,14 @@ export class LeagueController {
                 throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
             }
 
-        } else {
+        } if (importSource === 'espn') {
             //Call espn sync method from league service
 
             // await this.leagueService.resyncESPN(espnS2, swid, leagueKey);
 
             const newLeague = await this.leagueRepository.find({
                 where: {
-                    remoteId: leagueKey,
+                    id: leagueId,
                 },
                 order: ['createdAt DESC'],
                 include: [

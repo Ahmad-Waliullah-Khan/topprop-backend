@@ -145,46 +145,40 @@ export class LeagueService {
         return winBonus;
     }
 
-    async resyncYahoo(leagueKey?: string) {
+    async resyncYahoo(localLeagueId?: number) {
 
-        const localLeague = await this.leagueRepository.findOne({
-            where: {
-                remoteId: leagueKey,
-            },
-        });
+        const localLeague = await this.leagueRepository.findById(Number(localLeagueId));
 
         const userId = localLeague? localLeague.userId: 0;
 
         const userData = await this.userRepository.findById(userId);
 
-        const localLeagueId = localLeague? localLeague.id: 0;
         const leagueId = localLeague? localLeague.remoteId: 0;
-
-
-        //TODO: Fetch new access token incase of token expiry
 
         const yf = new YahooFantasy(process.env.YAHOO_APPLICATION_KEY, process.env.YAHOO_SECRET_KEY);
         yf.setUserToken(userData.yahooAccessToken);
         yf.setRefreshToken(userData.yahooRefreshToken);
 
-        let newAccessToken;
-        let newRefreshToken;
+        //TODO: Fetch new access token incase of token expiry
 
-        const authTest = await yf.league.teams(leagueId).catch((err: Error) => {
-            console.log("Yahoo auth failed.", err);
-            yf.refreshToken((error: Error, tokenData: any) => {
-                newAccessToken = tokenData.access_token;
-                newRefreshToken = tokenData.refresh_token;
-            });
-        });
+        // let newAccessToken;
+        // let newRefreshToken;
 
-        yf.setUserToken(newAccessToken);
-        yf.setRefreshToken(newRefreshToken);
+        // const authTest = await yf.league.teams(leagueId).catch((err: Error) => {
+        //     console.log("Yahoo auth failed.", err);
+        //     yf.refreshToken((error: Error, tokenData: any) => {
+        //         newAccessToken = tokenData.access_token;
+        //         newRefreshToken = tokenData.refresh_token;
+        //     });
+        // });
 
-        userData.yahooAccessToken = newAccessToken? newAccessToken: userData.yahooAccessToken;
-        userData.yahooRefreshToken = newRefreshToken? newRefreshToken: userData.yahooRefreshToken;
+        // yf.setUserToken(newAccessToken);
+        // yf.setRefreshToken(newRefreshToken);
 
-        await this.userRepository.save(userData);
+        // userData.yahooAccessToken = newAccessToken? newAccessToken: userData.yahooAccessToken;
+        // userData.yahooRefreshToken = newRefreshToken? newRefreshToken: userData.yahooRefreshToken;
+
+        // await this.userRepository.save(userData);
 
         // @ts-ignore
         const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
@@ -206,7 +200,7 @@ export class LeagueService {
                         foundLocalTeam.remoteId = team.team_key;
                         foundLocalTeam.logoUrl = team.team_logos[0].url;
                         foundLocalTeam.wordMarkUrl = team.url;
-                        foundLocalTeam.leagueId = localLeagueId;
+                        foundLocalTeam.leagueId = Number(localLeagueId);
                         await this.teamRepository.save(foundLocalTeam);
 
                         await this.rosterRepository.deleteAll({
@@ -238,7 +232,7 @@ export class LeagueService {
                     teamData.remoteId = team.team_key;
                     teamData.logoUrl = team.team_logos[0].url;
                     teamData.wordMarkUrl = team.url;
-                    teamData.leagueId = localLeagueId;
+                    teamData.leagueId = Number(localLeagueId);
                     const createdTeam = await this.teamRepository.create(teamData, { transaction });
 
                     const roster = await yf.team.roster(createdTeam.remoteId);
@@ -260,7 +254,7 @@ export class LeagueService {
                 }),
             );
 
-            const league = await yf.league.meta(leagueKey);
+            const league = await yf.league.meta(leagueId);
             const leagueData = new League();
 
             leagueData.name = league.name;
@@ -268,7 +262,7 @@ export class LeagueService {
             leagueData.lastSyncTime = new Date();
             leagueData.userId = userId;
 
-            const updatedLeague = await this.leagueRepository.updateById(localLeagueId, leagueData, { transaction });
+            const updatedLeague = await this.leagueRepository.updateById(Number(localLeagueId), leagueData, { transaction });
 
             // await transaction.rollback();
             await transaction.commit();

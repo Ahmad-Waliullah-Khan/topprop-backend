@@ -1,14 +1,14 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
     GainRepository,
     PlayerRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import {
@@ -22,7 +22,7 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
-    TIMEFRAMES,
+    TIMEFRAMES
 } from '../utils/constants';
 
 const logger = require('../utils/logger');
@@ -923,4 +923,13 @@ export class CronService {
 
         return playerPromises;
     }
+
+    async leagueWinCheck() {
+
+    }
+
+    async leagueCloseContests() {
+
+    }
+
 }
