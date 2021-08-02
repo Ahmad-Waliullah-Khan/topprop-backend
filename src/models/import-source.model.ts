@@ -7,7 +7,7 @@ export class ImportSource
     @property({
         type: 'number',
         id: true,
-        generated: true,
+        // generated: true,
     })
     id: number;
 

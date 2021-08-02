@@ -1,4 +1,4 @@
-import { League, LeagueContest } from '@src/models';
+import {League, LeagueContest} from '@src/models';
 
 export interface ILeagueInvitesRequest extends League {
     leagueId: string;
@@ -13,6 +13,12 @@ export interface ILeagueInvitesJoinRequest extends League {
     inviteId: number;
 }
 
+export interface ILeagueCalculateRequest extends LeagueContest {
+    creatorTeamId: number;
+    claimerTeamId: number;
+    entryAmount: number;
+}
+
 export interface ILeagueCreateRequest extends LeagueContest {
     creatorTeamId: number;
     claimerTeamId: number;
@@ -22,4 +28,9 @@ export interface ILeagueCreateRequest extends LeagueContest {
 
 export interface ILeagueClaimContestRequest extends LeagueContest {
     leagueContestId: number;
+}
+
+export interface ILeagueResync extends League {
+    leagueId: number;
+//    importSourceId: number;
 }

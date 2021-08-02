@@ -2,7 +2,7 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { HttpErrors, post, requestBody } from '@loopback/rest';
-import { repository, IsolationLevel, DefaultTransactionalRepository } from '@loopback/repository';
+import { repository, IsolationLevel } from '@loopback/repository';
 import { LeagueService } from '@src/services/league.service';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';

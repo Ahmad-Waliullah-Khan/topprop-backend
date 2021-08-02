@@ -90,6 +90,11 @@ export class User extends Entity {
     espnswid: string | null;
 
     @property({
+        type: 'string',
+        default: null,
+    })
+
+    @property({
         type: 'date',
         default: null,
     })

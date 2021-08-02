@@ -1,45 +1,60 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
-import { isEmpty, find } from 'lodash';
-import { v4 as uuidv4 } from 'uuid';
+import { Filter, FilterExcludingWhere, repository, IsolationLevel } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { repository, FilterExcludingWhere, Filter } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, patch } from '@loopback/rest';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { League, Invite, Member, LeagueContest, ContestRoster, Bet } from '@src/models';
-import Schema from 'validate';
-import { ErrorHandler } from '@src/utils/helpers';
-import { UserService } from '@src/services/user.service';
-import { LeagueService } from '@src/services/league.service';
-import { WalletService } from '@src/services/wallet.service';
+import { Bet, ContestRoster, Invite, League, LeagueContest, Member, ContestTeam } from '@src/models';
 import {
-    ILeagueInvitesRequest,
-    ICustomUserProfile,
-    ILeagueInvitesFetchRequest,
-    ILeagueInvitesJoinRequest,
-    ILeagueCreateRequest,
-    ILeagueClaimContestRequest,
-} from '@src/utils/interfaces';
-import { INVITE_VALIDATOR, LEAGUE_CONTEST_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR } from '@src/utils/validators';
-import {
+    BetRepository,
+    ContestRosterRepository,
+    ImportSourceRepository,
+    InviteRepository,
+    LeagueContestRepository,
     LeagueRepository,
     MemberRepository,
-    TeamRepository,
-    InviteRepository,
-    UserRepository,
     PlayerRepository,
     RosterRepository,
-    ContestRosterRepository,
-    LeagueContestRepository,
-    BetRepository,
+    TeamRepository,
+    UserRepository,
+    ContestTeamRepository,
 } from '@src/repositories';
-import { COMMON_MESSAGES, LEAGUE_MESSAGES, CONTEST_MESSAGES } from '@src/utils/messages';
-import { SPREAD_TYPE, CONTEST_STATUSES, CONTEST_TYPES } from '@src/utils/constants';
-
+import { LeagueService } from '@src/services/league.service';
+import { UserService } from '@src/services/user.service';
+import { WalletService } from '@src/services/wallet.service';
+import {
+    API_ENDPOINTS,
+    CONTEST_STATUSES,
+    CONTEST_TYPES,
+    EMAIL_TEMPLATES,
+    PERMISSIONS,
+    SPREAD_TYPE,
+} from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {
+    ICommonHttpResponse,
+    ICustomUserProfile,
+    ILeagueCalculateRequest,
+    ILeagueClaimContestRequest,
+    ILeagueCreateRequest,
+    ILeagueInvitesFetchRequest,
+    ILeagueInvitesJoinRequest,
+    ILeagueInvitesRequest,
+    ILeagueResync,
+} from '@src/utils/interfaces';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
+import {
+    FETCH_LEAGUE_VALIDATOR,
+    INVITE_VALIDATOR,
+    LEAGUE_CONTEST_CLAIM_VALIDATOR,
+    LEAGUE_CONTEST_VALIDATOR,
+} from '@src/utils/validators';
+import { find, isEmpty } from 'lodash';
 import moment from 'moment';
+import { v4 as uuidv4 } from 'uuid';
+import Schema from 'validate';
+const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueController {
     constructor(
@@ -63,6 +78,10 @@ export class LeagueController {
         public contestRosterRepository: ContestRosterRepository,
         @repository(BetRepository)
         public betRepository: BetRepository,
+        @repository(ContestTeamRepository)
+        public contestTeamRepository: ContestTeamRepository,
+        @repository(ImportSourceRepository)
+        public importSourceRepository: ImportSourceRepository,
         @service() private leagueService: LeagueService,
         @service() private walletService: WalletService,
         @service() private userService: UserService,
@@ -106,7 +125,14 @@ export class LeagueController {
                 {
                     relation: 'teams',
                     scope: {
-                        include: ['user'],
+                        include: [
+                            {
+                                relation: 'user',
+                            },
+                            {
+                                relation: 'rosters',
+                            },
+                        ],
                     },
                 },
                 {
@@ -145,8 +171,20 @@ export class LeagueController {
     })
     async fetchLeagueById(
         @param.path.number('id') id: number,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
         @param.filter(League, { exclude: 'where' }) filter?: FilterExcludingWhere<League>,
     ): Promise<ICommonHttpResponse<any>> {
+        const userId = +currentUser[securityId];
+        const members = await this.memberRepository.find({
+            where: {
+                userId: userId,
+            },
+        });
+
+        const leagueIdList = members.map(member => member.leagueId);
+
+        if (!leagueIdList.includes(id)) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.DO_NOT_BELONG);
+
         const leagues = await this.leagueRepository.findById(id, {
             include: [
                 {
@@ -497,17 +535,17 @@ export class LeagueController {
     }
 
     @authenticate('jwt')
-    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
-    @post(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.CALCULATE_VALUES, {
         responses: {
             '200': {
-                description: 'Create a League Contest.',
+                description: 'Calculate Contest Values',
             },
         },
     })
-    async createLeagueContest(
+    async calculateContestValues(
         @requestBody()
-        body: Partial<ILeagueCreateRequest>,
+        body: Partial<ILeagueCalculateRequest>,
         @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
     ): Promise<ICommonHttpResponse<any>> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
@@ -520,7 +558,6 @@ export class LeagueController {
             creatorTeamId: LEAGUE_CONTEST_VALIDATOR.creatorTeamId,
             claimerTeamId: LEAGUE_CONTEST_VALIDATOR.claimerTeamId,
             entryAmount: LEAGUE_CONTEST_VALIDATOR.entryAmount,
-            winBonus: LEAGUE_CONTEST_VALIDATOR.winBonus,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
@@ -529,7 +566,6 @@ export class LeagueController {
 
         const creatorTeamId = body.creatorTeamId || 0;
         const claimerTeamId = body.claimerTeamId || 0;
-        const creatorId = body.creatorId || 0;
 
         const creatorTeam = await this.teamRepository.findById(creatorTeamId, { include: ['rosters'] });
         if (!creatorTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATOR_TEAM_DOES_NOT_EXIST);
@@ -635,14 +671,14 @@ export class LeagueController {
                     : 0;
 
             // TODO remove the following lines
-            totalCreatorTeamProjFantasy = 200;
-            totalClaimerTeamProjFantasy = 207;
+            // totalCreatorTeamProjFantasy = 200;
+            // totalClaimerTeamProjFantasy = 215;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
             if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
-            const winBonusFlag = body.winBonus || true;
+            const winBonusFlag = true;
 
             let creatorTeamSpread = 0;
             let claimerTeamSpread = 0;
@@ -813,6 +849,344 @@ export class LeagueController {
             const spreadValue = entryAmount * 0.85;
             const mlValue = entryAmount - spreadValue;
 
+            return {
+                message: LEAGUE_MESSAGES.CREATE_LEAGUE_CALCULATIONS_SUCCESS,
+                data: {
+                    withWinBonus: {
+                        spread: creatorTeamSpread,
+                        cover: Number(creatorTeamCover),
+                        winBonus: Number(creatorTeamWinBonus),
+                        maxWin: creatorTeamMaxWin,
+                    },
+                    withoutWinBonus: {},
+                },
+            };
+        } catch (error) {
+            console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            if (error.name === 'BadRequestError') {
+                throw new HttpErrors.BadRequest(error.message);
+            }
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATE_LEAGUE_CALCULATIONS_FAILED);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.CRUD, {
+        responses: {
+            '200': {
+                description: 'Create a League Contest.',
+            },
+        },
+    })
+    async createLeagueContest(
+        @requestBody()
+        body: Partial<ILeagueCreateRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        if (!body.creatorId) body.creatorId = +currentUser[securityId];
+
+        const userId = +currentUser[securityId];
+
+        const validationSchema = {
+            creatorTeamId: LEAGUE_CONTEST_VALIDATOR.creatorTeamId,
+            claimerTeamId: LEAGUE_CONTEST_VALIDATOR.claimerTeamId,
+            entryAmount: LEAGUE_CONTEST_VALIDATOR.entryAmount,
+            winBonus: LEAGUE_CONTEST_VALIDATOR.winBonus,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const creatorTeamId = body.creatorTeamId || 0;
+        const claimerTeamId = body.claimerTeamId || 0;
+        const creatorId = body.creatorId || 0;
+
+        const creatorTeam = await this.teamRepository.findById(creatorTeamId, { include: ['rosters'] });
+        if (!creatorTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CREATOR_TEAM_DOES_NOT_EXIST);
+
+        const claimerTeam = await this.teamRepository.findById(claimerTeamId, { include: ['rosters'] });
+        if (!claimerTeam) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.CLAIMER_TEAM_DOES_NOT_EXIST);
+
+        const member = await this.memberRepository.find({
+            where: {
+                and: [{ userId: body.creatorId }, { leagueId: creatorTeam.leagueId }],
+            },
+        });
+
+        if (member.length <= 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_A_MEMBER);
+
+        if (creatorTeam.leagueId !== claimerTeam.leagueId)
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_SAME_LEAGUE);
+
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+
+        try {
+            const creatorTeamRoster = await this.rosterRepository.find({
+                where: {
+                    teamId: creatorTeamId,
+                },
+                include: ['player', 'team'],
+            });
+
+            if (creatorTeamRoster.length === 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.EMPTY_ROSTER_CREATOR);
+
+            const claimerTeamRoster = await this.rosterRepository.find({
+                where: {
+                    teamId: claimerTeamId,
+                },
+                include: ['player', 'team'],
+            });
+            if (claimerTeamRoster.length === 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.EMPTY_ROSTER_CLAIMER);
+
+            const remainingCreatorPlayers = creatorTeamRoster.filter(roster => {
+                return !roster.player?.isOver;
+            });
+
+            const completedCreatorPlayers = creatorTeamRoster.filter(roster => {
+                return roster.player?.isOver;
+            });
+
+            const remainingClaimerPlayers = claimerTeamRoster.filter(roster => {
+                return !roster.player?.isOver;
+            });
+
+            const completedClaimerPlayers = claimerTeamRoster.filter(roster => {
+                return roster.player?.isOver;
+            });
+
+            const creatorTeamPlayerProjFantasy = remainingCreatorPlayers.map(roster => {
+                return roster.player ? roster.player.projectedFantasyPoints : 0;
+            });
+
+            const creatorTeamPlayerFantasy = remainingCreatorPlayers.map(roster => {
+                return roster.player ? roster.player.fantasyPoints : 0;
+            });
+
+            const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map(roster => {
+                return roster.player ? roster.player.projectedFantasyPoints : 0;
+            });
+
+            const claimerTeamPlayerFantasy = remainingClaimerPlayers.map(roster => {
+                return roster.player ? roster.player.fantasyPoints : 0;
+            });
+
+            let totalCreatorTeamProjFantasy =
+                creatorTeamPlayerProjFantasy.length > 0
+                    ? creatorTeamPlayerProjFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      }, 0)
+                    : 0;
+
+            totalCreatorTeamProjFantasy =
+                totalCreatorTeamProjFantasy + creatorTeamPlayerFantasy.length > 0
+                    ? creatorTeamPlayerFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      }, 0)
+                    : 0;
+
+            let totalClaimerTeamProjFantasy =
+                creatorTeamPlayerProjFantasy.length > 0
+                    ? claimerTeamPlayerProjFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      }, 0)
+                    : 0;
+
+            totalClaimerTeamProjFantasy =
+                totalClaimerTeamProjFantasy + claimerTeamPlayerFantasy.length > 0
+                    ? claimerTeamPlayerFantasy.reduce((accumulator, currentValue) => {
+                          const total = Number(accumulator);
+                          const value = Number(currentValue);
+                          return total + value;
+                      }, 0)
+                    : 0;
+
+            // TODO remove the following lines
+            // totalCreatorTeamProjFantasy = 200;
+            // totalClaimerTeamProjFantasy = 215;
+
+            const funds = await this.walletService.userBalance(+currentUser[securityId]);
+            const entryAmount = body.entryAmount || 0;
+            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+
+            const winBonusFlag = body.winBonus || true;
+
+            let creatorTeamSpread = 0;
+            let claimerTeamSpread = 0;
+            let creatorTeamCover = 0;
+            let claimerTeamCover = 0;
+            let creatorTeamWinBonus = 0;
+            let claimerTeamWinBonus = 0;
+
+            let contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
+
+            const projSpreadDiff = Number(totalCreatorTeamProjFantasy) - Number(totalClaimerTeamProjFantasy);
+
+            const spreadDiff = Math.abs(projSpreadDiff);
+
+            if (spreadDiff > 20) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
+
+            if (remainingClaimerPlayers.length <= 2 || remainingCreatorPlayers.length <= 2) {
+                creatorTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'creator',
+                    SPREAD_TYPE.LEAGUE_1_TO_2,
+                );
+
+                claimerTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'claimer',
+                    SPREAD_TYPE.LEAGUE_1_TO_2,
+                );
+
+                creatorTeamCover = await this.leagueService.calculateCover(
+                    creatorTeamSpread,
+                    entryAmount,
+                    winBonusFlag,
+                    SPREAD_TYPE.LEAGUE_1_TO_2,
+                );
+
+                claimerTeamCover = await this.leagueService.calculateCover(
+                    claimerTeamSpread,
+                    entryAmount,
+                    winBonusFlag,
+                    SPREAD_TYPE.LEAGUE_1_TO_2,
+                );
+
+                creatorTeamWinBonus = winBonusFlag
+                    ? await this.leagueService.calculateWinBonus(
+                          creatorTeamSpread,
+                          entryAmount,
+                          SPREAD_TYPE.LEAGUE_1_TO_2,
+                      )
+                    : 0;
+                claimerTeamWinBonus = winBonusFlag
+                    ? await this.leagueService.calculateWinBonus(
+                          claimerTeamSpread,
+                          entryAmount,
+                          SPREAD_TYPE.LEAGUE_1_TO_2,
+                      )
+                    : 0;
+
+                contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
+            }
+
+            if (
+                (remainingClaimerPlayers.length > 2 && remainingClaimerPlayers.length <= 6) ||
+                (remainingCreatorPlayers.length > 2 && remainingCreatorPlayers.length <= 6)
+            ) {
+                creatorTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'creator',
+                    SPREAD_TYPE.LEAGUE_3_TO_6,
+                );
+
+                claimerTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'claimer',
+                    SPREAD_TYPE.LEAGUE_3_TO_6,
+                );
+
+                creatorTeamCover = await this.leagueService.calculateCover(
+                    creatorTeamSpread,
+                    entryAmount,
+                    winBonusFlag,
+                    SPREAD_TYPE.LEAGUE_3_TO_6,
+                );
+
+                claimerTeamCover = await this.leagueService.calculateCover(
+                    claimerTeamSpread,
+                    entryAmount,
+                    winBonusFlag,
+                    SPREAD_TYPE.LEAGUE_3_TO_6,
+                );
+
+                creatorTeamWinBonus = winBonusFlag
+                    ? await this.leagueService.calculateWinBonus(
+                          creatorTeamSpread,
+                          entryAmount,
+                          SPREAD_TYPE.LEAGUE_3_TO_6,
+                      )
+                    : 0;
+                claimerTeamWinBonus = winBonusFlag
+                    ? await this.leagueService.calculateWinBonus(
+                          claimerTeamSpread,
+                          entryAmount,
+                          SPREAD_TYPE.LEAGUE_3_TO_6,
+                      )
+                    : 0;
+
+                contestType = SPREAD_TYPE.LEAGUE_3_TO_6;
+            }
+
+            if (
+                (remainingClaimerPlayers.length >= 7 && remainingClaimerPlayers.length <= 18) ||
+                (remainingCreatorPlayers.length >= 7 && remainingCreatorPlayers.length <= 18)
+            ) {
+                creatorTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'creator',
+                    SPREAD_TYPE.LEAGUE_7_TO_18,
+                );
+                claimerTeamSpread = await this.leagueService.calculateSpread(
+                    Number(totalCreatorTeamProjFantasy),
+                    Number(totalClaimerTeamProjFantasy),
+                    'claimer',
+                    SPREAD_TYPE.LEAGUE_7_TO_18,
+                );
+                creatorTeamCover = await this.leagueService.calculateCover(
+                    creatorTeamSpread,
+                    entryAmount,
+                    winBonusFlag,
+                    SPREAD_TYPE.LEAGUE_7_TO_18,
+                );
+
+                claimerTeamCover = await this.leagueService.calculateCover(
+                    claimerTeamSpread,
+                    entryAmount,
+                    winBonusFlag,
+                    SPREAD_TYPE.LEAGUE_7_TO_18,
+                );
+
+                creatorTeamWinBonus = winBonusFlag
+                    ? await this.leagueService.calculateWinBonus(
+                          creatorTeamSpread,
+                          entryAmount,
+                          SPREAD_TYPE.LEAGUE_7_TO_18,
+                      )
+                    : 0;
+
+                claimerTeamWinBonus = winBonusFlag
+                    ? await this.leagueService.calculateWinBonus(
+                          claimerTeamSpread,
+                          entryAmount,
+                          SPREAD_TYPE.LEAGUE_7_TO_18,
+                      )
+                    : 0;
+
+                contestType = SPREAD_TYPE.LEAGUE_7_TO_18;
+            }
+
+            const creatorTeamMaxWin = Number(creatorTeamCover) + Number(creatorTeamWinBonus);
+            const claimerTeamMaxWin = Number(claimerTeamCover) + Number(claimerTeamWinBonus);
+
+            const spreadValue = entryAmount * 0.85;
+            const mlValue = entryAmount - spreadValue;
+
             const leagueContestData = new LeagueContest();
             // const userId = body.creatorId;
 
@@ -837,22 +1211,40 @@ export class LeagueController {
             leagueContestData.status = CONTEST_STATUSES.OPEN;
             leagueContestData.ended = false;
 
-            const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData);
+            const creatorContestTeamData = new ContestTeam();
+            creatorContestTeamData.teamId = creatorTeamId;
+
+            const createdCreatorContestTeam = await this.contestTeamRepository.create(creatorContestTeamData, {
+                transaction,
+            });
+
             creatorTeam?.rosters?.map(async player => {
                 const contestRosterData = new ContestRoster();
-                contestRosterData.teamId = creatorTeamId;
-                contestRosterData.playerId = player.id;
-                await this.contestRosterRepository.create(contestRosterData);
+                contestRosterData.contestTeamId = createdCreatorContestTeam.id;
+                contestRosterData.playerId = player.playerId;
+                await this.contestRosterRepository.create(contestRosterData, { transaction });
                 return false;
+            });
+
+            const claimerContestTeamData = new ContestTeam();
+            claimerContestTeamData.teamId = claimerTeamId;
+
+            const createdClaimerContestTeam = await this.contestTeamRepository.create(claimerContestTeamData, {
+                transaction,
             });
 
             claimerTeam?.rosters?.map(async player => {
                 const contestRosterData = new ContestRoster();
-                contestRosterData.teamId = claimerTeamId;
-                contestRosterData.playerId = player.id;
-                await this.contestRosterRepository.create(contestRosterData);
+                contestRosterData.contestTeamId = createdClaimerContestTeam.id;
+                contestRosterData.playerId = player.playerId;
+                await this.contestRosterRepository.create(contestRosterData, { transaction });
                 return false;
             });
+
+            leagueContestData.creatorContestTeamId = createdCreatorContestTeam.id;
+            leagueContestData.claimerContestTeamId = createdClaimerContestTeam.id;
+
+            const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData, { transaction });
 
             const bet = new Bet();
 
@@ -860,7 +1252,9 @@ export class LeagueController {
             bet.userId = userId;
             bet.amount = entryAmount * 100;
 
-            await this.betRepository.create(bet);
+            await this.betRepository.create(bet, { transaction });
+
+            await transaction.commit();
 
             return {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
@@ -871,6 +1265,7 @@ export class LeagueController {
             };
         } catch (error) {
             console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            await transaction.rollback();
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
             }
@@ -1017,25 +1412,88 @@ export class LeagueController {
     async findById(@param.path.number('id') id: number): Promise<ICommonHttpResponse<any>> {
         try {
             const leagueContest = await this.leagueContestRepository.findById(id, {
-                include: ['creatorTeam', 'claimerTeam'],
-            });
-
-            const creatorTeam = leagueContest.creatorTeam;
-            const claimerTeam = leagueContest.claimerTeam;
-
-            const creatorTeamRoster = await this.contestRosterRepository.find({
-                where: { teamId: creatorTeam ? creatorTeam.id : 0 },
-                include: ['player', 'team'],
-            });
-
-            const claimerTeamRoster = await this.contestRosterRepository.find({
-                where: { teamId: claimerTeam ? claimerTeam.id : 0 },
-                include: ['player', 'team'],
+                include: [
+                    {
+                        relation: 'creatorTeam',
+                        scope: {
+                            include: [
+                                {
+                                    relation: 'rosters',
+                                    scope: {
+                                        include: [
+                                            {
+                                                relation: 'player',
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        relation: 'claimerTeam',
+                        scope: {
+                            include: [
+                                {
+                                    relation: 'rosters',
+                                    scope: {
+                                        include: [
+                                            {
+                                                relation: 'player',
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        relation: 'creatorContestTeam',
+                        scope: {
+                            include: [
+                                {
+                                    relation: 'contestRosters',
+                                    scope: {
+                                        include: [
+                                            {
+                                                relation: 'player',
+                                            },
+                                        ],
+                                    },
+                                },
+                                {
+                                    relation: 'team',
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        relation: 'claimerContestTeam',
+                        scope: {
+                            include: [
+                                {
+                                    relation: 'contestRosters',
+                                    scope: {
+                                        include: [
+                                            {
+                                                relation: 'player',
+                                            },
+                                        ],
+                                    },
+                                },
+                                {
+                                    relation: 'team',
+                                },
+                            ],
+                        },
+                    },
+                ],
             });
 
             const data = {
-                creatorTeamRoster: creatorTeamRoster,
-                claimerTeamRoster: claimerTeamRoster,
+                leagueContest: leagueContest,
+                creatorTeamRoster: leagueContest?.creatorContestTeam,
+                claimerTeamRoster: leagueContest?.claimerContestTeam,
             };
 
             return { data: data };
@@ -1043,5 +1501,120 @@ export class LeagueController {
             console.log(error);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.LEAGUE_CONTEST_ROSTER_FAILED);
         }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @patch(API_ENDPOINTS.LEAGUE.RESYNC, {
+        responses: {
+            '200': {
+                description: 'Resync League.',
+            },
+        },
+    })
+    async resyncLeague(
+        @requestBody()
+        body: Partial<ILeagueResync>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const validationSchema = {
+            leagueId: FETCH_LEAGUE_VALIDATOR.leagueId,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const { leagueId } = body;
+
+        const existingLeague = await this.leagueRepository.findById(Number(leagueId));
+
+        const importSourceData = await this.importSourceRepository.findById(existingLeague.importSourceId);
+        const importSource = importSourceData.name;
+
+        if (importSource === 'yahoo') {
+            if (await this.leagueService.resyncYahoo(leagueId)) {
+                const newLeague = await this.leagueRepository.find({
+                    where: {
+                        id: leagueId,
+                    },
+                    order: ['createdAt DESC'],
+                    include: [
+                        {
+                            relation: 'teams',
+                            scope: {
+                                include: ['user'],
+                            },
+                        },
+                        {
+                            relation: 'members',
+                            scope: {
+                                include: ['user'],
+                            },
+                        },
+                        {
+                            relation: 'scoringType',
+                        },
+                    ],
+                });
+
+                return {
+                    message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
+                    data: {
+                        league: newLeague,
+                    },
+                };
+            } else {
+                throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
+            }
+        }
+        if (importSource === 'espn') {
+            //Call espn sync method from league service
+
+            // await this.leagueService.resyncESPN(espnS2, swid, leagueKey);
+
+            const newLeague = await this.leagueRepository.find({
+                where: {
+                    id: leagueId,
+                },
+                order: ['createdAt DESC'],
+                include: [
+                    {
+                        relation: 'teams',
+                        scope: {
+                            include: [
+                                {
+                                    relation: 'user',
+                                },
+                                {
+                                    relation: 'rosters',
+                                    scope: {
+                                        include: [{ relation: 'player' }],
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        relation: 'members',
+                        scope: {
+                            include: ['user'],
+                        },
+                    },
+                    {
+                        relation: 'scoringType',
+                    },
+                ],
+            });
+
+            return {
+                message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
+                data: newLeague,
+            };
+        }
+
+        throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
     }
 }

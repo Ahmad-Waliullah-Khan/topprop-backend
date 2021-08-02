@@ -1,7 +1,7 @@
 import {belongsTo, model, property} from '@loopback/repository';
 import {Base} from '.';
 import {Player, PlayerWithRelations} from './player.model';
-import {Team, TeamWithRelations} from './team.model';
+import {ContestTeam, ContestTeamWithRelations} from './contest-team.model';
 
 @model()
 export class ContestRoster extends Base {
@@ -12,8 +12,8 @@ export class ContestRoster extends Base {
     })
     id: number;
 
-    @belongsTo(() => Team)
-    teamId: number;
+    @belongsTo(() => ContestTeam)
+    contestTeamId: number;
 
     @belongsTo(() => Player)
     playerId: number;
@@ -26,7 +26,7 @@ export class ContestRoster extends Base {
 export interface ContestRosterRelations {
     // describe navigational properties here
     player?: PlayerWithRelations;
-    team?: TeamWithRelations;
+    contestTeam?: ContestTeamWithRelations;
 }
 
 export type ContestRosterWithRelations = ContestRoster & ContestRosterRelations;
