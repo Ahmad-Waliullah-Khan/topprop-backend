@@ -60,6 +60,21 @@ export class LeagueService {
         });
     }
 
+    async refreshYahooAccessTokens(refresh_token: string | null): Promise<any> {
+        const authKey = Buffer.from(`${process.env.YAHOO_APPLICATION_KEY}:${process.env.YAHOO_SECRET_KEY}`).toString(
+            'base64',
+        );
+        return axios({
+            method: 'post',
+            url: 'https://api.login.yahoo.com/oauth2/get_token',
+            data: `client_id=${process.env.YAHOO_APPLICATION_KEY}&client_secret=${process.env.YAHOO_SECRET_KEY}&redirect_uri=oob&refresh_token=${refresh_token}&grant_type=refresh_token`,
+            headers: {
+                Authorization: `Basic ${authKey}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
+    }
+
     async fetchESPNAccount(espnS2: string, swid: string): Promise<any> {
         return axios({
             method: 'get',
@@ -120,7 +135,6 @@ export class LeagueService {
                 spreadType: spreadType,
             },
         });
-        console.log('🚀 ~ file: league.service.ts ~ line 114 ~ LeagueService ~ spreadData', spreadData);
 
         return spreadData ? spreadData.spread : 0;
     }
@@ -164,6 +178,12 @@ export class LeagueService {
 
         const leagueId = localLeague ? localLeague.remoteId : 0;
 
+        const refreshedYahooTokens = await this.refreshYahooAccessTokens(userData.yahooRefreshToken);
+
+        const { access_token, refresh_token } = refreshedYahooTokens;
+        userData.yahooAccessToken = access_token ? access_token : userData.yahooAccessToken;
+        userData.yahooRefreshToken = refresh_token ? refresh_token : userData.yahooRefreshToken;
+
         const yf = new YahooFantasy(
             process.env.YAHOO_APPLICATION_KEY,
             process.env.YAHOO_SECRET_KEY,
@@ -181,45 +201,24 @@ export class LeagueService {
         );
         yf.setUserToken(userData.yahooAccessToken);
         yf.setRefreshToken(userData.yahooRefreshToken);
-        //TODO: Fetch new access token incase of token expiry
-
-        // let newAccessToken;
-        // let newRefreshToken;
-
-        // const authTest = await yf.league.teams(leagueId).catch((err: Error) => {
-        //     console.log("Yahoo auth failed.", err);
-        //     yf.refreshToken((error: Error, tokenData: any) => {
-        //         newAccessToken = tokenData.access_token;
-        //         newRefreshToken = tokenData.refresh_token;
-        //     });
-        // });
-
-        // yf.setUserToken(newAccessToken);
-        // yf.setRefreshToken(newRefreshToken);
-
-        // userData.yahooAccessToken = newAccessToken? newAccessToken: userData.yahooAccessToken;
-        // userData.yahooRefreshToken = newRefreshToken? newRefreshToken: userData.yahooRefreshToken;
-
-        // await this.userRepository.save(userData);
 
         // @ts-ignore
         const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
 
         try {
             const localPlayers = await this.playerRepo.find();
-            console.log("🚀 ~ file: league.service.ts ~ line 210 ~ LeagueService ~ resyncYahoo ~ localPlayers", localPlayers)
             const localTeams = await this.teamRepository.find({
                 where: {
                     leagueId: localLeagueId,
                 },
             });
-            console.log("🚀 ~ file: league.service.ts ~ line 216 ~ LeagueService ~ resyncYahoo ~ localTeams", localTeams)
+            // console.log("🚀 ~ file: league.service.ts ~ line 216 ~ LeagueService ~ resyncYahoo ~ localTeams", localTeams)
 
             const teams = await yf.league.teams(leagueId);
-            console.log('🚀 ~ file: league.service.ts ~ line 196 ~ LeagueService ~ resyncYahoo ~ teams', teams);
             await Promise.all(
                 teams.teams.map(async (team: any) => {
                     const foundLocalTeam = localTeams.find(localTeam => team.team_key === localTeam.remoteId);
+
                     if (foundLocalTeam) {
                         foundLocalTeam.name = team.name;
                         foundLocalTeam.remoteId = team.team_key;
@@ -249,33 +248,33 @@ export class LeagueService {
                                 return false;
                             }),
                         );
+                    } else {
+                        const teamData = new Team();
+
+                        teamData.name = team.name;
+                        teamData.remoteId = team.team_key;
+                        teamData.logoUrl = team.team_logos[0].url;
+                        teamData.wordMarkUrl = team.url;
+                        teamData.leagueId = Number(localLeagueId);
+                        const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                        const roster = await yf.team.roster(createdTeam.remoteId);
+
+                        await Promise.all(
+                            roster.roster.map(async (remotePlayer: any) => {
+                                if (remotePlayer.selected_position !== 'BN') {
+                                    const foundPlayer = await this.findPlayer(remotePlayer, localPlayers);
+                                    const rosterData = new Roster();
+                                    rosterData.teamId = createdTeam.id;
+                                    rosterData.playerId = foundPlayer.id;
+                                    rosterData.displayPosition = remotePlayer.display_position;
+                                    await this.rosterRepository.create(rosterData, { transaction });
+                                }
+
+                                return false;
+                            }),
+                        );
                     }
-
-                    const teamData = new Team();
-
-                    teamData.name = team.name;
-                    teamData.remoteId = team.team_key;
-                    teamData.logoUrl = team.team_logos[0].url;
-                    teamData.wordMarkUrl = team.url;
-                    teamData.leagueId = Number(localLeagueId);
-                    const createdTeam = await this.teamRepository.create(teamData, { transaction });
-
-                    const roster = await yf.team.roster(createdTeam.remoteId);
-
-                    await Promise.all(
-                        roster.roster.map(async (remotePlayer: any) => {
-                            if (remotePlayer.selected_position !== 'BN') {
-                                const foundPlayer = await this.findPlayer(remotePlayer, localPlayers);
-                                const rosterData = new Roster();
-                                rosterData.teamId = createdTeam.id;
-                                rosterData.playerId = foundPlayer.id;
-                                rosterData.displayPosition = remotePlayer.display_position;
-                                await this.rosterRepository.create(rosterData, { transaction });
-                            }
-
-                            return false;
-                        }),
-                    );
                 }),
             );
 
@@ -307,5 +306,37 @@ export class LeagueService {
         //Fetch league data from ESPN and update local data, just like yahoo resync
 
         return true;
+    }
+
+    async fetchLeagueInclude() {
+        return {
+            include: [
+                {
+                    relation: 'teams',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'user',
+                            },
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [{ relation: 'player' }],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'members',
+                    scope: {
+                        include: ['user'],
+                    },
+                },
+                {
+                    relation: 'scoringType',
+                },
+            ],
+        };
     }
 }

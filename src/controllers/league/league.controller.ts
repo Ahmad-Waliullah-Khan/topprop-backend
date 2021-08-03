@@ -185,35 +185,9 @@ export class LeagueController {
 
         if (!leagueIdList.includes(id)) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.DO_NOT_BELONG);
 
-        const leagues = await this.leagueRepository.findById(id, {
-            include: [
-                {
-                    relation: 'teams',
-                    scope: {
-                        include: [
-                            {
-                                relation: 'user',
-                            },
-                            {
-                                relation: 'rosters',
-                                scope: {
-                                    include: [{ relation: 'player' }],
-                                },
-                            },
-                        ],
-                    },
-                },
-                {
-                    relation: 'members',
-                    scope: {
-                        include: ['user'],
-                    },
-                },
-                {
-                    relation: 'scoringType',
-                },
-            ],
-        });
+        const includes = await this.leagueService.fetchLeagueInclude();
+        // @ts-ignore
+        const leagues = await this.leagueRepository.findById(id, includes);
         return {
             message: LEAGUE_MESSAGES.FETCH_LEAGUE_SUCCESS,
             data: leagues,
@@ -321,25 +295,9 @@ export class LeagueController {
                 }),
             );
 
-            const updatedLeague = await this.leagueRepository.findById(id, {
-                include: [
-                    {
-                        relation: 'teams',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'members',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'scoringType',
-                    },
-                ],
-            });
+            const includes = await this.leagueService.fetchLeagueInclude();
+
+            const updatedLeague = await this.leagueRepository.findById(id, includes);
 
             return {
                 message: LEAGUE_MESSAGES.INVITATION_SENDING_SUCCESS,
@@ -501,25 +459,9 @@ export class LeagueController {
                 include: ['teams', 'members', 'scoringType'],
             });
 
-            const updatedLeague = await this.leagueRepository.findById(invite.leagueId, {
-                include: [
-                    {
-                        relation: 'teams',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'members',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'scoringType',
-                    },
-                ],
-            });
+            const includes = await this.leagueService.fetchLeagueInclude();
+
+            const updatedLeague = await this.leagueRepository.findById(invite.leagueId, includes);
 
             return {
                 message: LEAGUE_MESSAGES.INVITATION_JOINING_SUCCESS,
@@ -1536,35 +1478,13 @@ export class LeagueController {
 
         if (importSource === 'yahoo') {
             if (await this.leagueService.resyncYahoo(leagueId)) {
-                const newLeague = await this.leagueRepository.find({
-                    where: {
-                        id: leagueId,
-                    },
-                    order: ['createdAt DESC'],
-                    include: [
-                        {
-                            relation: 'teams',
-                            scope: {
-                                include: ['user'],
-                            },
-                        },
-                        {
-                            relation: 'members',
-                            scope: {
-                                include: ['user'],
-                            },
-                        },
-                        {
-                            relation: 'scoringType',
-                        },
-                    ],
-                });
+                const includes = await this.leagueService.fetchLeagueInclude();
+                // @ts-ignore
+                const updatedLeague = await this.leagueRepository.findById(leagueId, includes);
 
                 return {
                     message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
-                    data: {
-                        league: newLeague,
-                    },
+                    data: updatedLeague,
                 };
             } else {
                 throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
