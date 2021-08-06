@@ -100,7 +100,7 @@ export class ContestController {
         const entryAmount = body.entryAmount || 0;
         if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
-        const winBonusFlag = body.winBonus || false;
+        const winBonusFlag = false;
         const creatorPlayerId = body.creatorPlayerId || 0;
         const claimerPlayerId = body.claimerPlayerId || 0;
 

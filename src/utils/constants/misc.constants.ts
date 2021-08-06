@@ -9,6 +9,7 @@ export enum CRON_JOBS {
     WIN_CHECK_CRON = 'win-check-cron',
     TIMEFRAME_CRON = 'timeframe-cron',
     CLOSE_CONTEST_CRON = 'close-contests-cron',
+    SPECIAL_TEAMS_CRON = 'special-teams-cron',
     
     FAKE_RESULTS_CRON = 'fake-results-cron',
     SYNC_TEAMS_CRON = 'sync-teams-cron',

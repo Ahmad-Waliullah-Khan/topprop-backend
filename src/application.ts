@@ -1,40 +1,41 @@
 import {
     AuthenticationBindings,
     AuthenticationComponent,
-    registerAuthenticationStrategy
+    registerAuthenticationStrategy,
 } from '@loopback/authentication';
-import {AuthorizationComponent} from '@loopback/authorization';
-import {BootMixin} from '@loopback/boot';
-import {addExtension, ApplicationConfig, createBindingFromClass} from '@loopback/core';
-import {CronComponent} from '@loopback/cron';
-import {RepositoryMixin} from '@loopback/repository';
-import {RequestBodyParserOptions, RestApplication, RestBindings} from '@loopback/rest';
-import {CrudRestComponent} from '@loopback/rest-crud';
-import {ServiceMixin} from '@loopback/service-proxy';
-import {isEqual} from 'lodash';
+import { AuthorizationComponent } from '@loopback/authorization';
+import { BootMixin } from '@loopback/boot';
+import { addExtension, ApplicationConfig, createBindingFromClass } from '@loopback/core';
+import { CronComponent } from '@loopback/cron';
+import { RepositoryMixin } from '@loopback/repository';
+import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
+import { CrudRestComponent } from '@loopback/rest-crud';
+import { ServiceMixin } from '@loopback/service-proxy';
+import { isEqual } from 'lodash';
 import morgan from 'morgan';
-import {join} from 'path';
+import { join } from 'path';
 import {
     JWTAuthenticationStrategy,
     PassportFacebookTokenAuthProvider,
-    PassportGoogleTokenAuthProvider
+    PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
 import {
-    CloseContestsCron, PlayerFantasyPointsCron,
     PlayersCron,
     ProjectedFantasyPointsCron,
-    SyncGamesCron,
-    SyncTeamsCron,
+    PlayerFantasyPointsCron,
+    WinCriteriaCron,
     TimeframeCron,
-    WinCriteriaCron
+    CloseContestsCron,
+    SpecialTeamsCron,
+    SyncGamesCron,
 } from './cron-jobs';
-import {ImportSourceRepository, ScoringTypeRepository, SpreadRepository} from './repositories';
-import {ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder} from './seeders';
-import {MySequence} from './sequence';
-import {ApplicationHelpers} from './utils/helpers';
-import {IRawRequest} from './utils/interfaces';
+import { ImportSourceRepository, ScoringTypeRepository, SpreadRepository } from './repositories';
+import { ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
+import { MySequence } from './sequence';
+import { ApplicationHelpers } from './utils/helpers';
+import { IRawRequest } from './utils/interfaces';
 
-export {ApplicationConfig};
+export { ApplicationConfig };
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
@@ -139,11 +140,15 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         const CloseContestsCronBinding = createBindingFromClass(CloseContestsCron);
         this.add(CloseContestsCronBinding);
 
+
+        const SpecialTeamsCronBinding = createBindingFromClass(SpecialTeamsCron);
+        this.add(SpecialTeamsCronBinding);
+
         // const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
         // this.add(fakeResultsCronBinding);
 
-        const syncTeamsCronBinding = createBindingFromClass(SyncTeamsCron);
-        this.add(syncTeamsCronBinding);
+        // const syncTeamsCronBinding = createBindingFromClass(SyncTeamsCron);
+        // this.add(syncTeamsCronBinding);
 
         const syncGamesCronBinding = createBindingFromClass(SyncGamesCron);
         this.add(syncGamesCronBinding);

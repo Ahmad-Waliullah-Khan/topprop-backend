@@ -142,6 +142,14 @@ export class Player extends Base {
     })
     projectedFantasyPoints: number;
 
+
+    @property({
+        type: 'number',
+        required: false,
+        default: 1,
+    })
+    playerType: number;
+
     @belongsTo(() => Team)
     teamId: number;
 

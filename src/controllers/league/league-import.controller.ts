@@ -143,14 +143,24 @@ export class LeagueImportController {
             swid: FETCH_LEAGUE_VALIDATOR.swid,
         };
         const { espnS2, swid } = body;
+        console.log('🚀 ~ file: league-import.controller.ts ~ line 146 ~ LeagueImportController ~ swid', swid);
+        console.log('🚀 ~ file: league-import.controller.ts ~ line 146 ~ LeagueImportController ~ espnS2', espnS2);
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         try {
             const gameData = await this.leagueService.fetchESPNAccount(espnS2 || '', swid || '');
+            console.log(
+                '🚀 ~ file: league-import.controller.ts ~ line 154 ~ LeagueImportController ~ gameData',
+                gameData,
+            );
 
             const { preferences } = gameData.data;
+            console.log(
+                '🚀 ~ file: league-import.controller.ts ~ line 157 ~ LeagueImportController ~ preferences',
+                preferences,
+            );
             const leagues = await Promise.all(
                 preferences.map(async (data: any) => {
                     const { id } = data;
@@ -320,8 +330,16 @@ export class LeagueImportController {
                     await Promise.all(
                         roster.roster.map(async (remotePlayer: any) => {
                             if (remotePlayer.selected_position !== 'BN') {
-                                const foundPlayer = await this.leagueService.findPlayer(remotePlayer, localPlayers);
+                                const foundPlayer = await this.leagueService.findPlayer(
+                                    remotePlayer,
+                                    localPlayers,
+                                    remotePlayer.selected_position,
+                                );
                                 if (!foundPlayer) {
+                                    console.log(
+                                        '🚀 ~ file: league-import.controller.ts ~ line 326 ~ LeagueImportController ~ roster.roster.map ~ remotePlayer',
+                                        remotePlayer,
+                                    );
                                     throw new HttpErrors.BadRequest(
                                         `${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
                                     );

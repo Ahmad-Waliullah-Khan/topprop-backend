@@ -106,13 +106,23 @@ export class LeagueService {
         return teams;
     }
 
-    async findPlayer(remotePlayer: any, localPlayers: any): Promise<any> {
-        const foundLocalPlayer = localPlayers.find(
-            (localPlayer: any) =>
-                remotePlayer.name.first === localPlayer.firstName &&
-                remotePlayer.name.last === localPlayer.lastName &&
-                remotePlayer.display_position === localPlayer.position,
-        );
+    async findPlayer(remotePlayer: any, localPlayers: any, position: string): Promise<any> {
+        let foundLocalPlayer = null;
+        if (position === 'DEF') {
+            foundLocalPlayer = localPlayers.find(
+                (localPlayer: any) =>
+                    remotePlayer.name.first === localPlayer.firstName &&
+                    remotePlayer.display_position === localPlayer.position,
+            );
+        } else {
+            foundLocalPlayer = localPlayers.find(
+                (localPlayer: any) =>
+                    remotePlayer.name.first === localPlayer.firstName &&
+                    remotePlayer.name.last === localPlayer.lastName &&
+                    remotePlayer.display_position === localPlayer.position,
+            );
+        }
+
         return foundLocalPlayer;
     }
 
@@ -236,7 +246,11 @@ export class LeagueService {
                         await Promise.all(
                             roster.roster.map(async (remotePlayer: any) => {
                                 if (remotePlayer.selected_position !== 'BN') {
-                                    const foundPlayer = await this.findPlayer(remotePlayer, localPlayers);
+                                    const foundPlayer = await this.findPlayer(
+                                        remotePlayer,
+                                        localPlayers,
+                                        remotePlayer.selected_position,
+                                    );
 
                                     const rosterData = new Roster();
                                     rosterData.teamId = foundLocalTeam.id;
@@ -263,7 +277,11 @@ export class LeagueService {
                         await Promise.all(
                             roster.roster.map(async (remotePlayer: any) => {
                                 if (remotePlayer.selected_position !== 'BN') {
-                                    const foundPlayer = await this.findPlayer(remotePlayer, localPlayers);
+                                    const foundPlayer = await this.findPlayer(
+                                        remotePlayer,
+                                        localPlayers,
+                                        remotePlayer.selected_position,
+                                    );
                                     const rosterData = new Roster();
                                     rosterData.teamId = createdTeam.id;
                                     rosterData.playerId = foundPlayer.id;

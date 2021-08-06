@@ -1,14 +1,14 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
     GainRepository,
     PlayerRepository,
     TimeframeRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {SportsDataService, UserService} from '@src/services';
+import { SportsDataService, UserService } from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import {
@@ -22,12 +22,12 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
-    TIMEFRAMES
+    TIMEFRAMES,
 } from '../utils/constants';
 
 const logger = require('../utils/logger');
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
     constructor(
         @service() private sportsDataService: SportsDataService,
@@ -37,7 +37,7 @@ export class CronService {
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @repository('UserRepository') private userRepository: UserRepository,
-    ) { }
+    ) {}
 
     async fetchDate() {
         if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
@@ -81,7 +81,7 @@ export class CronService {
             currentDate.add(PROXY_DAY_OFFSET, 'days');
             // console.log("🚀 ~ file: cron.service.ts ~ line 60 ~ CronService ~ fetchTimeframe ~ currentDate", currentDate)
             const [currentTimeFrame] = await this.timeframeRepository.find({
-                where: {and: [{startDate: {lte: currentDate}}, {endDate: {gte: currentDate}}]},
+                where: { and: [{ startDate: { lte: currentDate } }, { endDate: { gte: currentDate } }] },
             });
             return currentTimeFrame;
         }
@@ -91,6 +91,22 @@ export class CronService {
         let cronTiming = '0 */15 * * * *';
         switch (cronName) {
             case CRON_JOBS.PLAYERS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th second of 0th minute every wednesday
+                        cronTiming = '0 0 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of 0th minute every wednesday
+                        cronTiming = '0 0 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of 0th minute of every hour of every day
+                        cronTiming = '0 0 */1 */1 * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.SPECIAL_TEAMS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // 0th second of 0th minute every wednesday
@@ -195,6 +211,9 @@ export class CronService {
         switch (cronName) {
             case CRON_JOBS.PLAYERS_CRON:
                 cronMessage = 'Players';
+                break;
+            case CRON_JOBS.SPECIAL_TEAMS_CRON:
+                cronMessage = 'Special Teams';
                 break;
             case CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON:
                 cronMessage = 'Projected Fantasy Points';
@@ -902,6 +921,7 @@ export class CronService {
                 foundLocalPlayer.status = remotePlayer.Status;
                 foundLocalPlayer.available = remotePlayer.Active;
                 foundLocalPlayer.teamName = remotePlayer.Team;
+                foundLocalPlayer.playerType = 1; // Regular Player
                 await this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
@@ -917,6 +937,7 @@ export class CronService {
                 newLocalPlayer.position = remotePlayer.Position;
                 newLocalPlayer.teamName = remotePlayer.Team;
                 newLocalPlayer.teamId = remotePlayer.TeamID;
+                newLocalPlayer.playerType = 1; // Regular Player
                 await this.playerRepository.create(newLocalPlayer);
             }
         });
@@ -924,12 +945,43 @@ export class CronService {
         return playerPromises;
     }
 
-    async leagueWinCheck() {
+    async fetchSpecialTeams() {
+        const remoteTeams = await this.sportsDataService.activeTeams();
+        const localPlayers = await this.playerRepository.find();
+        const teamPromises = remoteTeams.map(async remoteTeam => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remoteTeam.PlayerID === localPlayer.remoteId);
+            // const highResRemotePlayerPhotoUrl = remotePlayer.PhotoUrl.replace('low-res', 'studio-high-res');
+            if (foundLocalPlayer) {
+                foundLocalPlayer.photoUrl = remoteTeam.WikipediaLogoUrl;
+                foundLocalPlayer.photoUrlHiRes = remoteTeam.WikipediaLogoUrl;
+                foundLocalPlayer.status = 'Active';
+                foundLocalPlayer.available = true;
+                foundLocalPlayer.teamName = remoteTeam.Key;
+                foundLocalPlayer.playerType = 2; // Regular Player
+                await this.playerRepository.save(foundLocalPlayer);
+            } else {
+                const newLocalPlayer = new Player();
+                newLocalPlayer.remoteId = remoteTeam.PlayerID;
+                newLocalPlayer.photoUrl = remoteTeam.WikipediaLogoUrl;
+                newLocalPlayer.photoUrlHiRes = remoteTeam.WikipediaLogoUrl;
+                newLocalPlayer.firstName = remoteTeam.City;
+                newLocalPlayer.lastName = remoteTeam.Name;
+                newLocalPlayer.fullName = remoteTeam.FullName;
+                newLocalPlayer.shortName = remoteTeam.Key;
+                newLocalPlayer.status = 'Active';
+                newLocalPlayer.available = true;
+                newLocalPlayer.position = 'DEF';
+                newLocalPlayer.teamName = remoteTeam.Key;
+                newLocalPlayer.teamId = remoteTeam.TeamID;
+                newLocalPlayer.playerType = 2; // Special Team Player
+                await this.playerRepository.create(newLocalPlayer);
+            }
+        });
 
+        return teamPromises;
     }
 
-    async leagueCloseContests() {
+    async leagueWinCheck() {}
 
-    }
-
+    async leagueCloseContests() {}
 }

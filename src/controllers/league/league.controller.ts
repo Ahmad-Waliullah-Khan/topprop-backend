@@ -620,12 +620,14 @@ export class LeagueController {
             const entryAmount = body.entryAmount || 0;
             if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
-            const winBonusFlag = true;
+            const winBonusFlag = false;
 
             let creatorTeamSpread = 0;
             let claimerTeamSpread = 0;
             let creatorTeamCover = 0;
             let claimerTeamCover = 0;
+            let creatorTeamCoverWithBonus = 0;
+            let creatorTeamCoverWithoutBonus = 0;
             let creatorTeamWinBonus = 0;
             let claimerTeamWinBonus = 0;
 
@@ -645,37 +647,23 @@ export class LeagueController {
                     SPREAD_TYPE.LEAGUE_1_TO_2,
                 );
 
-                claimerTeamSpread = await this.leagueService.calculateSpread(
-                    Number(totalCreatorTeamProjFantasy),
-                    Number(totalClaimerTeamProjFantasy),
-                    'claimer',
-                    SPREAD_TYPE.LEAGUE_1_TO_2,
-                );
-
-                creatorTeamCover = await this.leagueService.calculateCover(
+                creatorTeamCoverWithBonus = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
-                    winBonusFlag,
+                    true,
                     SPREAD_TYPE.LEAGUE_1_TO_2,
                 );
-
-                claimerTeamCover = await this.leagueService.calculateCover(
-                    claimerTeamSpread,
+                
+                creatorTeamCoverWithoutBonus = await this.leagueService.calculateCover(
+                    creatorTeamSpread,
                     entryAmount,
-                    winBonusFlag,
+                    false,
                     SPREAD_TYPE.LEAGUE_1_TO_2,
                 );
 
                 creatorTeamWinBonus = winBonusFlag
                     ? await this.leagueService.calculateWinBonus(
                           creatorTeamSpread,
-                          entryAmount,
-                          SPREAD_TYPE.LEAGUE_1_TO_2,
-                      )
-                    : 0;
-                claimerTeamWinBonus = winBonusFlag
-                    ? await this.leagueService.calculateWinBonus(
-                          claimerTeamSpread,
                           entryAmount,
                           SPREAD_TYPE.LEAGUE_1_TO_2,
                       )
@@ -695,37 +683,23 @@ export class LeagueController {
                     SPREAD_TYPE.LEAGUE_3_TO_6,
                 );
 
-                claimerTeamSpread = await this.leagueService.calculateSpread(
-                    Number(totalCreatorTeamProjFantasy),
-                    Number(totalClaimerTeamProjFantasy),
-                    'claimer',
-                    SPREAD_TYPE.LEAGUE_3_TO_6,
-                );
-
-                creatorTeamCover = await this.leagueService.calculateCover(
+                creatorTeamCoverWithBonus = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
-                    winBonusFlag,
+                    true,
                     SPREAD_TYPE.LEAGUE_3_TO_6,
                 );
-
-                claimerTeamCover = await this.leagueService.calculateCover(
-                    claimerTeamSpread,
+                
+                creatorTeamCoverWithoutBonus = await this.leagueService.calculateCover(
+                    creatorTeamSpread,
                     entryAmount,
-                    winBonusFlag,
+                    false,
                     SPREAD_TYPE.LEAGUE_3_TO_6,
                 );
 
                 creatorTeamWinBonus = winBonusFlag
                     ? await this.leagueService.calculateWinBonus(
                           creatorTeamSpread,
-                          entryAmount,
-                          SPREAD_TYPE.LEAGUE_3_TO_6,
-                      )
-                    : 0;
-                claimerTeamWinBonus = winBonusFlag
-                    ? await this.leagueService.calculateWinBonus(
-                          claimerTeamSpread,
                           entryAmount,
                           SPREAD_TYPE.LEAGUE_3_TO_6,
                       )
@@ -745,42 +719,19 @@ export class LeagueController {
                     SPREAD_TYPE.LEAGUE_7_TO_18,
                 );
 
-                claimerTeamSpread = await this.leagueService.calculateSpread(
-                    Number(totalCreatorTeamProjFantasy),
-                    Number(totalClaimerTeamProjFantasy),
-                    'claimer',
-                    SPREAD_TYPE.LEAGUE_7_TO_18,
-                );
-
-                creatorTeamCover = await this.leagueService.calculateCover(
+                creatorTeamCoverWithBonus = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
-                    winBonusFlag,
+                    true,
                     SPREAD_TYPE.LEAGUE_7_TO_18,
                 );
 
-                claimerTeamCover = await this.leagueService.calculateCover(
-                    claimerTeamSpread,
+                creatorTeamCoverWithoutBonus = await this.leagueService.calculateCover(
+                    creatorTeamSpread,
                     entryAmount,
-                    winBonusFlag,
+                    false,
                     SPREAD_TYPE.LEAGUE_7_TO_18,
                 );
-
-                creatorTeamWinBonus = winBonusFlag
-                    ? await this.leagueService.calculateWinBonus(
-                          creatorTeamSpread,
-                          entryAmount,
-                          SPREAD_TYPE.LEAGUE_7_TO_18,
-                      )
-                    : 0;
-
-                claimerTeamWinBonus = winBonusFlag
-                    ? await this.leagueService.calculateWinBonus(
-                          claimerTeamSpread,
-                          entryAmount,
-                          SPREAD_TYPE.LEAGUE_7_TO_18,
-                      )
-                    : 0;
 
                 contestType = SPREAD_TYPE.LEAGUE_7_TO_18;
             }
@@ -796,11 +747,16 @@ export class LeagueController {
                 data: {
                     withWinBonus: {
                         spread: creatorTeamSpread,
-                        cover: Number(creatorTeamCover),
-                        winBonus: Number(creatorTeamWinBonus),
+                        cover: Number(creatorTeamCoverWithBonus),
+                        winBonus: 0,
                         maxWin: creatorTeamMaxWin,
                     },
-                    withoutWinBonus: {},
+                    withoutWinBonus: {
+                        spread: creatorTeamSpread,
+                        cover: Number(creatorTeamCoverWithoutBonus),
+                        winBonus: 0,
+                        maxWin: creatorTeamMaxWin,
+                    },
                 },
             };
         } catch (error) {
