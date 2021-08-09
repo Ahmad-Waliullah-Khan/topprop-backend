@@ -58,6 +58,14 @@ export const IMPORT_LEAGUE_VALIDATOR = {
             type: 'League Id must be a numeric value.',
         },
     },
+    espnleagueId: {
+        required: true,
+        type: String,
+        message: {
+            required: 'League Id is required.',
+            type: 'League Id must be a string value.',
+        },
+    },
     espnS2: {
         required: true,
         type: String,
@@ -100,7 +108,7 @@ export const IMPORT_LEAGUE_VALIDATOR = {
     },
     scoringTypeId: {
         required: true,
-        type: String,
+        type: Number,
         message: {
             required: 'Scoring Type is required.',
             type: 'Scoring Type must be string.',

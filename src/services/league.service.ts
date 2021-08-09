@@ -85,7 +85,28 @@ export class LeagueService {
         });
     }
 
-    async fetchESPNLeagueTeams(espnS2: string, swid: string, leagueId: number): Promise<any> {
+    async fetchESPNLeague(espnS2: string, swid: string, leagueId: string): Promise<any> {
+        const myClient = new Client({ leagueId });
+        myClient.setCookies({ espnS2: espnS2, SWID: swid });
+        const response = await this.fetchESPNAccount(espnS2, swid);
+        let seasonId;
+        let scoringPeriodId;
+        response.data.preferences.map((preference: any) => {
+            const { id } = preference;
+            const meta = id.split(':');
+            const prefleagueId = meta[1];
+            seasonId = meta[3];
+            scoringPeriodId = meta[2];
+            if (prefleagueId === leagueId) {
+                return false;
+            }
+        });
+
+        const league = await myClient.getLeagueInfo({ seasonId });
+        return { ...league, seasonId: seasonId };
+    }
+
+    async fetchESPNLeagueTeams(espnS2: string, swid: string, leagueId: string): Promise<any> {
         const myClient = new Client({ leagueId });
         myClient.setCookies({ espnS2: espnS2, SWID: swid });
         const response = await this.fetchESPNAccount(espnS2, swid);
@@ -104,6 +125,24 @@ export class LeagueService {
 
         const teams = await myClient.getTeamsAtWeek({ seasonId, scoringPeriodId });
         return teams;
+    }
+
+    async fetchESPNLeagueTeamsByIds(teamIds: number[], seasonId: string, leagueId: string): Promise<any> {
+        let teamIdsString = '';
+        teamIds.map((teamId: number, index: number) => {
+            if (index === 0) {
+                teamIdsString = `rosterForTeamId=${teamId}`;
+            } else {
+                teamIdsString = `${teamIdsString}&rosterForTeamId=${teamId}`;
+            }
+        });
+
+        const url = `https://fantasy.espn.com/apis/v3/games/ffl/seasons/${seasonId}/segments/0/leagues/${leagueId}?${teamIdsString}&view=mDraftDetail&view=mLiveScoring&view=mMatchupScore&view=mPendingTransactions&view=mPositionalRatings&view=mRoster&view=mSettings&view=mTeam&view=modular&view=mNav`;
+        
+        return axios({
+            method: 'get',
+            url: url,
+        });
     }
 
     async findPlayer(remotePlayer: any, localPlayers: any, position: string): Promise<any> {

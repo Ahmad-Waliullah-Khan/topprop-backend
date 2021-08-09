@@ -12,7 +12,7 @@ export interface ILeagueFetchRequestEspn extends League {
 export interface ILeagueImportRequestEspn extends League {
     espnS2: string;
     swid: string;
-    leagueId: number;
+    leagueId: string;
     source?: string;
 }
 export interface ILeagueImportRequestYahoo extends League {

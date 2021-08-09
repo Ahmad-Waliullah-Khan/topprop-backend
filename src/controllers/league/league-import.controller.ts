@@ -34,6 +34,7 @@ import Schema from 'validate';
 const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
 const logger = require('../../utils/logger');
+import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '../../utils/constants/league.constants';
 
 export class LeagueImportController {
     constructor(
@@ -143,24 +144,15 @@ export class LeagueImportController {
             swid: FETCH_LEAGUE_VALIDATOR.swid,
         };
         const { espnS2, swid } = body;
-        console.log('🚀 ~ file: league-import.controller.ts ~ line 146 ~ LeagueImportController ~ swid', swid);
-        console.log('🚀 ~ file: league-import.controller.ts ~ line 146 ~ LeagueImportController ~ espnS2', espnS2);
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         try {
             const gameData = await this.leagueService.fetchESPNAccount(espnS2 || '', swid || '');
-            console.log(
-                '🚀 ~ file: league-import.controller.ts ~ line 154 ~ LeagueImportController ~ gameData',
-                gameData,
-            );
 
             const { preferences } = gameData.data;
-            console.log(
-                '🚀 ~ file: league-import.controller.ts ~ line 157 ~ LeagueImportController ~ preferences',
-                preferences,
-            );
+
             const leagues = await Promise.all(
                 preferences.map(async (data: any) => {
                     const { id } = data;
@@ -213,43 +205,170 @@ export class LeagueImportController {
             },
         },
     })
-    async fetchEspn(
+    async importESPNLeague(
         @requestBody()
         body: Partial<ILeagueImportRequestEspn>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
     ): Promise<ICommonHttpResponse<any>> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
+        const userId = +currentUser[securityId];
+
         const validationSchema = {
-            leagueId: FETCH_LEAGUE_VALIDATOR.leagueId,
-            espnS2: FETCH_LEAGUE_VALIDATOR.espnS2,
-            swid: FETCH_LEAGUE_VALIDATOR.swid,
+            leagueId: IMPORT_LEAGUE_VALIDATOR.espnleagueId,
+            espnS2: IMPORT_LEAGUE_VALIDATOR.espnS2,
+            swid: IMPORT_LEAGUE_VALIDATOR.swid,
+            scoringTypeId: IMPORT_LEAGUE_VALIDATOR.scoringTypeId,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-        let league = null;
+        const { espnS2, swid, leagueId, scoringTypeId } = body;
 
-        const leagueObject = { leagueId: body.leagueId };
-        const espnClient = new Client(leagueObject);
+        const league = await this.leagueRepository.find({
+            where: {
+                remoteId: leagueId,
+            },
+        });
 
-        espnClient.setCookies({ espnS2: body.espnS2, SWID: body.swid });
-        const options = { seasonId: 2021, scoringPeriodId: 13 };
+        if (league.length > 0) throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.LEAGUE_EXISTS);
+
+        // @ts-ignore
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
 
         try {
-            const leagueInfo = await espnClient.getTeamsAtWeek(options);
-            league = leagueInfo;
-        } catch (e) {
-            console.log(e);
-        }
+            const league = await this.leagueService.fetchESPNLeague(espnS2 || '', swid || '', leagueId || '');
 
-        return {
-            message: LEAGUE_IMPORT_MESSAGES.FETCH_SUCCESS,
-            data: {
-                league: league,
-            },
-        };
+            const localPlayers = await this.playerRepository.find();
+
+            const leagueData = new League();
+            leagueData.importSourceId = 2; // in source table: 1 = espn, 2 = yahoo
+            leagueData.remoteId = leagueId || ''; //format:{GameKey}.1.{leagueId}
+            leagueData.name = league.name;
+            leagueData.scoringTypeId = Number(scoringTypeId); //1=halfppr, 2=fullppr, 3=noppr
+            leagueData.syncStatus = 'success';
+            leagueData.lastSyncTime = new Date();
+            leagueData.userId = userId;
+
+            const createdLeague = await this.leagueRepository.create(leagueData, { transaction });
+
+            const teamsInfo = await this.leagueService.fetchESPNLeagueTeams(espnS2 || '', swid || '', leagueId || '');
+
+            const teamIds = teamsInfo.map((team: any) => team.id);
+
+            const leaguePromise = await this.leagueService.fetchESPNLeagueTeamsByIds(
+                teamIds,
+                league.seasonId,
+                leagueId || '',
+            );
+
+            const leagueInfo = leaguePromise.data;
+
+            const notFoundPlayers: any[] = [];
+
+            const { teams } = leagueInfo;
+            await Promise.all(
+                teams.map(async (team: any) => {
+                    const teamData = new Team();
+
+                    teamData.name = `${team.location} ${team.nickname}`;
+                    teamData.remoteId = `${team.leagueId}-${team.id}`;
+                    teamData.logoUrl = team.logo;
+                    teamData.wordMarkUrl = team.abbrev;
+                    teamData.leagueId = createdLeague.id;
+                    const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                    const roster = team?.roster ? team.roster.entries : [];
+
+                    const sortedRoster = roster.sort((a: any, b: any) => {
+                        return a.lineupSlotId - b.lineupSlotId;
+                    });
+
+                    await Promise.all(
+                        sortedRoster.map(async (remotePlayer: any) => {
+                            if (remotePlayer.lineupSlotId !== 20) {
+                                const normalisedRemotePlayer = {
+                                    name: {
+                                        first: remotePlayer?.playerPoolEntry?.player.firstName,
+                                        last: remotePlayer?.playerPoolEntry?.player.lastName,
+                                    },
+                                    display_position:
+                                        ESPN_POSITION_MAPPING[remotePlayer?.playerPoolEntry?.player.defaultPositionId],
+                                    team_position: ESPN_LINEUP_SLOT_MAPPING[remotePlayer?.lineupSlotId],
+                                };
+
+                                const foundPlayer = await this.leagueService.findPlayer(
+                                    normalisedRemotePlayer,
+                                    localPlayers,
+                                    normalisedRemotePlayer.team_position,
+                                );
+
+                                if (!foundPlayer) {
+                                    notFoundPlayers.push(remotePlayer);
+                                    // throw new HttpErrors.BadRequest(
+                                    //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                    // );
+                                } else {
+                                    const rosterData = new Roster();
+                                    rosterData.teamId = createdTeam.id;
+                                    rosterData.playerId = foundPlayer.id;
+                                    rosterData.displayPosition = normalisedRemotePlayer.team_position;
+                                    await this.rosterRepository.create(rosterData, { transaction });
+                                }
+                            }
+
+                            return false;
+                        }),
+                    );
+                }),
+            );
+
+            // console.log(
+            //     '🚀 ~ file: league-import.controller.ts ~ line 368 ~ LeagueImportController ~ notFoundPlayers',
+            //     notFoundPlayers,
+            // );
+
+            const userData = await this.userRepository.findById(userId);
+
+            if (userData) {
+                userData.espns2 = espnS2 || null;
+                userData.espnswid = swid || null;
+
+                await this.userRepository.save(userData, { transaction });
+            }
+
+            const memberData = new Member();
+            memberData.leagueId = createdLeague.id;
+            memberData.userId = createdLeague.userId;
+
+            await this.memberRepository.create(memberData, { transaction });
+
+            await transaction.commit();
+
+            const newLeague = await this.leagueRepository.find({
+                where: {
+                    remoteId: leagueId,
+                },
+                include: ['teams'],
+            });
+
+            return {
+                message: LEAGUE_IMPORT_MESSAGES.IMPORT_SUCCESS_ESPN,
+                data: {
+                    league: newLeague,
+                },
+            };
+        } catch (error) {
+            console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
+            logger.error(error.message);
+            await transaction.rollback();
+            if (error.name === 'BadRequestError') {
+                throw new HttpErrors.BadRequest(error.message);
+            }
+            throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.IMPORT_FAILED_ESPN);
+        }
     }
 
     @authenticate('jwt')
@@ -274,7 +393,7 @@ export class LeagueImportController {
             leagueKey: IMPORT_LEAGUE_VALIDATOR.leagueKey,
             accessToken: IMPORT_LEAGUE_VALIDATOR.accessToken,
             refreshToken: IMPORT_LEAGUE_VALIDATOR.refreshToken,
-            scoringTypeId: IMPORT_LEAGUE_VALIDATOR.leagueKey,
+            scoringTypeId: IMPORT_LEAGUE_VALIDATOR.scoringTypeId,
         };
 
         const validation = new Schema(validationSchema, { strip: true });
