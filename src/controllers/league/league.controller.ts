@@ -653,7 +653,7 @@ export class LeagueController {
                     true,
                     SPREAD_TYPE.LEAGUE_1_TO_2,
                 );
-                
+
                 creatorTeamCoverWithoutBonus = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
@@ -689,7 +689,7 @@ export class LeagueController {
                     true,
                     SPREAD_TYPE.LEAGUE_3_TO_6,
                 );
-                
+
                 creatorTeamCoverWithoutBonus = await this.leagueService.calculateCover(
                     creatorTeamSpread,
                     entryAmount,
@@ -1417,21 +1417,21 @@ export class LeagueController {
     ): Promise<ICommonHttpResponse<any>> {
         if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
 
-        const validationSchema = {
-            leagueId: FETCH_LEAGUE_VALIDATOR.leagueId,
-        };
+        // const validationSchema = {
+        //     leagueId: FETCH_LEAGUE_VALIDATOR.leagueId,
+        // };
 
-        const validation = new Schema(validationSchema, { strip: true });
-        const validationErrors = validation.validate(body);
-        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+        // const validation = new Schema(validationSchema, { strip: true });
+        // const validationErrors = validation.validate(body);
+        // if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
         const { leagueId } = body;
 
         const existingLeague = await this.leagueRepository.findById(Number(leagueId));
-
+        
         const importSourceData = await this.importSourceRepository.findById(existingLeague.importSourceId);
         const importSource = importSourceData.name;
-
+        
         if (importSource === 'yahoo') {
             if (await this.leagueService.resyncYahoo(leagueId)) {
                 const includes = await this.leagueService.fetchLeagueInclude();
@@ -1448,47 +1448,18 @@ export class LeagueController {
         }
         if (importSource === 'espn') {
             //Call espn sync method from league service
+            if (await this.leagueService.resyncESPN(leagueId || 0)) {
+                const includes = await this.leagueService.fetchLeagueInclude();
+                // @ts-ignore
+                const updatedLeague = await this.leagueRepository.findById(leagueId, includes);
 
-            // await this.leagueService.resyncESPN(espnS2, swid, leagueKey);
-
-            const newLeague = await this.leagueRepository.find({
-                where: {
-                    id: leagueId,
-                },
-                order: ['createdAt DESC'],
-                include: [
-                    {
-                        relation: 'teams',
-                        scope: {
-                            include: [
-                                {
-                                    relation: 'user',
-                                },
-                                {
-                                    relation: 'rosters',
-                                    scope: {
-                                        include: [{ relation: 'player' }],
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                    {
-                        relation: 'members',
-                        scope: {
-                            include: ['user'],
-                        },
-                    },
-                    {
-                        relation: 'scoringType',
-                    },
-                ],
-            });
-
-            return {
-                message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
-                data: newLeague,
-            };
+                return {
+                    message: LEAGUE_MESSAGES.RESYNC_SUCCESS,
+                    data: updatedLeague,
+                };
+            } else {
+                throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
+            }
         }
 
         throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
