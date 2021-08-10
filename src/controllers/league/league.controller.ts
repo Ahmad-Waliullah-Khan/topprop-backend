@@ -637,7 +637,7 @@ export class LeagueController {
 
             const spreadDiff = Math.abs(projSpreadDiff);
 
-            if (spreadDiff > 20) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
+            if (spreadDiff > 50) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
 
             if (remainingClaimerPlayers.length <= 2 || remainingCreatorPlayers.length <= 2) {
                 creatorTeamSpread = await this.leagueService.calculateSpread(
@@ -736,7 +736,7 @@ export class LeagueController {
                 contestType = SPREAD_TYPE.LEAGUE_7_TO_18;
             }
 
-            const creatorTeamMaxWin = Number(creatorTeamCover) + Number(creatorTeamWinBonus);
+            const creatorTeamMaxWin = Number(creatorTeamCoverWithBonus) + Number(creatorTeamWinBonus);
             const claimerTeamMaxWin = Number(claimerTeamCover) + Number(claimerTeamWinBonus);
 
             const spreadValue = entryAmount * 0.85;
@@ -749,13 +749,13 @@ export class LeagueController {
                         spread: creatorTeamSpread,
                         cover: Number(creatorTeamCoverWithBonus),
                         winBonus: 0,
-                        maxWin: creatorTeamMaxWin,
+                        maxWin: Number(creatorTeamCoverWithBonus) + Number(creatorTeamWinBonus),
                     },
                     withoutWinBonus: {
                         spread: creatorTeamSpread,
                         cover: Number(creatorTeamCoverWithoutBonus),
                         winBonus: 0,
-                        maxWin: creatorTeamMaxWin,
+                        maxWin: Number(creatorTeamCoverWithoutBonus) + Number(creatorTeamWinBonus),
                     },
                 },
             };
@@ -916,7 +916,7 @@ export class LeagueController {
             const entryAmount = body.entryAmount || 0;
             if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
-            const winBonusFlag = body.winBonus || true;
+            const winBonusFlag =false;
 
             let creatorTeamSpread = 0;
             let claimerTeamSpread = 0;
@@ -931,7 +931,7 @@ export class LeagueController {
 
             const spreadDiff = Math.abs(projSpreadDiff);
 
-            if (spreadDiff > 20) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
+            if (spreadDiff > 50) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
 
             if (remainingClaimerPlayers.length <= 2 || remainingCreatorPlayers.length <= 2) {
                 creatorTeamSpread = await this.leagueService.calculateSpread(
