@@ -1,6 +1,6 @@
-import { bind, injectable, BindingScope, Getter } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { League, Roster, Team } from '@src/models';
+import {BindingScope, Getter, injectable} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {League, Roster, Team} from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,10 +9,10 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
-import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '@src/utils/constants/league.constants';
+import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '@src/utils/constants/league.constants';
+import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
