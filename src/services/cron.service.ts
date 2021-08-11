@@ -1,14 +1,17 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
+    ContestRosterRepository,
     GainRepository,
+    LeagueContestRepository,
     PlayerRepository,
+    RosterRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import {
@@ -21,8 +24,7 @@ import {
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
-    RUN_TYPE,
-    TIMEFRAMES,
+    RUN_TYPE, TIMEFRAMES
 } from '../utils/constants';
 
 const logger = require('../utils/logger');
@@ -37,7 +39,10 @@ export class CronService {
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @repository('UserRepository') private userRepository: UserRepository,
-    ) {}
+        @repository('LeagueContestRepository') private leagueContestRepository: LeagueContestRepository,
+        @repository('RosterRepository') private rosterRepository: RosterRepository,
+        @repository('ContestRosterRepository') private contestRosterRepository: ContestRosterRepository,
+    ) { }
 
     async fetchDate() {
         if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) {
@@ -981,7 +986,517 @@ export class CronService {
         return teamPromises;
     }
 
-    async leagueWinCheck() {}
+    async leagueWinCheck() {
+        // get all the matched contests including relations
+        // get the filtered contests (player.isOver == true)
+        // add up all the earned fp for all the players for creatorContestTeam and claimerContestTeam
+        // Do win check similar to battleground
+        // Add gain for the winner user
+        // Save the earned fp for players in contestRoster
 
-    async leagueCloseContests() {}
+        const leagueContests = await this.leagueContestRepository.find({
+            where: {
+                // status: CONTEST_STATUSES.MATCHED,
+                ended: false,
+                // claimerId: undefined,
+            },
+            include: [
+                {
+                    relation: 'creatorTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'creatorContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        // const filteredLeagueContests = leagueContests.filter(contest => {
+        //     return !contest.creatorContestTeam?.contestRosters.some( (contestRoster: any) => {
+        //         return !contestRoster.player.isOver === true;
+        //     }) && !contest.claimerContestTeam?.contestRosters.some( (contestRoster: any) => {
+        //         return !contestRoster.player.isOver === true;
+        //     });
+        // });
+
+        // filteredLeagueContests.map(async contest => {
+
+        //     const creatorTeamRoster = contest.creatorContestTeam?.contestRosters;
+
+        //     const claimerTeamRoster = contest.claimerContestTeam?.contestRosters;
+
+        //     const creatorTeamPlayerFantasy = creatorTeamRoster.map((roster: any) => {
+        //         return roster.player ? roster.player.fantasyPoints : 0;
+        //     });
+
+        //     const claimerTeamPlayerFantasy = claimerTeamRoster.map((roster: any) => {
+        //         return roster.player ? roster.player.fantasyPoints : 0;
+        //     });
+
+        //     const totalCreatorTeamFantasy =
+        //         creatorTeamPlayerFantasy.length > 0
+        //             ? creatorTeamPlayerFantasy.reduce((accumulator, currentValue) => {
+        //                   const total = Number(accumulator);
+        //                   const value = Number(currentValue);
+        //                   return total + value;
+        //               }, 0)
+        //             : 0;
+
+        //     const totalClaimerTeamFantasy =
+        //         claimerTeamPlayerFantasy.length > 0
+        //             ? claimerTeamPlayerFantasy.reduce((accumulator, currentValue) => {
+        //                   const total = Number(accumulator);
+        //                   const value = Number(currentValue);
+        //                   return total + value;
+        //               }, 0)
+        //             : 0;
+
+        //     let creatorTeamSpread = 0;
+        //     let claimerTeamSpread = 0;
+        //     let creatorTeamCover = 0;
+        //     let claimerTeamCover = 0;
+        //     let creatorTeamWinBonus = 0;
+        //     let claimerTeamWinBonus = 0;
+
+        //     let contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
+
+        //     const SpreadDiff = Number(totalCreatorTeamFantasy) - Number(totalClaimerTeamFantasy);
+
+        //     const spreadDiff = Math.abs(SpreadDiff);
+
+        //     if (claimerTeamRoster.length <= 2 || creatorTeamRoster.length <= 2) {
+        //         creatorTeamSpread = await this.leagueService.calculateSpread(
+        //             Number(totalCreatorTeamFantasy),
+        //             Number(totalClaimerTeamFantasy),
+        //             'creator',
+        //             SPREAD_TYPE.LEAGUE_1_TO_2,
+        //         );
+
+        //         claimerTeamSpread = await this.leagueService.calculateSpread(
+        //             Number(totalCreatorTeamFantasy),
+        //             Number(totalClaimerTeamFantasy),
+        //             'claimer',
+        //             SPREAD_TYPE.LEAGUE_1_TO_2,
+        //         );
+
+        //         creatorTeamCover = await this.leagueService.calculateCover(
+        //             creatorTeamSpread,
+        //             contest.entryAmount,
+        //             false,
+        //             SPREAD_TYPE.LEAGUE_1_TO_2,
+        //         );
+
+        //         claimerTeamCover = await this.leagueService.calculateCover(
+        //             claimerTeamSpread,
+        //             contest.entryAmount,
+        //             false,
+        //             SPREAD_TYPE.LEAGUE_1_TO_2,
+        //         );
+
+        //         creatorTeamWinBonus = winBonusFlag
+        //             ? await this.leagueService.calculateWinBonus(
+        //                   creatorTeamSpread,
+        //                   contest.entryAmount,
+        //                   SPREAD_TYPE.LEAGUE_1_TO_2,
+        //               )
+        //             : 0;
+        //         claimerTeamWinBonus = winBonusFlag
+        //             ? await this.leagueService.calculateWinBonus(
+        //                   claimerTeamSpread,
+        //                   entryAmount,
+        //                   SPREAD_TYPE.LEAGUE_1_TO_2,
+        //               )
+        //             : 0;
+
+        //         contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
+        //     }
+
+        //     if (
+        //         (claimerTeamRoster.length > 2 && claimerTeamRoster.length <= 6) ||
+        //         (creatorTeamRoster.length > 2 && creatorTeamRoster.length <= 6)
+        //     ) {
+        //         creatorTeamSpread = await this.leagueService.calculateSpread(
+        //             Number(totalCreatorTeamFantasy),
+        //             Number(totalClaimerTeamFantasy),
+        //             'creator',
+        //             SPREAD_TYPE.LEAGUE_3_TO_6,
+        //         );
+
+        //         claimerTeamSpread = await this.leagueService.calculateSpread(
+        //             Number(totalCreatorTeamFantasy),
+        //             Number(totalClaimerTeamFantasy),
+        //             'claimer',
+        //             SPREAD_TYPE.LEAGUE_3_TO_6,
+        //         );
+
+        //         creatorTeamCover = await this.leagueService.calculateCover(
+        //             creatorTeamSpread,
+        //             contest.entryAmount,
+        //             false,
+        //             SPREAD_TYPE.LEAGUE_3_TO_6,
+        //         );
+
+        //         claimerTeamCover = await this.leagueService.calculateCover(
+        //             claimerTeamSpread,
+        //             entryAmount,
+        //             winBonusFlag,
+        //             SPREAD_TYPE.LEAGUE_3_TO_6,
+        //         );
+
+        //         creatorTeamWinBonus = winBonusFlag
+        //             ? await this.leagueService.calculateWinBonus(
+        //                   creatorTeamSpread,
+        //                   entryAmount,
+        //                   SPREAD_TYPE.LEAGUE_3_TO_6,
+        //               )
+        //             : 0;
+        //         claimerTeamWinBonus = winBonusFlag
+        //             ? await this.leagueService.calculateWinBonus(
+        //                   claimerTeamSpread,
+        //                   entryAmount,
+        //                   SPREAD_TYPE.LEAGUE_3_TO_6,
+        //               )
+        //             : 0;
+
+        //         contestType = SPREAD_TYPE.LEAGUE_3_TO_6;
+        //     }
+
+        //     if (
+        //         (claimerTeamRoster.length >= 7 && claimerTeamRoster.length <= 18) ||
+        //         (creatorTeamRoster.length >= 7 && creatorTeamRoster.length <= 18)
+        //     ) {
+        //         creatorTeamSpread = await this.leagueService.calculateSpread(
+        //             Number(totalCreatorTeamProjFantasy),
+        //             Number(totalClaimerTeamProjFantasy),
+        //             'creator',
+        //             SPREAD_TYPE.LEAGUE_7_TO_18,
+        //         );
+        //         claimerTeamSpread = await this.leagueService.calculateSpread(
+        //             Number(totalCreatorTeamProjFantasy),
+        //             Number(totalClaimerTeamProjFantasy),
+        //             'claimer',
+        //             SPREAD_TYPE.LEAGUE_7_TO_18,
+        //         );
+        //         creatorTeamCover = await this.leagueService.calculateCover(
+        //             creatorTeamSpread,
+        //             entryAmount,
+        //             winBonusFlag,
+        //             SPREAD_TYPE.LEAGUE_7_TO_18,
+        //         );
+
+        //         claimerTeamCover = await this.leagueService.calculateCover(
+        //             claimerTeamSpread,
+        //             entryAmount,
+        //             winBonusFlag,
+        //             SPREAD_TYPE.LEAGUE_7_TO_18,
+        //         );
+
+        //         creatorTeamWinBonus = winBonusFlag
+        //             ? await this.leagueService.calculateWinBonus(
+        //                   creatorTeamSpread,
+        //                   entryAmount,
+        //                   SPREAD_TYPE.LEAGUE_7_TO_18,
+        //               )
+        //             : 0;
+
+        //         claimerTeamWinBonus = winBonusFlag
+        //             ? await this.leagueService.calculateWinBonus(
+        //                   claimerTeamSpread,
+        //                   entryAmount,
+        //                   SPREAD_TYPE.LEAGUE_7_TO_18,
+        //               )
+        //             : 0;
+
+        //         contestType = SPREAD_TYPE.LEAGUE_7_TO_18;
+        //     }
+
+        //     const creatorTeamMaxWin = Number(creatorTeamCover) + Number(creatorTeamWinBonus);
+        //     const claimerTeamMaxWin = Number(claimerTeamCover) + Number(claimerTeamWinBonus);
+
+        //     const spreadValue = entryAmount * 0.85;
+        //     const mlValue = entryAmount - spreadValue;
+
+        //     const leagueContestData = new LeagueContest();
+        //     // const userId = body.creatorId;
+
+        //     leagueContestData.creatorId = userId;
+        //     leagueContestData.creatorTeamId = creatorTeamId;
+        //     leagueContestData.claimerTeamId = claimerTeamId;
+        //     leagueContestData.entryAmount = entryAmount;
+        //     leagueContestData.creatorTeamProjFantasyPoints = totalCreatorTeamProjFantasy;
+        //     leagueContestData.claimerTeamProjFantasyPoints = totalClaimerTeamProjFantasy;
+        //     leagueContestData.creatorTeamCover = creatorTeamCover;
+        //     leagueContestData.claimerTeamCover = claimerTeamCover;
+        //     leagueContestData.creatorTeamMaxWin = creatorTeamMaxWin;
+        //     leagueContestData.claimerTeamMaxWin = claimerTeamMaxWin;
+        //     leagueContestData.creatorTeamWinBonus = creatorTeamWinBonus;
+        //     leagueContestData.claimerTeamWinBonus = claimerTeamWinBonus;
+        //     leagueContestData.creatorTeamSpread = creatorTeamSpread;
+        //     leagueContestData.claimerTeamSpread = claimerTeamSpread;
+        //     leagueContestData.leagueId = creatorTeam.leagueId;
+        //     leagueContestData.spreadValue = spreadValue;
+        //     leagueContestData.mlValue = mlValue;
+        //     leagueContestData.type = CONTEST_TYPES.LEAGUE;
+        //     leagueContestData.status = CONTEST_STATUSES.OPEN;
+        //     leagueContestData.ended = false;
+
+        //     const creatorContestTeamData = new ContestTeam();
+        //     creatorContestTeamData.teamId = creatorTeamId;
+
+        //     const createdCreatorContestTeam = await this.contestTeamRepository.create(creatorContestTeamData, {
+        //         transaction,
+        //     });
+
+        //     creatorTeam?.rosters?.map(async player => {
+        //         const contestRosterData = new ContestRoster();
+        //         contestRosterData.contestTeamId = createdCreatorContestTeam.id;
+        //         contestRosterData.playerId = player.playerId;
+        //         await this.contestRosterRepository.create(contestRosterData, { transaction });
+        //         return false;
+        //     });
+
+        //     const claimerContestTeamData = new ContestTeam();
+        //     claimerContestTeamData.teamId = claimerTeamId;
+
+        //     const createdClaimerContestTeam = await this.contestTeamRepository.create(claimerContestTeamData, {
+        //         transaction,
+        //     });
+
+        //     claimerTeam?.rosters?.map(async player => {
+        //         const contestRosterData = new ContestRoster();
+        //         contestRosterData.contestTeamId = createdClaimerContestTeam.id;
+        //         contestRosterData.playerId = player.playerId;
+        //         await this.contestRosterRepository.create(contestRosterData, { transaction });
+        //         return false;
+        //     });
+
+        //     leagueContestData.creatorContestTeamId = createdCreatorContestTeam.id;
+        //     leagueContestData.claimerContestTeamId = createdClaimerContestTeam.id;
+
+        // });
+
+
+
+        return leagueContests;
+    }
+
+    async leagueCloseContests() {
+        //Get all unclaimedContests
+        //Filter all the unclaimed contests where player.isOver == true
+        //If Contest is matched then refund both the creator and claimer
+        //else refund the creator
+
+        const contestsUnclaimed = await this.leagueContestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+            },
+            include: [
+                {
+                    relation: 'creatorTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'creatorContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
+            return !unclaimedContest.creatorContestTeam?.rosters.some( (contestRoster: any) => {
+                        return !contestRoster.player.isOver === true;
+                    }) && !unclaimedContest.claimerContestTeam?.rosters.some( (contestRoster: any) => {
+                        return !contestRoster.player.isOver === true;
+                    });
+        });
+
+        filteredUnclaimedContests.map(async unclaimedContest => {
+
+            const entryAmount = Number(unclaimedContest.entryAmount);
+
+            if (unclaimedContest.claimerId === null) {
+                // Unmatched
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.contestRepository.updateById(unclaimedContest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.creatorId;
+                entryGain.contenderId = unclaimedContest.creatorTeamId;
+                entryGain.contestId = unclaimedContest.id;
+                await this.gainRepository.create(entryGain);
+            } else {
+                // No data so auto-close
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.contestRepository.updateById(unclaimedContest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.creatorId;
+                entryGain.contenderId = unclaimedContest.claimerId;
+                entryGain.contestId = unclaimedContest.id;
+
+                await this.gainRepository.create(entryGain);
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.claimerId;
+                entryGain.contenderId = unclaimedContest.creatorId;
+                entryGain.contestId = unclaimedContest.id;
+
+                await this.gainRepository.create(entryGain);
+            }
+        });
+
+        return filteredUnclaimedContests;
+    }
 }

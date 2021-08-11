@@ -19,6 +19,9 @@ export class CloseContestsCron extends CronJob {
                     await this.cronService.closeContests();
                     this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
 
+                    await this.cronService.leagueCloseContests();
+                    this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
+
                     const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.CLOSE_CONTEST_CRON);
                     const updatedCronTime = new cron.CronTime(updatedCronTiming);
                     this.setTime(updatedCronTime);
