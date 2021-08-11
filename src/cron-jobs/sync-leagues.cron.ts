@@ -11,7 +11,7 @@ const logger = require('../utils/logger');
 export class SyncLeaguesCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 1 * * * 3',
+            cronTime: '0 */6 * * *',
             name: CRON_JOBS.CLOSE_CONTEST_CRON,
             start: true,
             onTick: async () => {
