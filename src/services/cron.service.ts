@@ -1602,104 +1602,52 @@ export class CronService {
         //If Contest is matched then refund both the creator and claimer
         //else refund the creator
 
+        const includes = await this.leagueService.fetchLeagueContestInclude();
+
         const contestsUnclaimed = await this.leagueContestRepository.find({
             where: {
                 status: CONTEST_STATUSES.OPEN,
                 ended: false,
                 claimerId: undefined,
             },
-            include: [
-                {
-                    relation: 'creatorTeam',
-                    scope: {
-                        include: [
-                            {
-                                relation: 'rosters',
-                                scope: {
-                                    include: [
-                                        {
-                                            relation: 'player',
-                                        },
-                                    ],
-                                },
-                            },
-                        ],
-                    },
-                },
-                {
-                    relation: 'claimerTeam',
-                    scope: {
-                        include: [
-                            {
-                                relation: 'rosters',
-                                scope: {
-                                    include: [
-                                        {
-                                            relation: 'player',
-                                        },
-                                    ],
-                                },
-                            },
-                        ],
-                    },
-                },
-                {
-                    relation: 'creatorContestTeam',
-                    scope: {
-                        include: [
-                            {
-                                relation: 'contestRosters',
-                                scope: {
-                                    include: [
-                                        {
-                                            relation: 'player',
-                                        },
-                                    ],
-                                },
-                            },
-                            {
-                                relation: 'team',
-                            },
-                        ],
-                    },
-                },
-                {
-                    relation: 'claimerContestTeam',
-                    scope: {
-                        include: [
-                            {
-                                relation: 'contestRosters',
-                                scope: {
-                                    include: [
-                                        {
-                                            relation: 'player',
-                                        },
-                                    ],
-                                },
-                            },
-                            {
-                                relation: 'team',
-                            },
-                        ],
-                    },
-                },
-            ],
+            include: includes.include,
         });
 
-        // return contestsUnclaimed;
+        const filteredUnClaimedLeagueContests = contestsUnclaimed.filter(contest => {
+            const { creatorContestTeam, claimerContestTeam } = contest;
+            const creatorRoster = creatorContestTeam?.contestRosters;
+            const claimerRoster = claimerContestTeam?.contestRosters;
+            let validContest = true;
+            creatorRoster?.map(rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                if (currentPlayer.isOver === false) {
+                    validContest = false;
+                }
+            });
+            claimerRoster?.map(rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                if (currentPlayer.isOver === false) {
+                    validContest = false;
+                }
+            });
 
-        const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
-            return (
-                !unclaimedContest?.creatorContestTeam?.contestRosters?.some((contestRoster: any) => {
-                    return !contestRoster.player.isOver === true;
-                }) &&
-                !unclaimedContest?.claimerContestTeam?.contestRosters?.some((contestRoster: any) => {
-                    return !contestRoster.player.isOver === true;
-                })
-            );
+            return validContest;
         });
 
-        filteredUnclaimedContests.map(async unclaimedContest => {
+        // const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
+        //     return (
+        //         !unclaimedContest?.creatorContestTeam?.contestRosters?.some((contestRoster: any) => {
+        //             return !contestRoster.player.isOver === true;
+        //         }) &&
+        //         !unclaimedContest?.claimerContestTeam?.contestRosters?.some((contestRoster: any) => {
+        //             return !contestRoster.player.isOver === true;
+        //         })
+        //     );
+        // });
+
+        filteredUnClaimedLeagueContests.map(async unclaimedContest => {
             const entryAmount = Number(unclaimedContest.entryAmount);
 
             if (unclaimedContest.claimerId === null) {
