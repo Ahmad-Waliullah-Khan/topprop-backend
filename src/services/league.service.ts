@@ -128,7 +128,13 @@ export class LeagueService {
         return teams;
     }
 
-    async fetchESPNLeagueTeamsByIds(teamIds: number[], seasonId: string, leagueId: string): Promise<any> {
+    async fetchESPNLeagueTeamsByIds(
+        espnS2: string,
+        swid: string,
+        teamIds: number[],
+        seasonId: string,
+        leagueId: string,
+    ): Promise<any> {
         let teamIdsString = '';
         teamIds.map((teamId: number, index: number) => {
             if (index === 0) {
@@ -143,6 +149,9 @@ export class LeagueService {
         return axios({
             method: 'get',
             url: url,
+            headers: {
+                Cookie: `espn_s2=${espnS2}; SWID=${swid};`,
+            },
         });
     }
 
@@ -379,7 +388,13 @@ export class LeagueService {
 
             const teamIds = teamsInfo.map((team: any) => team.id);
 
-            const leaguePromise = await this.fetchESPNLeagueTeamsByIds(teamIds, league.seasonId, leagueId || '');
+            const leaguePromise = await this.fetchESPNLeagueTeamsByIds(
+                espns2 || '',
+                espnswid || '',
+                teamIds,
+                league.seasonId,
+                leagueId || '',
+            );
 
             const leagueInfo = leaguePromise.data;
 
