@@ -1000,7 +1000,7 @@ export class CronService {
 
         yahooLeagues.map(async league => {
             await this.leagueService.resyncYahoo(league.id);
-            await sleep(2000);
+            await sleep(120000);
         });
         const updatedYahooLeagues = await this.leagueRepository.find({
             where: {
@@ -1008,8 +1008,21 @@ export class CronService {
             }
         });
 
-        //TODO: ESPN sync
+        //ESPN sync
+        const espnLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 1;
+        });
 
-        return updatedYahooLeagues;
+        espnLeagues.map(async league => {
+            await this.leagueService.resyncESPN(league.id);
+            await sleep(120000);
+        });
+        const updatedEspnLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2
+            }
+        });
+
+        return existingLeagues;
     }
 }
