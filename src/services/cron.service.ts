@@ -1,19 +1,21 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
     GainRepository,
     LeagueContestRepository,
+    LeagueRepository,
     PlayerRepository,
     RosterRepository,
     TimeframeRepository,
     UserRepository,
     TeamRepository,
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+
 import { LeagueService } from '../services/league.service';
+import { SportsDataService, UserService } from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import {
@@ -32,6 +34,7 @@ import {
 } from '../utils/constants';
 
 const logger = require('../utils/logger');
+const sleep = require('../utils/sleep');
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -48,6 +51,7 @@ export class CronService {
         @repository('TeamRepository') private teamRepository: TeamRepository,
         @repository('RosterRepository') private rosterRepository: RosterRepository,
         @repository('ContestRosterRepository') private contestRosterRepository: ContestRosterRepository,
+        @repository('LeagueRepository') private leagueRepository: LeagueRepository,
     ) {}
 
     async fetchDate() {
@@ -1073,7 +1077,7 @@ export class CronService {
                 //     },
                 // });
                 receiverUser = loserUser;
-                 // TODO
+                // TODO
                 // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                 //     contestData,
                 //     winnerUser,
@@ -1142,7 +1146,7 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(favorite.teamId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
-                     // TODO
+                    // TODO
                     // this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                     //     winnerUser,
                     //     loserUser,
@@ -1164,7 +1168,7 @@ export class CronService {
                     //     },
                     // });
 
-                     // TODO
+                    // TODO
                     // this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                     //     winnerUser,
                     //     loserUser,
@@ -1189,8 +1193,8 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(underdog.teamId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
-                    
-                     // TODO
+
+                    // TODO
                     // this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                     //     winnerUser,
                     //     loserUser,
@@ -1212,7 +1216,7 @@ export class CronService {
                     //     },
                     // });
 
-                     // TODO
+                    // TODO
                     // this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                     //     winnerUser,
                     //     loserUser,
@@ -1242,7 +1246,7 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                     // TODO
+                    // TODO
                     // this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                     //     favoriteUser,
                     //     underdogUser,
@@ -1263,7 +1267,7 @@ export class CronService {
                     //     },
                     // });
 
-                     // TODO
+                    // TODO
                     // this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
                     //     favoriteUser,
                     //     underdogUser,
@@ -1592,7 +1596,6 @@ export class CronService {
         return teamPromises;
     }
 
-
     async leagueCloseContests() {
         //Get all unclaimedContests
         //Filter all the unclaimed contests where player.isOver == true
@@ -1686,15 +1689,17 @@ export class CronService {
         // return contestsUnclaimed;
 
         const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
-            return !unclaimedContest?.creatorContestTeam?.contestRosters?.some( (contestRoster: any) => {
-                        return !contestRoster.player.isOver === true;
-                    }) && !unclaimedContest?.claimerContestTeam?.contestRosters?.some( (contestRoster: any) => {
-                        return !contestRoster.player.isOver === true;
-                    });
+            return (
+                !unclaimedContest?.creatorContestTeam?.contestRosters?.some((contestRoster: any) => {
+                    return !contestRoster.player.isOver === true;
+                }) &&
+                !unclaimedContest?.claimerContestTeam?.contestRosters?.some((contestRoster: any) => {
+                    return !contestRoster.player.isOver === true;
+                })
+            );
         });
 
         filteredUnclaimedContests.map(async unclaimedContest => {
-
             const entryAmount = Number(unclaimedContest.entryAmount);
 
             if (unclaimedContest.claimerId === null) {
@@ -1747,5 +1752,41 @@ export class CronService {
         });
 
         return filteredUnclaimedContests;
+    }
+
+    async syncLeagues() {
+        const existingLeagues = await this.leagueRepository.find();
+
+        //Yahoo sync
+        const yahooLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 2;
+        });
+
+        yahooLeagues.map(async league => {
+            await this.leagueService.resyncYahoo(league.id);
+            await sleep(120000);
+        });
+        const updatedYahooLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2,
+            },
+        });
+
+        //ESPN sync
+        const espnLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 1;
+        });
+
+        espnLeagues.map(async league => {
+            await this.leagueService.resyncESPN(league.id);
+            await sleep(120000);
+        });
+        const updatedEspnLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2,
+            },
+        });
+
+        return existingLeagues;
     }
 }
