@@ -244,7 +244,7 @@ export class LeagueImportController {
             const localPlayers = await this.playerRepository.find();
 
             const leagueData = new League();
-            leagueData.importSourceId = 2; // in source table: 1 = espn, 2 = yahoo
+            leagueData.importSourceId = 1; // in source table: 1 = espn, 2 = yahoo
             leagueData.remoteId = leagueId || ''; //format:{GameKey}.1.{leagueId}
             leagueData.name = league.name;
             leagueData.scoringTypeId = Number(scoringTypeId); //1=halfppr, 2=fullppr, 3=noppr
@@ -274,7 +274,7 @@ export class LeagueImportController {
                     const teamData = new Team();
 
                     teamData.name = `${team.location} ${team.nickname}`;
-                    teamData.remoteId = `${team.leagueId}-${team.id}`;
+                    teamData.remoteId = `${leagueId}-${team.id}`;
                     teamData.logoUrl = team.logo;
                     teamData.wordMarkUrl = team.abbrev;
                     teamData.leagueId = createdLeague.id;
