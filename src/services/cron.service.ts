@@ -1357,6 +1357,7 @@ export class CronService {
             where: {
                 status: CONTEST_STATUSES.OPEN,
                 ended: false,
+                claimerId: undefined,
             },
             include: [
                 {
@@ -1435,6 +1436,8 @@ export class CronService {
                 },
             ],
         });
+
+        return contestsUnclaimed;
 
         const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
             return !unclaimedContest.creatorContestTeam?.rosters.some( (contestRoster: any) => {
