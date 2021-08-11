@@ -1,13 +1,15 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
+    ContestRosterRepository,
     GainRepository,
+    LeagueContestRepository,
     PlayerRepository,
+    RosterRepository,
     TimeframeRepository,
     UserRepository,
-    LeagueContestRepository,
     TeamRepository,
 } from '@src/repositories';
 import { SportsDataService, UserService } from '@src/services';
@@ -44,6 +46,8 @@ export class CronService {
         @repository('UserRepository') private userRepository: UserRepository,
         @repository('LeagueContestRepository') private leagueContestRepository: LeagueContestRepository,
         @repository('TeamRepository') private teamRepository: TeamRepository,
+        @repository('RosterRepository') private rosterRepository: RosterRepository,
+        @repository('ContestRosterRepository') private contestRosterRepository: ContestRosterRepository,
     ) {}
 
     async fetchDate() {
@@ -1588,5 +1592,160 @@ export class CronService {
         return teamPromises;
     }
 
-    async leagueCloseContests() {}
+
+    async leagueCloseContests() {
+        //Get all unclaimedContests
+        //Filter all the unclaimed contests where player.isOver == true
+        //If Contest is matched then refund both the creator and claimer
+        //else refund the creator
+
+        const contestsUnclaimed = await this.leagueContestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+                claimerId: undefined,
+            },
+            include: [
+                {
+                    relation: 'creatorTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'creatorContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        // return contestsUnclaimed;
+
+        const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
+            return !unclaimedContest?.creatorContestTeam?.contestRosters?.some( (contestRoster: any) => {
+                        return !contestRoster.player.isOver === true;
+                    }) && !unclaimedContest?.claimerContestTeam?.contestRosters?.some( (contestRoster: any) => {
+                        return !contestRoster.player.isOver === true;
+                    });
+        });
+
+        filteredUnclaimedContests.map(async unclaimedContest => {
+
+            const entryAmount = Number(unclaimedContest.entryAmount);
+
+            if (unclaimedContest.claimerId === null) {
+                // Unmatched
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.contestRepository.updateById(unclaimedContest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.creatorId;
+                entryGain.contenderId = unclaimedContest.creatorTeamId;
+                entryGain.contestId = unclaimedContest.id;
+                await this.gainRepository.create(entryGain);
+            } else {
+                // No data so auto-close
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.contestRepository.updateById(unclaimedContest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.creatorId;
+                entryGain.contenderId = unclaimedContest.claimerId;
+                entryGain.contestId = unclaimedContest.id;
+
+                await this.gainRepository.create(entryGain);
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.claimerId;
+                entryGain.contenderId = unclaimedContest.creatorId;
+                entryGain.contestId = unclaimedContest.id;
+
+                await this.gainRepository.create(entryGain);
+            }
+        });
+
+        return filteredUnclaimedContests;
+    }
 }
