@@ -1,6 +1,6 @@
-import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { League, Roster, Team } from '@src/models';
+import {bind, /* inject, */ BindingScope, Getter} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {League, Roster, Team} from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,9 +9,9 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
@@ -319,7 +319,7 @@ export class LeagueService {
         return true;
     }
 
-    async resyncESPN(leagueKey: string) {
+    async resyncESPN(leagueKey: number) {
         //TODO:
         //Fetch league data from ESPN and update local data, just like yahoo resync
 

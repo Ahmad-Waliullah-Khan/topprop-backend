@@ -6,9 +6,14 @@ import {
     ContestRosterRepository,
     GainRepository,
     LeagueContestRepository,
+    LeagueRepository,
     PlayerRepository,
+
     RosterRepository,
     TimeframeRepository,
+
+
+
     UserRepository
 } from '@src/repositories';
 import {SportsDataService, UserService} from '@src/services';
@@ -24,16 +29,21 @@ import {
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
+
     RUN_TYPE, TIMEFRAMES
 } from '../utils/constants';
+import {LeagueService} from './league.service';
+
 
 const logger = require('../utils/logger');
+const sleep = require('../utils/sleep');
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
     constructor(
         @service() private sportsDataService: SportsDataService,
         @service() private userService: UserService,
+        @service() private leagueService: LeagueService,
         @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @repository('TimeframeRepository') private timeframeRepository: TimeframeRepository,
         @repository('ContestRepository') private contestRepository: ContestRepository,
@@ -42,6 +52,7 @@ export class CronService {
         @repository('LeagueContestRepository') private leagueContestRepository: LeagueContestRepository,
         @repository('RosterRepository') private rosterRepository: RosterRepository,
         @repository('ContestRosterRepository') private contestRosterRepository: ContestRosterRepository,
+        @repository('LeagueRepository') private leagueRepository: LeagueRepository,
     ) { }
 
     async fetchDate() {
@@ -1348,16 +1359,11 @@ export class CronService {
     }
 
     async leagueCloseContests() {
-        //Get all unclaimedContests
-        //Filter all the unclaimed contests where player.isOver == true
-        //If Contest is matched then refund both the creator and claimer
-        //else refund the creator
 
         const contestsUnclaimed = await this.leagueContestRepository.find({
             where: {
                 status: CONTEST_STATUSES.OPEN,
                 ended: false,
-                claimerId: undefined,
             },
             include: [
                 {
@@ -1437,18 +1443,7 @@ export class CronService {
             ],
         });
 
-        return contestsUnclaimed;
-
-        const filteredUnclaimedContests = contestsUnclaimed.filter(unclaimedContest => {
-            return !unclaimedContest.creatorContestTeam?.rosters.some( (contestRoster: any) => {
-                        return !contestRoster.player.isOver === true;
-                    }) && !unclaimedContest.claimerContestTeam?.rosters.some( (contestRoster: any) => {
-                        return !contestRoster.player.isOver === true;
-                    });
-        });
-
-        filteredUnclaimedContests.map(async unclaimedContest => {
-
+        contestsUnclaimed.map(async unclaimedContest => {
             const entryAmount = Number(unclaimedContest.entryAmount);
 
             if (unclaimedContest.claimerId === null) {
@@ -1462,9 +1457,10 @@ export class CronService {
                     creatorWinAmount: 0,
                     claimerWinAmount: 0,
                 };
-                await this.contestRepository.updateById(unclaimedContest.id, constestData);
+                await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
 
                 const entryGain = new Gain();
+                entryGain.contestType = "League";
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
                 entryGain.contenderId = unclaimedContest.creatorTeamId;
@@ -1481,9 +1477,10 @@ export class CronService {
                     creatorWinAmount: 0,
                     claimerWinAmount: 0,
                 };
-                await this.contestRepository.updateById(unclaimedContest.id, constestData);
+                await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
 
                 const entryGain = new Gain();
+                entryGain.contestType = "League";
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
                 entryGain.contenderId = unclaimedContest.claimerId;
@@ -1491,6 +1488,7 @@ export class CronService {
 
                 await this.gainRepository.create(entryGain);
 
+                entryGain.contestType = "League";
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.claimerId;
                 entryGain.contenderId = unclaimedContest.creatorId;
@@ -1500,6 +1498,42 @@ export class CronService {
             }
         });
 
-        return filteredUnclaimedContests;
+        return contestsUnclaimed;
+    }
+
+    async syncLeagues() {
+        const existingLeagues = await this.leagueRepository.find();
+
+        //Yahoo sync
+        const yahooLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 2;
+        });
+
+        yahooLeagues.map(async league => {
+            await this.leagueService.resyncYahoo(league.id);
+            await sleep(120000);
+        });
+        const updatedYahooLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2,
+            },
+        });
+
+        //ESPN sync
+        const espnLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 1;
+        });
+
+        espnLeagues.map(async league => {
+            await this.leagueService.resyncESPN(league.id);
+            await sleep(120000);
+        });
+        const updatedEspnLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2,
+            },
+        });
+
+        return existingLeagues;
     }
 }
