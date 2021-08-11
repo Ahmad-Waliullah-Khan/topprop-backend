@@ -98,4 +98,27 @@ export class CronController {
 
         return { data: 'Win Check' };
     }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @get(API_ENDPOINTS.CRONS.SYNC, {
+        responses: {
+            '200': {
+                description: 'Run Cron Job',
+            },
+        },
+    })
+    async syncLeagues(): Promise<ICommonHttpResponse> {
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        try {
+            const syncedLeagues = await this.cronService.syncLeagues();
+            this.cronService.cronLogger(CRON_JOBS.SYNC_LEAGUES_CRON);
+
+            return { data: syncedLeagues };
+        } catch (error) {
+            logger.error(chalk.redBright(`Error on sync leagues cron job. Error: `, error));
+        }
+
+        return { data: 'Win Check' };
+    }
 }

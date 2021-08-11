@@ -1,14 +1,15 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
     GainRepository,
+    LeagueRepository,
     PlayerRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
 import moment from 'moment';
 import {
@@ -22,21 +23,25 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
-    TIMEFRAMES,
+    TIMEFRAMES
 } from '../utils/constants';
+import {LeagueService} from './league.service';
 
 const logger = require('../utils/logger');
+const sleep = require('../utils/sleep');
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
     constructor(
         @service() private sportsDataService: SportsDataService,
         @service() private userService: UserService,
+        @service() private leagueService: LeagueService,
         @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @repository('TimeframeRepository') private timeframeRepository: TimeframeRepository,
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
         @repository('UserRepository') private userRepository: UserRepository,
+        @repository('LeagueRepository') private leagueRepository: LeagueRepository,
     ) {}
 
     async fetchDate() {
@@ -984,4 +989,27 @@ export class CronService {
     async leagueWinCheck() {}
 
     async leagueCloseContests() {}
+
+    async syncLeagues() {
+        const existingLeagues = await this.leagueRepository.find();
+
+        //Yahoo sync
+        const yahooLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 2;
+        });
+
+        yahooLeagues.map(async league => {
+            await this.leagueService.resyncYahoo(league.id);
+            await sleep(2000);
+        });
+        const updatedYahooLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2
+            }
+        });
+
+        //TODO: ESPN sync
+
+        return updatedYahooLeagues;
+    }
 }
