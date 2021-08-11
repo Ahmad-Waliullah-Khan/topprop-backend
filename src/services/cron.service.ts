@@ -1699,7 +1699,7 @@ export class CronService {
             }
         });
 
-        return filteredUnclaimedContests;
+        return filteredUnClaimedLeagueContests;
     }
 
     async syncLeagues() {
