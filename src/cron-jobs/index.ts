@@ -9,3 +9,4 @@ export * from './special-teams.cron';
 export * from './sync-games.cron';
 // export * from './sync-teams.cron';
 export * from './close-contests.cron';
+export * from './league-win-criteria.cron';

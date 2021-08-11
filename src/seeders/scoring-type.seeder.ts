@@ -1,14 +1,16 @@
+import { SCORING_TYPE } from '../utils/constants/league.constants';
+
 export const ScoringTypeSeeder = [
     {
-        id: 1,
+        id: SCORING_TYPE.HALFPPR,
         name: 'Half PPR',
     },
     {
-        id: 2,
+        id: SCORING_TYPE.FULLPPR,
         name: 'Full PPR',
     },
     {
-        id: 3,
+        id: SCORING_TYPE.NOPPR,
         name: 'Standard',
     },
 ];

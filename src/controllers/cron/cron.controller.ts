@@ -98,4 +98,53 @@ export class CronController {
 
         return { data: 'Win Check' };
     }
+
+
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @get(API_ENDPOINTS.CRONS.LEAGUE_WIN_CHECK, {
+        responses: {
+            '200': {
+                description: 'Run Cron Job',
+            },
+        },
+    })
+    async leagueWinCheck(): Promise<ICommonHttpResponse> {
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        try {
+            const filteredContests = await this.cronService.leagueWinCheck();
+            this.cronService.cronLogger(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
+
+            return { data: filteredContests };
+        } catch (error) {
+            logger.error(chalk.redBright(`Error on league win criteria cron job. Error: `, error));
+        }
+
+        return { data: 'League Win Check' };
+    }
+
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @get(API_ENDPOINTS.CRONS.LEAGUE_CLOSE_CONTESTS, {
+        responses: {
+            '200': {
+                description: 'Run Cron Job',
+            },
+        },
+    })
+    async leagueCloseContests(): Promise<ICommonHttpResponse> {
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        try {
+            const filteredContests = await this.cronService.leagueCloseContests();
+            this.cronService.cronLogger(CRON_JOBS.LEAGUE_CLOSE_CONTEST_CRON);
+
+            return { data: filteredContests };
+        } catch (error) {
+            logger.error(chalk.redBright(`Error on close contests cron job. Error: `, error));
+        }
+
+        return { data: 'Close League Contests' };
+    }
 }

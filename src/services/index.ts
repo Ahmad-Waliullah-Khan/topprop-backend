@@ -11,3 +11,4 @@ export * from './multi-party-form.service';
 export * from './sports-data.service';
 export * from './contest.service';
 export * from './cron.service';
+export * from './league.service';

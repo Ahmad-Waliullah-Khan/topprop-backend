@@ -1309,83 +1309,9 @@ export class LeagueController {
     })
     async findById(@param.path.number('id') id: number): Promise<ICommonHttpResponse<any>> {
         try {
+            const includes = await this.leagueService.fetchLeagueContestInclude();
             const leagueContest = await this.leagueContestRepository.findById(id, {
-                include: [
-                    {
-                        relation: 'creatorTeam',
-                        scope: {
-                            include: [
-                                {
-                                    relation: 'rosters',
-                                    scope: {
-                                        include: [
-                                            {
-                                                relation: 'player',
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                    {
-                        relation: 'claimerTeam',
-                        scope: {
-                            include: [
-                                {
-                                    relation: 'rosters',
-                                    scope: {
-                                        include: [
-                                            {
-                                                relation: 'player',
-                                            },
-                                        ],
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                    {
-                        relation: 'creatorContestTeam',
-                        scope: {
-                            include: [
-                                {
-                                    relation: 'contestRosters',
-                                    scope: {
-                                        include: [
-                                            {
-                                                relation: 'player',
-                                            },
-                                        ],
-                                    },
-                                },
-                                {
-                                    relation: 'team',
-                                },
-                            ],
-                        },
-                    },
-                    {
-                        relation: 'claimerContestTeam',
-                        scope: {
-                            include: [
-                                {
-                                    relation: 'contestRosters',
-                                    scope: {
-                                        include: [
-                                            {
-                                                relation: 'player',
-                                            },
-                                        ],
-                                    },
-                                },
-                                {
-                                    relation: 'team',
-                                },
-                            ],
-                        },
-                    },
-                ],
+                include: includes.include,
             });
 
             const data = {

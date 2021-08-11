@@ -27,3 +27,10 @@ export const ESPN_POSITION_MAPPING: { [key: number]: string } = {
     5: 'K',
     23: 'FLEX',
 };
+
+
+export enum SCORING_TYPE {
+    HALFPPR = 1,
+    NOPPR = 3,
+    FULLPPR = 2,
+}

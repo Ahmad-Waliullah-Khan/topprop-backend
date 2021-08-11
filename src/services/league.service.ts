@@ -1,4 +1,4 @@
-import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
+import { bind, injectable, BindingScope, Getter } from '@loopback/core';
 import { IsolationLevel, repository } from '@loopback/repository';
 import { League, Roster, Team } from '@src/models';
 import {
@@ -17,7 +17,7 @@ import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
 
-@bind({ scope: BindingScope.SINGLETON })
+@injectable({ scope: BindingScope.SINGLETON })
 export class LeagueService {
     playerRepo: PlayerRepository;
     spreadRepo: SpreadRepository;
@@ -562,6 +562,90 @@ export class LeagueService {
                 },
                 {
                     relation: 'scoringType',
+                },
+            ],
+        };
+    }
+
+    async fetchLeagueContestInclude() {
+        return {
+            include: [
+                {
+                    relation: 'creatorTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'creatorContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'league',
                 },
             ],
         };

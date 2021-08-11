@@ -1,0 +1,12 @@
+| Hi #{user.fullName},
+|
+| Thank you for claiming a contest. Contest details below
+| Opponent: #{creatorUser.fullName}
+| Your Player : #{claimerPlayer.fullName}
+| Opponent Player: #{creatorPlayer.fullName}
+| Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
+| Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.claimerPlayerMaxWin)}
+|
+|
+| Thanks,
+| TopProp Team
