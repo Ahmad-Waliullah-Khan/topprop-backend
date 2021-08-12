@@ -8,14 +8,18 @@ import {
     LeagueContestRepository,
     LeagueRepository,
     PlayerRepository,
-
-    RosterRepository, TeamRepository, TimeframeRepository,
+    RosterRepository,
+    TeamRepository,
+    TimeframeRepository,
     UserRepository
 } from '@src/repositories';
 import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
+import parse from 'csv-parse/lib/sync';
+import fs from 'fs';
 import moment from 'moment';
-import {LeagueService} from '../services/league.service';
+import { LeagueService } from '../services/league.service';
+import util from 'util';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -26,9 +30,11 @@ import {
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
-    RUN_TYPE, SCORING_TYPE, TIMEFRAMES
+    RUN_TYPE,
+    SCORING_TYPE,
+    TIMEFRAMES,
 } from '../utils/constants';
-
+import { DST_IDS } from '../utils/constants/dst.constants';
 
 const logger = require('../utils/logger');
 const sleep = require('../utils/sleep');
@@ -1522,6 +1528,19 @@ export class CronService {
     }
 
     async fetchPlayers() {
+        //Read espn_playerid.csv file which contains the mapping between sportsdata player id and espn player id.
+        //This sheet is provided by sports data. In future, when new players will be added, sportsdata should provide us this csv again with updated data.
+        const readFile = util.promisify(fs.readFile);
+        let records: any[] = [];
+        try {
+            const data = await readFile('src/seeders/espn_playerid.csv', 'utf8');
+            records = parse(data, {
+                columns: true,
+                skip_empty_lines: true,
+            });
+        } catch (err) {
+            logger.error(err);
+        }
         const remotePlayers = await this.sportsDataService.availablePlayers();
         const localPlayers = await this.playerRepository.find();
         const playerPromises = remotePlayers.map(async remotePlayer => {
@@ -1534,6 +1553,13 @@ export class CronService {
                 foundLocalPlayer.available = remotePlayer.Active;
                 foundLocalPlayer.teamName = remotePlayer.Team;
                 foundLocalPlayer.playerType = 1; // Regular Player
+                foundLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
+                if (records.some(record => record.PlayerID === `${foundLocalPlayer.remoteId}`)) {
+                    const record = records.find(record => record.PlayerID === `${foundLocalPlayer.remoteId}`);
+                    if (record.EspnPlayerID.trim() !== '') {
+                        foundLocalPlayer.espnPlayerId = record.EspnPlayerID;
+                    }
+                }
                 await this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
@@ -1550,6 +1576,13 @@ export class CronService {
                 newLocalPlayer.teamName = remotePlayer.Team;
                 newLocalPlayer.teamId = remotePlayer.TeamID;
                 newLocalPlayer.playerType = 1; // Regular Player
+                newLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
+                if (records.some(record => record.PlayerID === `${newLocalPlayer.remoteId}`)) {
+                    const record = records.find(record => record.PlayerID === `${newLocalPlayer.remoteId}`);
+                    if (record.EspnPlayerID.trim() !== '') {
+                        newLocalPlayer.espnPlayerId = record.EspnPlayerID;
+                    }
+                }
                 await this.playerRepository.create(newLocalPlayer);
             }
         });
@@ -1560,6 +1593,7 @@ export class CronService {
     async fetchSpecialTeams() {
         const remoteTeams = await this.sportsDataService.activeTeams();
         const localPlayers = await this.playerRepository.find();
+        // TODO Need to add logic to add the team to the specialteams table
         const teamPromises = remoteTeams.map(async remoteTeam => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remoteTeam.PlayerID === localPlayer.remoteId);
             // const highResRemotePlayerPhotoUrl = remotePlayer.PhotoUrl.replace('low-res', 'studio-high-res');
@@ -1569,7 +1603,12 @@ export class CronService {
                 foundLocalPlayer.status = 'Active';
                 foundLocalPlayer.available = true;
                 foundLocalPlayer.teamName = remoteTeam.Key;
-                foundLocalPlayer.playerType = 2; // Regular Player
+                foundLocalPlayer.playerType = 2; // Special Team Player
+                const record = DST_IDS.find(record => record.sportsdataplayerid === foundLocalPlayer.remoteId);
+                if (record) {
+                    foundLocalPlayer.yahooPlayerId = record.yahooplayerid;
+                    foundLocalPlayer.espnPlayerId = record.espnplayerid;
+                }
                 await this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
@@ -1586,6 +1625,11 @@ export class CronService {
                 newLocalPlayer.teamName = remoteTeam.Key;
                 newLocalPlayer.teamId = remoteTeam.TeamID;
                 newLocalPlayer.playerType = 2; // Special Team Player
+                const record = DST_IDS.find(record => record.sportsdataplayerid === newLocalPlayer.remoteId);
+                if (record) {
+                    newLocalPlayer.yahooPlayerId = record.yahooplayerid;
+                    newLocalPlayer.espnPlayerId = record.espnplayerid;
+                }
                 await this.playerRepository.create(newLocalPlayer);
             }
         });
@@ -1594,7 +1638,6 @@ export class CronService {
     }
 
     async leagueCloseContests() {
-
         const includes = await this.leagueService.fetchLeagueContestInclude();
 
         const contestsUnclaimed = await this.leagueContestRepository.find({
@@ -1604,7 +1647,6 @@ export class CronService {
             },
             include: includes.include,
         });
-
 
         contestsUnclaimed.map(async unclaimedContest => {
             const entryAmount = Number(unclaimedContest.entryAmount);
@@ -1623,7 +1665,7 @@ export class CronService {
                 await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
 
                 const entryGain = new Gain();
-                entryGain.contestType = "League";
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
                 entryGain.contenderId = unclaimedContest.creatorTeamId;
@@ -1643,7 +1685,7 @@ export class CronService {
                 await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
 
                 const entryGain = new Gain();
-                entryGain.contestType = "League";
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
                 entryGain.contenderId = unclaimedContest.claimerId;
@@ -1651,7 +1693,7 @@ export class CronService {
 
                 await this.gainRepository.create(entryGain);
 
-                entryGain.contestType = "League";
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.claimerId;
                 entryGain.contenderId = unclaimedContest.creatorId;

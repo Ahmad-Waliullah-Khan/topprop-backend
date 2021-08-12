@@ -12,18 +12,18 @@ const logger = require('../utils/logger');
 export class LeagueWinCriteriaCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0,30 */1 * * * *',
+            cronTime: '0 */1 * * * *',
             name: CRON_JOBS.LEAGUE_WIN_CHECK_CRON,
             start: true,
             onTick: async () => {
                 try {
-                    // await this.cronService.leagueWinCheck();
-                    // this.cronService.cronLogger(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
+                    await this.cronService.leagueWinCheck();
+                    this.cronService.cronLogger(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
 
-                    // const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
-                    // const updatedCronTime = new cron.CronTime(updatedCronTiming);
-                    // this.setTime(updatedCronTime);
-                    // this.start();
+                    const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
+                    const updatedCronTime = new cron.CronTime(updatedCronTiming);
+                    this.setTime(updatedCronTime);
+                    this.start();
                 } catch (error) {
                     logger.error(chalk.redBright(`Error on league win criteria cron job. Error: `, error));
                 }

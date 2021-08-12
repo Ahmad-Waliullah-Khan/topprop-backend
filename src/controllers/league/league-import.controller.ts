@@ -154,28 +154,34 @@ export class LeagueImportController {
             const { preferences } = gameData.data;
 
             const leagues = await Promise.all(
-                preferences.map(async (data: any) => {
-                    const { id } = data;
-                    const meta = id.split(':');
-                    const leagueId = meta[1];
-                    const seasonId = meta[3];
-                    const scoringPeriodId = meta[2];
-                    const leagueName = data.metaData.entry.groups[0].groupName;
-                    const logoURL = data.metaData.entry.logoUrl;
-                    const scoringType = data.metaData.entry.entryMetadata.scoringTypeId;
+                preferences
+                    .filter((data: any) => {
+                        const { id } = data;
+                        const meta = id.split(':');
+                        return meta.length == 4;
+                    })
+                    .map(async (data: any) => {
+                        const { id } = data;
+                        const meta = id.split(':');
+                        const leagueId = meta[1];
+                        const seasonId = meta[3];
+                        const scoringPeriodId = meta[2];
+                        const leagueName = data.metaData.entry.groups[0].groupName;
+                        const logoURL = data.metaData.entry.logoUrl;
+                        const scoringType = data.metaData.entry.entryMetadata.scoringTypeId;
 
-                    const teams = await this.leagueService.fetchESPNLeagueTeams(espnS2 || '', swid || '', leagueId);
+                        const teams = await this.leagueService.fetchESPNLeagueTeams(espnS2 || '', swid || '', leagueId);
 
-                    return {
-                        id: leagueId,
-                        name: leagueName,
-                        seasonId: seasonId,
-                        scoringPeriodId: scoringPeriodId,
-                        logoURL: logoURL,
-                        scoringType: scoringType,
-                        teams: teams,
-                    };
-                }),
+                        return {
+                            id: leagueId,
+                            name: leagueName,
+                            seasonId: seasonId,
+                            scoringPeriodId: scoringPeriodId,
+                            logoURL: logoURL,
+                            scoringType: scoringType,
+                            teams: teams,
+                        };
+                    }),
             );
 
             return {
@@ -296,6 +302,7 @@ export class LeagueImportController {
                                         first: remotePlayer?.playerPoolEntry?.player.firstName,
                                         last: remotePlayer?.playerPoolEntry?.player.lastName,
                                     },
+                                    player_id: remotePlayer?.playerPoolEntry?.player.id,
                                     display_position:
                                         ESPN_POSITION_MAPPING[remotePlayer?.playerPoolEntry?.player.defaultPositionId],
                                     team_position: ESPN_LINEUP_SLOT_MAPPING[remotePlayer?.lineupSlotId],
@@ -305,6 +312,7 @@ export class LeagueImportController {
                                     normalisedRemotePlayer,
                                     localPlayers,
                                     normalisedRemotePlayer.team_position,
+                                    'espn',
                                 );
 
                                 if (!foundPlayer) {
@@ -455,6 +463,7 @@ export class LeagueImportController {
                                     remotePlayer,
                                     localPlayers,
                                     remotePlayer.selected_position,
+                                    'yahoo',
                                 );
                                 if (!foundPlayer) {
                                     console.log(

@@ -155,23 +155,34 @@ export class LeagueService {
         });
     }
 
-    async findPlayer(remotePlayer: any, localPlayers: any, position: string): Promise<any> {
+    async findPlayer(remotePlayer: any, localPlayers: any, position: string, source: string): Promise<any> {
         let foundLocalPlayer = null;
-        if (position === 'DEF') {
+        if (source === 'yahoo') {
             foundLocalPlayer = localPlayers.find(
-                (localPlayer: any) =>
-                    remotePlayer.name.first === localPlayer.firstName &&
-                    remotePlayer.display_position === localPlayer.position,
+                (localPlayer: any) => remotePlayer.player_id === localPlayer.yahooPlayerId,
             );
-        } else {
+        } else if (source === 'espn') {
             foundLocalPlayer = localPlayers.find(
-                (localPlayer: any) =>
-                    remotePlayer.name.first === localPlayer.firstName &&
-                    remotePlayer.name.last === localPlayer.lastName &&
-                    remotePlayer.display_position === localPlayer.position,
+                (localPlayer: any) => remotePlayer.player_id === localPlayer.espnPlayerId,
             );
         }
-
+        // When imported player's id from roster does not match in our DB, then try finding corresponding player by name
+        if (!foundLocalPlayer) {
+            if (position === 'DEF') {
+                foundLocalPlayer = localPlayers.find(
+                    (localPlayer: any) =>
+                        remotePlayer.name.first === localPlayer.firstName &&
+                        remotePlayer.display_position === localPlayer.position,
+                );
+            } else {
+                foundLocalPlayer = localPlayers.find(
+                    (localPlayer: any) =>
+                        remotePlayer.name.first === localPlayer.firstName &&
+                        remotePlayer.name.last === localPlayer.lastName &&
+                        remotePlayer.display_position === localPlayer.position,
+                );
+            }
+        }
         return foundLocalPlayer;
     }
 
@@ -299,6 +310,7 @@ export class LeagueService {
                                         remotePlayer,
                                         localPlayers,
                                         remotePlayer.selected_position,
+                                        'yahoo',
                                     );
 
                                     const rosterData = new Roster();
@@ -330,6 +342,7 @@ export class LeagueService {
                                         remotePlayer,
                                         localPlayers,
                                         remotePlayer.selected_position,
+                                        'yahoo',
                                     );
                                     const rosterData = new Roster();
                                     rosterData.teamId = createdTeam.id;
@@ -441,6 +454,7 @@ export class LeagueService {
                                             first: remotePlayer?.playerPoolEntry?.player.firstName,
                                             last: remotePlayer?.playerPoolEntry?.player.lastName,
                                         },
+                                        player_id: remotePlayer?.playerPoolEntry?.player.id,
                                         display_position:
                                             ESPN_POSITION_MAPPING[
                                                 remotePlayer?.playerPoolEntry?.player.defaultPositionId
@@ -452,6 +466,7 @@ export class LeagueService {
                                         normalisedRemotePlayer,
                                         localPlayers,
                                         normalisedRemotePlayer.team_position,
+                                        'espn',
                                     );
 
                                     if (!foundPlayer) {
@@ -492,6 +507,7 @@ export class LeagueService {
                                             first: remotePlayer?.playerPoolEntry?.player.firstName,
                                             last: remotePlayer?.playerPoolEntry?.player.lastName,
                                         },
+                                        player_id: remotePlayer?.playerPoolEntry?.player.id,
                                         display_position:
                                             ESPN_POSITION_MAPPING[
                                                 remotePlayer?.playerPoolEntry?.player.defaultPositionId
@@ -503,6 +519,7 @@ export class LeagueService {
                                         normalisedRemotePlayer,
                                         localPlayers,
                                         normalisedRemotePlayer.team_position,
+                                        'espn',
                                     );
 
                                     if (!foundPlayer) {
