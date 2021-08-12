@@ -18,8 +18,8 @@ import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
-import { LeagueService } from '../services/league.service';
 import util from 'util';
+import {LeagueService} from '../services/league.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -32,9 +32,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES,
+    TIMEFRAMES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 
 const logger = require('../utils/logger');
 const sleep = require('../utils/sleep');
@@ -1124,38 +1124,38 @@ export class CronService {
 
                 //Send Contest Closed mail
                 const contestData = await this.leagueContestRepository.findById(contest.id);
-                const winnerUser = await this.userRepository.findById(favorite.userId);
-                const winnerTeam = await this.teamRepository.findById(favorite.teamId);
-                const loserUser = await this.userRepository.findById(underdog.userId);
-                const loserTeam = await this.teamRepository.findById(underdog.teamId);
-                let receiverUser = winnerUser;
-                // TODO
-                // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
-                //     contestData,
-                //     winnerUser,
-                //     loserUser,
-                //     winnerTeam,
-                //     loserTeam,
-                //     receiverUser,
-                //     text: {
-                //         title: 'League Contest Closed',
-                //         subtitle: `Your contest has been closed`,
-                //     },
-                // });
-                receiverUser = loserUser;
-                // TODO
-                // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
-                //     contestData,
-                //     winnerUser,
-                //     loserUser,
-                //     winnerTeam,
-                //     loserTeam,
-                //     receiverUser,
-                //     text: {
-                //         title: 'League Contest Closed',
-                //         subtitle: `Your contest has been closed`,
-                //     },
-                // });
+                const creatorUser = await this.userRepository.findById(favorite.userId);
+                const creatorTeam = await this.teamRepository.findById(favorite.teamId);
+                const claimerUser = await this.userRepository.findById(underdog.userId);
+                const claimerTeam = await this.teamRepository.findById(underdog.teamId);
+                let receiverUser = creatorUser;
+
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your contest has been closed`,
+                    },
+                });
+                receiverUser = claimerUser;
+
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your contest has been closed`,
+                    },
+                });
             } else {
                 const winnerId = winner === 'favorite' ? favorite.userId : underdog.userId;
                 const winnerLabel = winner === 'favorite' ? favorite.type : underdog.type;
@@ -1212,47 +1212,47 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(favorite.teamId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
-                    // TODO
-                    // this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
-                    //     winnerUser,
-                    //     loserUser,
-                    //     winnerPlayer,
-                    //     loserPlayer,
-                    //     contestData,
-                    //     netEarnings: favorite.netEarnings,
-                    //     text: {
-                    //         title: 'League Contest Won',
-                    //         subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
-                    //             'en-US',
-                    //             {
-                    //                 style: 'currency',
-                    //                 currency: 'USD',
-                    //                 minimumFractionDigits: 2,
-                    //                 maximumFractionDigits: 2,
-                    //             },
-                    //         ).format(favorite.netEarnings)}`,
-                    //     },
-                    // });
 
-                    // TODO
-                    // this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
-                    //     winnerUser,
-                    //     loserUser,
-                    //     winnerPlayer,
-                    //     loserPlayer,
-                    //     contestData,
-                    //     netEarnings: underdog.netEarnings,
-                    //     text: {
-                    //         title: 'League Contest Lost',
-                    //         subtitle: `Sorry, You have lost the league contest. Your net earnings are
-                    //                     ${new Intl.NumberFormat('en-US', {
-                    //                         style: 'currency',
-                    //                         currency: 'USD',
-                    //                         minimumFractionDigits: 2,
-                    //                         maximumFractionDigits: 2,
-                    //                     }).format(underdog.netEarnings)}`,
-                    //     },
-                    // });
+                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: favorite.netEarnings,
+                        text: {
+                            title: 'League Contest Won',
+                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}`,
+                        },
+                    });
+
+
+                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: underdog.netEarnings,
+                        text: {
+                            title: 'League Contest Lost',
+                            subtitle: `Sorry, You have lost the league contest. Your net earnings are
+                                        ${new Intl.NumberFormat('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD',
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        }).format(underdog.netEarnings)}`,
+                        },
+                    });
                 } else if (winner === 'underdog') {
                     const contestData = contestDataForEmail;
                     const winnerUser = await this.userRepository.findById(underdog.userId);
@@ -1260,49 +1260,49 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
-                    // TODO
-                    // this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
-                    //     winnerUser,
-                    //     loserUser,
-                    //     winnerPlayer,
-                    //     loserPlayer,
-                    //     contestData,
-                    //     netEarnings: underdog.netEarnings,
-                    //     text: {
-                    //         title: 'League Contest Won',
-                    //         subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
-                    //             'en-US',
-                    //             {
-                    //                 style: 'currency',
-                    //                 currency: 'USD',
-                    //                 minimumFractionDigits: 2,
-                    //                 maximumFractionDigits: 2,
-                    //             },
-                    //         ).format(underdog.netEarnings)}`,
-                    //     },
-                    // });
 
-                    // TODO
-                    // this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
-                    //     winnerUser,
-                    //     loserUser,
-                    //     winnerPlayer,
-                    //     loserPlayer,
-                    //     contestData,
-                    //     netEarnings: favorite.netEarnings,
-                    //     text: {
-                    //         title: 'League Contest Lost',
-                    //         subtitle: `Sorry, You have lost the league contest. Your net earnings are ${new Intl.NumberFormat(
-                    //             'en-US',
-                    //             {
-                    //                 style: 'currency',
-                    //                 currency: 'USD',
-                    //                 minimumFractionDigits: 2,
-                    //                 maximumFractionDigits: 2,
-                    //             },
-                    //         ).format(favorite.netEarnings)}`,
-                    //     },
-                    // });
+                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: underdog.netEarnings,
+                        text: {
+                            title: 'League Contest Won',
+                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(underdog.netEarnings)}`,
+                        },
+                    });
+
+
+                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: favorite.netEarnings,
+                        text: {
+                            title: 'League Contest Lost',
+                            subtitle: `Sorry, You have lost the league contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}`,
+                        },
+                    });
                 } else {
                     //Send Draw Email
                     const contestData = contestDataForEmail;
@@ -1312,47 +1312,45 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    // TODO
-                    // this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
-                    //     favoriteUser,
-                    //     underdogUser,
-                    //     favoritePlayer,
-                    //     underdogPlayer,
-                    //     contestData,
-                    //     text: {
-                    //         title: 'League Contest was a push',
-                    //         subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                    //             'en-US',
-                    //             {
-                    //                 style: 'currency',
-                    //                 currency: 'USD',
-                    //                 minimumFractionDigits: 2,
-                    //                 maximumFractionDigits: 2,
-                    //             },
-                    //         ).format(favorite.netEarnings)}`,
-                    //     },
-                    // });
+                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
+                        favoriteUser,
+                        underdogUser,
+                        favoriteTeam,
+                        underdogTeam,
+                        contestData,
+                        text: {
+                            title: 'League Contest was a push',
+                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}`,
+                        },
+                    });
 
-                    // TODO
-                    // this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
-                    //     favoriteUser,
-                    //     underdogUser,
-                    //     favoritePlayer,
-                    //     underdogPlayer,
-                    //     contestData,
-                    //     text: {
-                    //         title: 'League Contest was a push',
-                    //         subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                    //             'en-US',
-                    //             {
-                    //                 style: 'currency',
-                    //                 currency: 'USD',
-                    //                 minimumFractionDigits: 2,
-                    //                 maximumFractionDigits: 2,
-                    //             },
-                    //         ).format(underdog.netEarnings)}`,
-                    //     },
-                    // });
+                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
+                        favoriteUser,
+                        underdogUser,
+                        favoriteTeam,
+                        underdogTeam,
+                        contestData,
+                        text: {
+                            title: 'League Contest was a push',
+                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(underdog.netEarnings)}`,
+                        },
+                    });
                 }
             }
         });
@@ -1438,23 +1436,23 @@ export class CronService {
 
             //Send Contest Closed mail
             const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
-            const winnerUser = await this.userRepository.findById(unclaimedContest.creatorId);
-            const winnerTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
-            const loserUser = '';
-            const loserTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
-            const receiverUser = winnerUser;
-            // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
-            //     contestData,
-            //     winnerUser,
-            //     loserUser,
-            //     winnerPlayer,
-            //     loserPlayer,
-            //     receiverUser,
-            //     text: {
-            //         title: 'League Contest Closed',
-            //         subtitle: `Your league contest has been closed`,
-            //     },
-            // });
+            const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+            const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+            const claimerUser = '';
+            const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+            const receiverUser = creatorUser;
+            await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                contestData,
+                creatorUser,
+                claimerUser,
+                creatorTeam,
+                claimerTeam,
+                receiverUser,
+                text: {
+                    title: 'League Contest Closed',
+                    subtitle: `Your league contest has been closed`,
+                },
+            });
         });
 
         return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : filteredContests;
@@ -1734,6 +1732,26 @@ export class CronService {
                 entryGain.contenderId = unclaimedContest.creatorTeamId;
                 entryGain.contestId = unclaimedContest.id;
                 await this.gainRepository.create(entryGain);
+
+                //Send Contest Closed mail
+                const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+                const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+                const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+                const claimerUser = '';
+                const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+                const receiverUser = creatorUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your league contest has been closed`,
+                    },
+                });
             } else {
                 // No data so auto-close
                 const constestData = {
@@ -1763,6 +1781,40 @@ export class CronService {
                 entryGain.contestId = unclaimedContest.id;
 
                 await this.gainRepository.create(entryGain);
+
+                //Send Contest Closed mail
+                const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+                const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+                const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+                const claimerUser = await this.userRepository.findById(unclaimedContest.claimerId);
+                const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+                let receiverUser = creatorUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your league contest has been closed`,
+                    },
+                });
+
+                receiverUser = claimerUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your league contest has been closed`,
+                    },
+                });
             }
         });
 

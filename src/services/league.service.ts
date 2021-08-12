@@ -471,6 +471,19 @@ export class LeagueService {
 
                                     if (!foundPlayer) {
                                         notFoundPlayers.push(remotePlayer);
+                                        const user = await this.userRepository.findById(userId);
+                                        // await this.userService.sendEmail(
+                                        //     user,
+                                        //     EMAIL_TEMPLATES.LEAGUE_PLAYER_NOT_FOUND,
+                                        //     {
+                                        //         user: user,
+                                        //         text: {
+                                        //             title: `Player Not Found.`,
+                                        //             subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
+                                        //         },
+                                        //     },
+                                        //     process.env.ADMIN_EMAIL,
+                                        // );
                                         // throw new HttpErrors.BadRequest(
                                         //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
                                         // );
@@ -524,6 +537,19 @@ export class LeagueService {
 
                                     if (!foundPlayer) {
                                         notFoundPlayers.push(remotePlayer);
+                                        const user = await this.userRepository.findById(userId);
+                                        // await this.userService.sendEmail(
+                                        //     user,
+                                        //     EMAIL_TEMPLATES.LEAGUE_PLAYER_NOT_FOUND,
+                                        //     {
+                                        //         user: user,
+                                        //         text: {
+                                        //             title: `Player Not Found.`,
+                                        //             subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
+                                        //         },
+                                        //     },
+                                        //     process.env.ADMIN_EMAIL,
+                                        // );
                                         // throw new HttpErrors.BadRequest(
                                         //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
                                         // );

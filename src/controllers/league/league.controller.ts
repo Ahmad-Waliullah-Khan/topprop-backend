@@ -1,14 +1,13 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, repository, IsolationLevel } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, ContestRoster, Invite, League, LeagueContest, Member, ContestTeam } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
 import {
     BetRepository,
-    ContestRosterRepository,
-    ImportSourceRepository,
+    ContestRosterRepository, ContestTeamRepository, ImportSourceRepository,
     InviteRepository,
     LeagueContestRepository,
     LeagueRepository,
@@ -16,12 +15,11 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    UserRepository,
-    ContestTeamRepository,
+    UserRepository
 } from '@src/repositories';
-import { LeagueService } from '@src/services/league.service';
-import { UserService } from '@src/services/user.service';
-import { WalletService } from '@src/services/wallet.service';
+import {LeagueService} from '@src/services/league.service';
+import {UserService} from '@src/services/user.service';
+import {WalletService} from '@src/services/wallet.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -30,9 +28,10 @@ import {
     PERMISSIONS,
     SPREAD_TYPE,
     SCORING_TYPE,
+    SPREAD_TYPE
 } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -42,18 +41,17 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
-    ILeagueResync,
+    ILeagueResync
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
 import {
-    FETCH_LEAGUE_VALIDATOR,
     INVITE_VALIDATOR,
     LEAGUE_CONTEST_CLAIM_VALIDATOR,
-    LEAGUE_CONTEST_VALIDATOR,
+    LEAGUE_CONTEST_VALIDATOR
 } from '@src/utils/validators';
-import { find, isEmpty } from 'lodash';
+import {find, isEmpty} from 'lodash';
 import moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import Schema from 'validate';
 const YahooFantasy = require('yahoo-fantasy');
 
@@ -654,13 +652,13 @@ export class LeagueController {
             const winBonusFlag = false;
 
             let creatorTeamSpread = 0;
-            let claimerTeamSpread = 0;
-            let creatorTeamCover = 0;
-            let claimerTeamCover = 0;
+            const claimerTeamSpread = 0;
+            const creatorTeamCover = 0;
+            const claimerTeamCover = 0;
             let creatorTeamCoverWithBonus = 0;
             let creatorTeamCoverWithoutBonus = 0;
             let creatorTeamWinBonus = 0;
-            let claimerTeamWinBonus = 0;
+            const claimerTeamWinBonus = 0;
 
             let contestType = SPREAD_TYPE.LEAGUE_1_TO_2;
 
@@ -1204,6 +1202,8 @@ export class LeagueController {
             leagueContestData.creatorContestTeamId = createdCreatorContestTeam.id;
             leagueContestData.claimerContestTeamId = createdClaimerContestTeam.id;
 
+            const contestData = leagueContestData;
+
             const createdLeagueContest = await this.leagueContestRepository.create(leagueContestData, { transaction });
 
             const bet = new Bet();
@@ -1215,6 +1215,19 @@ export class LeagueController {
             await this.betRepository.create(bet, { transaction });
 
             await transaction.commit();
+
+            const user = await this.userRepository.findById(userId);
+            const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+            this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
+                user,
+                creatorTeam,
+                claimerTeam,
+                contestData,
+                text: {
+                    title: `Your contest in ${league.name} has been created`,
+                    subtitle: "We'll let you know when you match with an opponent. Contest details are listed below",
+                },
+            });
 
             return {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
@@ -1346,6 +1359,38 @@ export class LeagueController {
         };
         const myContests = await this.leagueContestRepository.find(myContestFilter);
         const contests = await this.leagueContestRepository.find(contestFilter);
+
+        const user = await this.userRepository.findById(userId);
+        const creatorTeam = await this.teamRepository.findById(leagueContestData.creatorTeamId);
+        const claimerTeam = await this.teamRepository.findById(leagueContestData.claimerTeamId);
+        const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
+        const league = await this.leagueRepository.findById(leagueContestData.leagueId);
+        this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
+            user,
+            creatorUser,
+            creatorTeam,
+            claimerTeam,
+            leagueContestData,
+            text: {
+                title: `You have claimed a contest in ${league.name}`,
+                subtitle: 'Contest details are listed below',
+            },
+        });
+        this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
+            creatorUser,
+            claimerTeam,
+            creatorTeam,
+            user,
+            leagueContestData,
+            moment: moment,
+            text: {
+                title: `TopProp - Your contest in ${league.name} has been claimed`,
+                subtitle: `Contest claimed by ${user.fullName} on ${moment(leagueContestData.updatedAt).format(
+                    'dddd, MMMM Do YYYY, h:mm:ss a',
+                )}`,
+            },
+        });
+
 
         return {
             message: CONTEST_MESSAGES.CLAIM_SUCCESS,
