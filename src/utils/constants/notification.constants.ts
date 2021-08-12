@@ -30,7 +30,7 @@ export enum EMAIL_TEMPLATES {
     PAYOUT_PAID = 'payout-paid',
     WITHDRAW_REQUEST_ACCEPTED = 'withdraw-request-accepted',
     WITHDRAW_REQUEST_DENIED = 'withdraw-request-denied',
-    
+
     CONTEST_CREATED = 'create-contest',
     CONTEST_CLAIMED = 'claim-contest',
     CONTEST_CLAIMED_BY_CLAIMER = 'claim-contest-creator',
@@ -42,6 +42,8 @@ export enum EMAIL_TEMPLATES {
 
     USER_EMAIL = 'user-email',
     LEAGUE_INVITE = 'league-invite',
+    LEAGUE_IMPORT = 'league-import',
+    LEAGUE_PLAYER_NOT_FOUND = 'league-player-not-found',
 
     LEAGUE_CONTEST_CREATED = 'league-create-contest',
     LEAGUE_CONTEST_CLAIMED = 'league-claim-contest',
@@ -51,7 +53,7 @@ export enum EMAIL_TEMPLATES {
     LEAGUE_CONTEST_DRAW_FAVORITE = 'cleague-ontest-draw-favorite',
     LEAGUE_CONTEST_DRAW_UNDERDOG = 'league-contest-draw-underdog',
     LEAGUE_CONTEST_CLOSED = 'league-contest-close',
-    
+
 }
 
 // export enum PUSH_NOTIFICATIONS {

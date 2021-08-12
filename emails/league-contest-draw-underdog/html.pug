@@ -116,16 +116,16 @@ head
                                 table(width='100%' cellspacing='0' cellpadding='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:separate;border-spacing:0px;border-radius:13px' role='presentation')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-left:10px;padding-right:10px;padding-bottom:15px;font-size:0px')
-                                      img(src=`${underdogPlayer.photoUrlHiRes}` alt=`${underdogPlayer.fullName}` title=`${underdogPlayer.fullName}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
+                                      img(src=`${underdogTeam.logoUrl}` alt=`${underdogTeam.name}` title=`${underdogTeam.name}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-top:10px;padding-bottom:10px')
-                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{underdogPlayer.fullName}
+                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{underdogTeam.name}
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{underdogPlayer.position} | #{underdogPlayer.teamName}&nbsp;
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{underdogTeam.position} | #{underdogUser.fullName}&nbsp;
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{underdogPlayer.homeOrAway=== "AWAY"? "@" : ""} #{underdogPlayer.homeOrAway}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{underdogTeam.homeOrAway=== "AWAY"? "@" : ""} #{underdogTeam.homeOrAway}
                         td(style='padding:0;Margin:0;width:20px')
                           h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:bold;color:#164D34") VS
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
@@ -135,16 +135,16 @@ head
                                 table(width='100%' cellspacing='0' cellpadding='0' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-left:10px;padding-right:10px;padding-bottom:15px')
-                                      img(src=`${favoritePlayer.photoUrlHiRes}` alt=`${favoritePlayer.fullName}` title=`${favoritePlayer.fullName}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
+                                      img(src=`${favoriteTeam.logoUrl}` alt=`${favoriteTeam.name}` title=`${favoriteTeam.name}` width='100' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-top:10px;padding-bottom:10px')
-                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{favoritePlayer.fullName}
+                                      h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{favoriteTeam.name}
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{favoritePlayer.position} | #{favoritePlayer.teamName}&nbsp;
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{favoriteTeam.position} | #{favoriteUser.fullName}&nbsp;
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{favoritePlayer.homeOrAway=== "AWAY"? "@" : ""} #{favoritePlayer.homeOrAway}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{favoriteTeam.homeOrAway=== "AWAY"? "@" : ""} #{favoriteTeam.homeOrAway}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -156,7 +156,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Spread
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Bonus Points
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
                           table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
@@ -228,5 +228,5 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.underdogPlayerMaxWin)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.underdogTeamMaxWin)}
         include ../includes/footer.pug

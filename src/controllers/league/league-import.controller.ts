@@ -1,40 +1,36 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { HttpErrors, post, requestBody } from '@loopback/rest';
-import { repository, IsolationLevel } from '@loopback/repository';
-import { LeagueService } from '@src/services/league.service';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { League, Team, Roster, Member } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {HttpErrors, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {League, Member, Roster, Team} from '@src/models';
 import {
-    ILeagueImportRequestEspn,
-    ILeagueImportRequestYahoo,
-    ILeaguesFetchRequestYahoo,
-    ILeagueFetchRequestEspn,
-    ICustomUserProfile,
-} from '@src/utils/interfaces';
-import {
-    LeagueRepository,
-    PlayerRepository,
+    LeagueRepository, MemberRepository, PlayerRepository,
     RosterRepository,
     ScoringTypeRepository,
     TeamRepository,
-    UserRepository,
-    MemberRepository,
+    UserRepository
 } from '@src/repositories';
-import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
-import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
+import {UserService} from '@src/services';
+import {LeagueService} from '@src/services/league.service';
+import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {
+    ICommonHttpResponse, ICustomUserProfile, ILeagueFetchRequestEspn, ILeagueImportRequestEspn,
+    ILeagueImportRequestYahoo,
+    ILeaguesFetchRequestYahoo
+} from '@src/utils/interfaces';
+import {COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES} from '@src/utils/messages';
+import {FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR} from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
-import { isEmpty } from 'lodash';
+import {isEmpty} from 'lodash';
 import Schema from 'validate';
+import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '../../utils/constants/league.constants';
 const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
 const logger = require('../../utils/logger');
-import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '../../utils/constants/league.constants';
 
 export class LeagueImportController {
     constructor(
@@ -53,6 +49,7 @@ export class LeagueImportController {
         @repository(MemberRepository)
         public memberRepository: MemberRepository,
         @service() private leagueService: LeagueService,
+        @service() private userService: UserService,
     ) {}
 
     @authenticate('jwt')
@@ -88,7 +85,7 @@ export class LeagueImportController {
             const gameLeagues = await yf.user.game_leagues('nfl');
             const nfl = gameLeagues.games.find((game: any) => game.code === 'nfl');
             const yahooleaguesList = nfl ? nfl.leagues : [];
-            let yahooleagues: any = [];
+            const yahooleagues: any = [];
 
             yahooleaguesList.map((list: any) => {
                 return list.map((league: any) => {
@@ -317,6 +314,19 @@ export class LeagueImportController {
 
                                 if (!foundPlayer) {
                                     notFoundPlayers.push(remotePlayer);
+                                    const user = await this.userRepository.findById(userId);
+                                    await this.userService.sendEmail(
+                                        user,
+                                        EMAIL_TEMPLATES.LEAGUE_PLAYER_NOT_FOUND,
+                                        {
+                                            user: user,
+                                            text: {
+                                                title: `Player Not Found.`,
+                                                subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
+                                            },
+                                        },
+                                        process.env.ADMIN_EMAIL,
+                                    );
                                     // throw new HttpErrors.BadRequest(
                                     //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
                                     // );
@@ -363,6 +373,21 @@ export class LeagueImportController {
                 },
                 include: ['teams'],
             });
+
+            const user = await this.userRepository.findById(userId);
+
+            await this.userService.sendEmail(
+                user,
+                EMAIL_TEMPLATES.LEAGUE_IMPORT,
+                {
+                    user: user,
+                    text: {
+                        title: `${league.name} has been imported.`,
+                        subtitle: `The league: ${league.name} from ESPN Leagues has been imported successfully.`,
+                    },
+                },
+                user.email,
+            );
 
             return {
                 message: LEAGUE_IMPORT_MESSAGES.IMPORT_SUCCESS_ESPN,
@@ -470,6 +495,18 @@ export class LeagueImportController {
                                         '🚀 ~ file: league-import.controller.ts ~ line 326 ~ LeagueImportController ~ roster.roster.map ~ remotePlayer',
                                         remotePlayer,
                                     );
+                                    await this.userService.sendEmail(
+                                        user,
+                                        EMAIL_TEMPLATES.LEAGUE_PLAYER_NOT_FOUND,
+                                        {
+                                            user: user,
+                                            text: {
+                                                title: `Player Not Found.`,
+                                                subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
+                                            },
+                                        },
+                                        process.env.ADMIN_EMAIL,
+                                    );
                                     throw new HttpErrors.BadRequest(
                                         `${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
                                     );
@@ -488,6 +525,7 @@ export class LeagueImportController {
             );
 
             const userData = await this.userRepository.findById(userId);
+            const user = userData;
 
             if (userData) {
                 userData.yahooRefreshToken = refreshToken || null;
@@ -504,6 +542,19 @@ export class LeagueImportController {
 
             // await transaction.rollback();
             await transaction.commit();
+
+            this.userService.sendEmail(
+                user,
+                EMAIL_TEMPLATES.LEAGUE_IMPORT,
+                {
+                    user: user,
+                    text: {
+                        title: `${league.name} has been imported.`,
+                        subtitle: `The league: ${league.name} from YAHOO Leagues has been imported successfully.`,
+                    },
+                },
+                user.email,
+            );
 
             const newLeague = await this.leagueRepository.find({
                 where: {

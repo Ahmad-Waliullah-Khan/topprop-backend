@@ -1,10 +1,10 @@
 | Hi #{user.fullName},
 |
 | Your contest has been created. We'll let you know when you match with an opponent
-| Your Player : #{creatorPlayer.fullName}
-| Opponent Player: #{claimerPlayer.fullName}
+| Your Player : #{creatorTeam.name}
+| Opponent Player: #{claimerTeam.name}
 | Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
-| Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.creatorPlayerMaxWin)}
+| Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.creatorTeamMaxWin)}
 |
 |
 | Thanks,
