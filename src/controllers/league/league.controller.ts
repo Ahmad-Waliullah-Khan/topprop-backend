@@ -27,8 +27,7 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SPREAD_TYPE,
-    SCORING_TYPE,
-    SPREAD_TYPE
+    SCORING_TYPE
 } from '@src/utils/constants';
 import {ErrorHandler} from '@src/utils/helpers';
 import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
