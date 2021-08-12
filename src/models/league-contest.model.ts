@@ -2,7 +2,7 @@ import { belongsTo, model, property } from '@loopback/repository';
 import { Spread, SpreadWithRelations } from '@src/models/spread.model';
 import { CONTEST_STAKEHOLDERS, CONTEST_STATUSES, CONTEST_TYPES } from '@src/utils/constants';
 import { Base } from './base.model';
-import { League } from './league.model';
+import { League, LeagueWithRelations } from './league.model';
 import { Team, TeamWithRelations } from './team.model';
 import { User, UserWithRelations } from './user.model';
 import { ContestTeam, ContestTeamWithRelations } from './contest-team.model';
@@ -265,9 +265,10 @@ export interface LeagueContestRelations {
     claimer?: UserWithRelations;
     creatorTeam?: TeamWithRelations;
     claimerTeam?: TeamWithRelations;
-    creatorContestTeam?: TeamWithRelations;
-    claimerContestTeam?: TeamWithRelations;
+    creatorContestTeam?: ContestTeamWithRelations;
+    claimerContestTeam?: ContestTeamWithRelations;
     spread?: SpreadWithRelations;
+    league: LeagueWithRelations;
 }
 
 export type LeagueContestWithRelations = LeagueContest & LeagueContestRelations;

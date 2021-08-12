@@ -259,6 +259,8 @@ export class LeagueImportController {
             const teamIds = teamsInfo.map((team: any) => team.id);
 
             const leaguePromise = await this.leagueService.fetchESPNLeagueTeamsByIds(
+                espnS2 || '',
+                swid || '',
                 teamIds,
                 league.seasonId,
                 leagueId || '',

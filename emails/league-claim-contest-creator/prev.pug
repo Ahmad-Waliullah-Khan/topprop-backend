@@ -1,0 +1,11 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi #{creatorUser.fullName},
+        p
+        p Your contest has been claimed by #{user.fullName} on #{moment(contestData.updatedAt).format("dddd, MMMM Do YYYY, h:mm:ss a")}.
+        p
+        br
+        p Thanks,
+        p TopProp Team

@@ -1,0 +1,16 @@
+html
+    head
+        link(rel="stylesheet", href="../styles/styles.css", data-inline)
+    body
+        p Hi #{user.fullName},
+        p
+        p Thank you for claiming a contest. Contest details below
+        p Opponent: #{creatorUser.fullName}
+        p Your Player : #{claimerPlayer.fullName}
+        p Opponent Player: #{creatorPlayer.fullName}
+        p Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
+        p Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.claimerPlayerMaxWin)}
+        p
+        br
+        p Thanks,
+        p TopProp Team

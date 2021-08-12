@@ -28,6 +28,8 @@ import {
     CloseContestsCron,
     SpecialTeamsCron,
     SyncGamesCron,
+    SyncLeaguesCron,
+    LeagueWinCriteriaCron,
 } from './cron-jobs';
 import { ImportSourceRepository, ScoringTypeRepository, SpreadRepository } from './repositories';
 import { ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
@@ -140,9 +142,11 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         const CloseContestsCronBinding = createBindingFromClass(CloseContestsCron);
         this.add(CloseContestsCronBinding);
 
-
         const SpecialTeamsCronBinding = createBindingFromClass(SpecialTeamsCron);
         this.add(SpecialTeamsCronBinding);
+
+        const LeagueWinCriteriaCronBinding = createBindingFromClass(LeagueWinCriteriaCron);
+        this.add(LeagueWinCriteriaCronBinding);
 
         // const fakeResultsCronBinding = createBindingFromClass(FakeResultsCron);
         // this.add(fakeResultsCronBinding);
@@ -152,6 +156,9 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const syncGamesCronBinding = createBindingFromClass(SyncGamesCron);
         this.add(syncGamesCronBinding);
+
+        const SyncLeaguesCronBinding = createBindingFromClass(SyncLeaguesCron);
+        this.add(SyncLeaguesCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);

@@ -1,6 +1,6 @@
-import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { League, Roster, Team } from '@src/models';
+import {BindingScope, Getter, injectable} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {League, Roster, Team} from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,15 +9,15 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
-import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '@src/utils/constants/league.constants';
+import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '@src/utils/constants/league.constants';
+import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
 
-@bind({ scope: BindingScope.SINGLETON })
+@injectable({ scope: BindingScope.SINGLETON })
 export class LeagueService {
     playerRepo: PlayerRepository;
     spreadRepo: SpreadRepository;
@@ -128,7 +128,13 @@ export class LeagueService {
         return teams;
     }
 
-    async fetchESPNLeagueTeamsByIds(teamIds: number[], seasonId: string, leagueId: string): Promise<any> {
+    async fetchESPNLeagueTeamsByIds(
+        espnS2: string,
+        swid: string,
+        teamIds: number[],
+        seasonId: string,
+        leagueId: string,
+    ): Promise<any> {
         let teamIdsString = '';
         teamIds.map((teamId: number, index: number) => {
             if (index === 0) {
@@ -143,6 +149,9 @@ export class LeagueService {
         return axios({
             method: 'get',
             url: url,
+            headers: {
+                Cookie: `espn_s2=${espnS2}; SWID=${swid};`,
+            },
         });
     }
 
@@ -379,7 +388,13 @@ export class LeagueService {
 
             const teamIds = teamsInfo.map((team: any) => team.id);
 
-            const leaguePromise = await this.fetchESPNLeagueTeamsByIds(teamIds, league.seasonId, leagueId || '');
+            const leaguePromise = await this.fetchESPNLeagueTeamsByIds(
+                espns2 || '',
+                espnswid || '',
+                teamIds,
+                league.seasonId,
+                leagueId || '',
+            );
 
             const leagueInfo = leaguePromise.data;
 
@@ -562,6 +577,90 @@ export class LeagueService {
                 },
                 {
                     relation: 'scoringType',
+                },
+            ],
+        };
+    }
+
+    async fetchLeagueContestInclude() {
+        return {
+            include: [
+                {
+                    relation: 'creatorTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'rosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'creatorContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'claimerContestTeam',
+                    scope: {
+                        include: [
+                            {
+                                relation: 'contestRosters',
+                                scope: {
+                                    include: [
+                                        {
+                                            relation: 'player',
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                relation: 'team',
+                            },
+                        ],
+                    },
+                },
+                {
+                    relation: 'league',
                 },
             ],
         };
