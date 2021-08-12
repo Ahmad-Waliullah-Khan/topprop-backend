@@ -13,7 +13,8 @@ export enum CRON_JOBS {
     LEAGUE_WIN_CHECK_CRON = 'league-win-check-cron',
     LEAGUE_CLOSE_CONTEST_CRON = 'league-close-contests-cron',
     
-    SYNC_LEAGUES_CRON = 'sync-leagues-cron',
+    ESPN_SYNC_LEAGUES_CRON = 'espn-sync-leagues-cron',
+    YAHOO_SYNC_LEAGUES_CRON = 'yahoo-sync-leagues-cron',
 
     FAKE_RESULTS_CRON = 'fake-results-cron',
     SYNC_TEAMS_CRON = 'sync-teams-cron',

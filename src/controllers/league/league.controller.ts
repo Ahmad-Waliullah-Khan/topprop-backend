@@ -29,6 +29,7 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SPREAD_TYPE,
+    SCORING_TYPE,
 } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -521,6 +522,8 @@ export class LeagueController {
             },
         });
 
+        const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+
         if (member.length <= 0) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_A_MEMBER);
 
         if (creatorTeam.leagueId !== claimerTeam.leagueId)
@@ -564,16 +567,44 @@ export class LeagueController {
                 return roster.player ? roster.player.projectedFantasyPoints : 0;
             });
 
-            const creatorTeamPlayerFantasy = remainingCreatorPlayers.map(roster => {
-                return roster.player ? roster.player.fantasyPoints : 0;
+            const creatorTeamPlayerFantasy = completedCreatorPlayers.map(roster => {
+                const currentPlayer = roster.player;
+                let rosterPlayerFantasyPoints = 0;
+                switch (league.scoringTypeId) {
+                    case SCORING_TYPE.HALFPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsHalfPpr || 0);
+                        break;
+                    case SCORING_TYPE.FULLPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsFullPpr || 0);
+                        break;
+                    case SCORING_TYPE.NOPPR:
+                        // Standard PPR
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPoints || 0);
+                        break;
+                }
+                return rosterPlayerFantasyPoints;
             });
 
             const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map(roster => {
                 return roster.player ? roster.player.projectedFantasyPoints : 0;
             });
 
-            const claimerTeamPlayerFantasy = remainingClaimerPlayers.map(roster => {
-                return roster.player ? roster.player.fantasyPoints : 0;
+            const claimerTeamPlayerFantasy = completedClaimerPlayers.map(roster => {
+                const currentPlayer = roster.player;
+                let rosterPlayerFantasyPoints = 0;
+                switch (league.scoringTypeId) {
+                    case SCORING_TYPE.HALFPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsHalfPpr || 0);
+                        break;
+                    case SCORING_TYPE.FULLPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsFullPpr || 0);
+                        break;
+                    case SCORING_TYPE.NOPPR:
+                        // Standard PPR
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPoints || 0);
+                        break;
+                }
+                return rosterPlayerFantasyPoints;
             });
 
             let totalCreatorTeamProjFantasy =
@@ -586,13 +617,13 @@ export class LeagueController {
                     : 0;
 
             totalCreatorTeamProjFantasy =
-                totalCreatorTeamProjFantasy + creatorTeamPlayerFantasy.length > 0
+                creatorTeamPlayerFantasy.length > 0
                     ? creatorTeamPlayerFantasy.reduce((accumulator, currentValue) => {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      }, 0)
-                    : 0;
+                      }, totalCreatorTeamProjFantasy)
+                    : totalCreatorTeamProjFantasy;
 
             let totalClaimerTeamProjFantasy =
                 creatorTeamPlayerProjFantasy.length > 0
@@ -604,13 +635,13 @@ export class LeagueController {
                     : 0;
 
             totalClaimerTeamProjFantasy =
-                totalClaimerTeamProjFantasy + claimerTeamPlayerFantasy.length > 0
+                claimerTeamPlayerFantasy.length > 0
                     ? claimerTeamPlayerFantasy.reduce((accumulator, currentValue) => {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      }, 0)
-                    : 0;
+                      }, totalClaimerTeamProjFantasy)
+                    : totalClaimerTeamProjFantasy;
 
             // TODO remove the following lines
             // totalCreatorTeamProjFantasy = 200;
@@ -761,6 +792,7 @@ export class LeagueController {
             };
         } catch (error) {
             console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            logger.error(error.message);
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
             }
@@ -820,6 +852,8 @@ export class LeagueController {
         if (creatorTeam.leagueId !== claimerTeam.leagueId)
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NOT_SAME_LEAGUE);
 
+        const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+
         const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
 
         try {
@@ -860,16 +894,44 @@ export class LeagueController {
                 return roster.player ? roster.player.projectedFantasyPoints : 0;
             });
 
-            const creatorTeamPlayerFantasy = remainingCreatorPlayers.map(roster => {
-                return roster.player ? roster.player.fantasyPoints : 0;
+            const creatorTeamPlayerFantasy = completedCreatorPlayers.map(roster => {
+                const currentPlayer = roster.player;
+                let rosterPlayerFantasyPoints = 0;
+                switch (league.scoringTypeId) {
+                    case SCORING_TYPE.HALFPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsHalfPpr || 0);
+                        break;
+                    case SCORING_TYPE.FULLPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsFullPpr || 0);
+                        break;
+                    case SCORING_TYPE.NOPPR:
+                        // Standard PPR
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPoints || 0);
+                        break;
+                }
+                return rosterPlayerFantasyPoints;
             });
 
             const claimerTeamPlayerProjFantasy = remainingClaimerPlayers.map(roster => {
                 return roster.player ? roster.player.projectedFantasyPoints : 0;
             });
 
-            const claimerTeamPlayerFantasy = remainingClaimerPlayers.map(roster => {
-                return roster.player ? roster.player.fantasyPoints : 0;
+            const claimerTeamPlayerFantasy = completedClaimerPlayers.map(roster => {
+                const currentPlayer = roster.player;
+                let rosterPlayerFantasyPoints = 0;
+                switch (league.scoringTypeId) {
+                    case SCORING_TYPE.HALFPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsHalfPpr || 0);
+                        break;
+                    case SCORING_TYPE.FULLPPR:
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPointsFullPpr || 0);
+                        break;
+                    case SCORING_TYPE.NOPPR:
+                        // Standard PPR
+                        rosterPlayerFantasyPoints = Number(currentPlayer?.fantasyPoints || 0);
+                        break;
+                }
+                return rosterPlayerFantasyPoints;
             });
 
             let totalCreatorTeamProjFantasy =
@@ -882,13 +944,13 @@ export class LeagueController {
                     : 0;
 
             totalCreatorTeamProjFantasy =
-                totalCreatorTeamProjFantasy + creatorTeamPlayerFantasy.length > 0
+                creatorTeamPlayerFantasy.length > 0
                     ? creatorTeamPlayerFantasy.reduce((accumulator, currentValue) => {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      }, 0)
-                    : 0;
+                      }, totalCreatorTeamProjFantasy)
+                    : totalCreatorTeamProjFantasy;
 
             let totalClaimerTeamProjFantasy =
                 creatorTeamPlayerProjFantasy.length > 0
@@ -900,13 +962,13 @@ export class LeagueController {
                     : 0;
 
             totalClaimerTeamProjFantasy =
-                totalClaimerTeamProjFantasy + claimerTeamPlayerFantasy.length > 0
+                claimerTeamPlayerFantasy.length > 0
                     ? claimerTeamPlayerFantasy.reduce((accumulator, currentValue) => {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
                           return total + value;
-                      }, 0)
-                    : 0;
+                      }, totalClaimerTeamProjFantasy)
+                    : totalClaimerTeamProjFantasy;
 
             // TODO remove the following lines
             // totalCreatorTeamProjFantasy = 200;
@@ -916,7 +978,7 @@ export class LeagueController {
             const entryAmount = body.entryAmount || 0;
             if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
-            const winBonusFlag =false;
+            const winBonusFlag = false;
 
             let creatorTeamSpread = 0;
             let claimerTeamSpread = 0;
@@ -1163,6 +1225,7 @@ export class LeagueController {
             };
         } catch (error) {
             console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
@@ -1354,10 +1417,10 @@ export class LeagueController {
         const { leagueId } = body;
 
         const existingLeague = await this.leagueRepository.findById(Number(leagueId));
-        
+
         const importSourceData = await this.importSourceRepository.findById(existingLeague.importSourceId);
         const importSource = importSourceData.name;
-        
+
         if (importSource === 'yahoo') {
             if (await this.leagueService.resyncYahoo(leagueId)) {
                 const includes = await this.leagueService.fetchLeagueInclude();

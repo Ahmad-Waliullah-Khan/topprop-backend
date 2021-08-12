@@ -12,6 +12,15 @@ export class ContestRoster extends Base {
     })
     id: number;
 
+    @property({
+        type: 'number',
+        required: false,
+        postgresql: {
+          dataType: 'decimal',
+        },
+      })
+      playerFantasyPoints: number;
+
     @belongsTo(() => ContestTeam)
     contestTeamId: number;
 

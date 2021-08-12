@@ -1,12 +1,12 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {service} from '@loopback/core';
-import {get, HttpErrors} from '@loopback/rest';
-import {CronService} from '@src/services';
-import {API_ENDPOINTS, CRON_JOBS, CRON_RUN_TYPES, PERMISSIONS, RUN_TYPE} from '@src/utils/constants';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
-import {ICommonHttpResponse} from '@src/utils/interfaces';
-import {CRON_MESSAGES} from '@src/utils/messages';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { service } from '@loopback/core';
+import { get, HttpErrors } from '@loopback/rest';
+import { CronService } from '@src/services';
+import { API_ENDPOINTS, CRON_JOBS, CRON_RUN_TYPES, PERMISSIONS, RUN_TYPE } from '@src/utils/constants';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse } from '@src/utils/interfaces';
+import { CRON_MESSAGES } from '@src/utils/messages';
 import chalk from 'chalk';
 const logger = require('../../utils/logger');
 
@@ -25,7 +25,8 @@ export class CronController {
         },
     })
     async fetchProjecttion(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
 
         const playerPromises = await this.cronService.processProjectedFantasyPoints();
         Promise.all(playerPromises);
@@ -44,7 +45,8 @@ export class CronController {
         },
     })
     async fetchPoints(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
 
         const playerPromises = await this.cronService.processPlayerFantasyPoints();
         Promise.all(playerPromises);
@@ -62,7 +64,8 @@ export class CronController {
         },
     })
     async winCheck(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
             const filteredContests = await this.cronService.winCheck();
             this.cronService.cronLogger(CRON_JOBS.WIN_CHECK_CRON);
@@ -85,7 +88,8 @@ export class CronController {
         },
     })
     async leagueWinCheck(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
             const filteredContests = await this.cronService.leagueWinCheck();
             this.cronService.cronLogger(CRON_JOBS.WIN_CHECK_CRON);
@@ -98,8 +102,6 @@ export class CronController {
         return { data: 'League Win Check' };
     }
 
-
-
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
     @get(API_ENDPOINTS.CRONS.CLOSE_CONTESTS, {
@@ -110,7 +112,8 @@ export class CronController {
         },
     })
     async closeContests(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
             const filteredContests = await this.cronService.closeContests();
             this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
@@ -133,7 +136,8 @@ export class CronController {
         },
     })
     async closeLeagueContests(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
             const filteredContests = await this.cronService.leagueCloseContests();
             this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
@@ -156,17 +160,20 @@ export class CronController {
         },
     })
     async syncLeagues(): Promise<ICommonHttpResponse> {
-        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE) throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
+        if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
+            throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
-            const syncedLeagues = await this.cronService.syncLeagues();
-            this.cronService.cronLogger(CRON_JOBS.SYNC_LEAGUES_CRON);
+            const syncedEspnLeagues = await this.cronService.syncESPNLeagues();
+            this.cronService.cronLogger(CRON_JOBS.ESPN_SYNC_LEAGUES_CRON);
 
-            return { data: syncedLeagues };
+            const syncedYahooLeagues = await this.cronService.syncYahooLeagues();
+            this.cronService.cronLogger(CRON_JOBS.ESPN_SYNC_LEAGUES_CRON);
+
+            return { data: { espn: syncedEspnLeagues, yahoo: syncedYahooLeagues } };
         } catch (error) {
             logger.error(chalk.redBright(`Error on sync leagues cron job. Error: `, error));
-             }
+        }
 
         return { data: 'Win Check' };
     }
-} 
-
+}

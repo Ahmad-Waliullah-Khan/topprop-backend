@@ -8,23 +8,23 @@ import cron from 'cron';
 const logger = require('../utils/logger');
 
 @cronJob()
-export class SyncLeaguesCron extends CronJob {
+export class EspnSyncLeaguesCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */6 * * *',
-            name: CRON_JOBS.CLOSE_CONTEST_CRON,
+            cronTime: '0 */1 * * * *',
+            name: CRON_JOBS.ESPN_SYNC_LEAGUES_CRON,
             start: true,
             onTick: async () => {
                 try {
-                    await this.cronService.syncLeagues();
-                    this.cronService.cronLogger(CRON_JOBS.SYNC_LEAGUES_CRON);
+                    await this.cronService.syncESPNLeagues();
+                    this.cronService.cronLogger(CRON_JOBS.ESPN_SYNC_LEAGUES_CRON);
 
-                    const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.SYNC_LEAGUES_CRON);
+                    const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.ESPN_SYNC_LEAGUES_CRON);
                     const updatedCronTime = new cron.CronTime(updatedCronTiming);
                     this.setTime(updatedCronTime);
                     this.start();
                 } catch (error) {
-                    logger.error(chalk.redBright(`Error on sync leagues cron job. Error: `, error));
+                    logger.error(chalk.redBright(`Error on espn sync leagues cron job. Error: `, error));
                 }
             },
         });

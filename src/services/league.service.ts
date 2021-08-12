@@ -373,7 +373,7 @@ export class LeagueService {
             // await transaction.rollback();
             await transaction.commit();
         } catch (error) {
-            console.log('🚀 ~ file: league.service.ts ~ error', error);
+            console.log('resyncYahoo: Ln 376 league.service.ts ~ error', error);
             await transaction.rollback();
             return false;
         }
@@ -559,7 +559,7 @@ export class LeagueService {
             // await transaction.rollback();
             await transaction.commit();
         } catch (error) {
-            console.log('🚀 ~ file: league.service.ts ~ error', error);
+            console.log('resyncESPN: Ln 562 league.service.ts ~ error', error);
             await transaction.rollback();
             return false;
         }

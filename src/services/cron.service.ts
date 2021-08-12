@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,9 +11,9 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {SportsDataService, UserService} from '@src/services';
+import { SportsDataService, UserService } from '@src/services';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
@@ -148,7 +148,7 @@ export class CronService {
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of 15th minute every wednesday
-                        cronTiming = '0 15 * * * 3';
+                        cronTiming = '0 0 3 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 5th minute from 0th minute to 40th minute
@@ -207,12 +207,12 @@ export class CronService {
             case CRON_JOBS.CLOSE_CONTEST_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 1st minute every wednesday
-                        cronTiming = '0 1 * * * 3';
+                        // 2am every tuesday
+                        cronTiming = '0 0 2 * * 2';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 1st minute every wednesday
-                        cronTiming = '0 1 * * * 3';
+                        // 2am every tuesday
+                        cronTiming = '0 0 2 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute of 0th hour of every day
@@ -234,6 +234,38 @@ export class CronService {
                     case CRON_RUN_TYPES.PROXY:
                         // 45th second of every 3rd minute from 50th minute to 59th minute
                         cronTiming = '45 50-59/3 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.YAHOO_SYNC_LEAGUES_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every 0th second 0th minute 6 hours
+                        cronTiming = '0 0 */6 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of every 0th and 30th minute
+                        cronTiming = '0 0,30 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of every 5th minute
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.ESPN_SYNC_LEAGUES_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 45th second of every 5 minutes
+                        cronTiming = '0 0 */6 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of every 0th and 30th minute
+                        cronTiming = '0 0,30 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of every 5th minute
+                        cronTiming = '0 */5 * * * *';
                         break;
                 }
                 break;
@@ -264,6 +296,12 @@ export class CronService {
                 break;
             case CRON_JOBS.CLOSE_CONTEST_CRON:
                 cronMessage = 'Close';
+                break;
+            case CRON_JOBS.ESPN_SYNC_LEAGUES_CRON:
+                cronMessage = 'ESPN League';
+                break;
+            case CRON_JOBS.YAHOO_SYNC_LEAGUES_CRON:
+                cronMessage = 'Yahoo League';
                 break;
         }
 
@@ -521,6 +559,8 @@ export class CronService {
                     winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
                     creatorWinAmount: 0,
                     claimerWinAmount: 0,
+                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
+                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
@@ -595,6 +635,8 @@ export class CronService {
                     winnerLabel: winnerLabel,
                     creatorWinAmount: creatorWinAmount,
                     claimerWinAmount: claimerWinAmount,
+                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
+                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
@@ -786,6 +828,8 @@ export class CronService {
                 winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
                 creatorWinAmount: 0,
                 claimerWinAmount: 0,
+                creatorPlayerFantasyPoints: 0,
+                claimerPlayerFantasyPoints: 0,
             };
 
             await this.contestRepository.updateById(unclaimedContest.id, constestData);
@@ -869,58 +913,77 @@ export class CronService {
         let creatorTeamFantasyPoints = 0;
         let claimerTeamFantasyPoints = 0;
 
-        const filteredContests = contests.filter(contest => {
-            const { creatorContestTeam, claimerContestTeam, league } = contest;
-            const creatorRoster = creatorContestTeam?.contestRosters;
-            const claimerRoster = claimerContestTeam?.contestRosters;
-            let validContest = true;
-            creatorRoster?.map(rosterEntry => {
-                //@ts-ignore
-                const currentPlayer = rosterEntry?.player;
-                if (currentPlayer.isOver === false) {
-                    validContest = false;
-                } else {
-                    switch (league.scoringTypeId) {
-                        case SCORING_TYPE.HALFPPR:
-                            creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
-                            break;
-                        case SCORING_TYPE.FULLPPR:
-                            creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
-                            break;
-                        case SCORING_TYPE.NOPPR:
-                            // Standard PPR
-                            creatorTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
-                            break;
-                    }
-                }
-            });
-            claimerRoster?.map(rosterEntry => {
-                //@ts-ignore
-                const currentPlayer = rosterEntry?.player;
-                if (currentPlayer.isOver === false) {
-                    validContest = false;
-                } else {
-                    switch (league.scoringTypeId) {
-                        case SCORING_TYPE.HALFPPR:
-                            claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
-                            break;
-                        case SCORING_TYPE.FULLPPR:
-                            claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
-                            break;
-                        case SCORING_TYPE.NOPPR:
-                            // Standard PPR
-                            claimerTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
-                            break;
-                    }
-                }
-            });
+        const filteredContests = await Promise.all(
+            contests.filter(async contest => {
+                const { creatorContestTeam, claimerContestTeam, league } = contest;
+                const creatorRoster = creatorContestTeam?.contestRosters || [];
+                const claimerRoster = claimerContestTeam?.contestRosters || [];
+                let validContest = true;
+                const scoringCreatorRoster = await Promise.all(
+                    creatorRoster.map(async rosterEntry => {
+                        //@ts-ignore
+                        const currentPlayer = rosterEntry?.player;
+                        if (currentPlayer.isOver === false) {
+                            validContest = false;
+                        } else {
+                            let rosterPlayerFantasyPoints = 0;
+                            switch (league.scoringTypeId) {
+                                case SCORING_TYPE.HALFPPR:
+                                    creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                    rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                    break;
+                                case SCORING_TYPE.FULLPPR:
+                                    creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                    rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                    break;
+                                case SCORING_TYPE.NOPPR:
+                                    // Standard PPR
+                                    creatorTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
+                                    rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                                    break;
+                            }
 
-            return validContest;
-        });
+                            const contestRosterData = {
+                                playerFantasyPoints: rosterPlayerFantasyPoints,
+                            };
 
-        console.log(
-            '🚀 ~ file: cron.service.ts ~ line 865 ~ CronService ~ leagueWinCheck ~ filteredContests',
-            filteredContests,
+                            return await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+                        }
+                    }),
+                );
+                claimerRoster?.map(async rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    if (currentPlayer.isOver === false) {
+                        validContest = false;
+                    } else {
+                        let rosterPlayerFantasyPoints = 0;
+                        switch (league.scoringTypeId) {
+                            case SCORING_TYPE.HALFPPR:
+                                claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                break;
+                            case SCORING_TYPE.FULLPPR:
+                                claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                break;
+                            case SCORING_TYPE.NOPPR:
+                                // Standard PPR
+                                claimerTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                break;
+                        }
+
+                        const contestRosterData = {
+                            playerFantasyPoints: rosterPlayerFantasyPoints,
+                        };
+
+                        return await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+                    }
+                });
+
+                return validContest;
+            }),
         );
 
         filteredContests.map(async contest => {
@@ -1706,24 +1769,12 @@ export class CronService {
         return contestsUnclaimed;
     }
 
-    async syncLeagues() {
-        const existingLeagues = await this.leagueRepository.find();
-
-        //Yahoo sync
-        const yahooLeagues = existingLeagues.filter(league => {
-            return league.importSourceId === 2;
-        });
-
-        yahooLeagues.map(async league => {
-            await this.leagueService.resyncYahoo(league.id);
-            await sleep(120000);
-        });
-        const updatedYahooLeagues = await this.leagueRepository.find({
+    async syncESPNLeagues() {
+        const existingLeagues = await this.leagueRepository.find({
             where: {
-                importSourceId: 2,
+                importSourceId: 1,
             },
         });
-
         //ESPN sync
         const espnLeagues = existingLeagues.filter(league => {
             return league.importSourceId === 1;
@@ -1731,7 +1782,7 @@ export class CronService {
 
         espnLeagues.map(async league => {
             await this.leagueService.resyncESPN(league.id);
-            await sleep(120000);
+            await sleep(30000);
         });
         const updatedEspnLeagues = await this.leagueRepository.find({
             where: {
@@ -1740,5 +1791,28 @@ export class CronService {
         });
 
         return existingLeagues;
+    }
+
+    async syncYahooLeagues() {
+        const existingLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2,
+            },
+        });
+
+        //Yahoo sync
+        const yahooLeagues = existingLeagues.filter(league => {
+            return league.importSourceId === 2;
+        });
+
+        yahooLeagues.map(async league => {
+            await this.leagueService.resyncYahoo(league.id);
+            await sleep(1000);
+        });
+        const updatedYahooLeagues = await this.leagueRepository.find({
+            where: {
+                importSourceId: 2,
+            },
+        });
     }
 }
