@@ -851,7 +851,7 @@ export class LeagueController {
 
         const league = await this.leagueRepository.findById(creatorTeam.leagueId);
 
-        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
 
         try {
             const creatorTeamRoster = await this.rosterRepository.find({

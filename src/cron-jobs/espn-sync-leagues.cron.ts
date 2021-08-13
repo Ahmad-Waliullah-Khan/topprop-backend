@@ -4,6 +4,7 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import moment from 'moment';
 
 const logger = require('../utils/logger');
 
@@ -16,6 +17,7 @@ export class EspnSyncLeaguesCron extends CronJob {
             start: true,
             onTick: async () => {
                 try {
+                    logger.info(`ESPN cron started at ` + moment().format('DD-MM-YYYY hh:mm:ss a'));
                     await this.cronService.syncESPNLeagues();
                     this.cronService.cronLogger(CRON_JOBS.ESPN_SYNC_LEAGUES_CRON);
 

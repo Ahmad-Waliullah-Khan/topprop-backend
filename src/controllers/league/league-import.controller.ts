@@ -239,7 +239,7 @@ export class LeagueImportController {
         if (league.length > 0) throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.LEAGUE_EXISTS);
 
         // @ts-ignore
-        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
 
         try {
             const league = await this.leagueService.fetchESPNLeague(espnS2 || '', swid || '', leagueId || '');
@@ -450,7 +450,7 @@ export class LeagueImportController {
         if (league.length > 0) throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.LEAGUE_EXISTS);
 
         // @ts-ignore
-        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
 
         try {
             const localPlayers = await this.playerRepository.find();

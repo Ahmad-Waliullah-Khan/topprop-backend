@@ -1,6 +1,6 @@
-import {BindingScope, Getter, injectable} from '@loopback/core';
-import {IsolationLevel, repository} from '@loopback/repository';
-import {League, Roster, Team} from '@src/models';
+import { BindingScope, Getter, injectable } from '@loopback/core';
+import { IsolationLevel, repository } from '@loopback/repository';
+import { League, Roster, Team } from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,10 +9,10 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '@src/utils/constants/league.constants';
-import {MiscHelpers} from '@src/utils/helpers';
+import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '@src/utils/constants/league.constants';
+import { MiscHelpers } from '@src/utils/helpers';
 import axios from 'axios';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
@@ -272,11 +272,14 @@ export class LeagueService {
         yf.setUserToken(userData.yahooAccessToken);
         yf.setRefreshToken(userData.yahooRefreshToken);
 
-        // @ts-ignore
-        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
+        const notFoundPlayers: any[] = [];
 
-        try {
-            const localPlayers = await this.playerRepo.find();
+        const teamObjects: any[] = [];
+        const rosterObjects: any[] = [];
+
+        const newTeams: any[] = [];
+
+        const localPlayers = await this.playerRepo.find();
             const localTeams = await this.teamRepository.find({
                 where: {
                     leagueId: localLeagueId,
@@ -295,11 +298,16 @@ export class LeagueService {
                         foundLocalTeam.logoUrl = team.team_logos[0].url;
                         foundLocalTeam.wordMarkUrl = team.url;
                         foundLocalTeam.leagueId = Number(localLeagueId);
-                        await this.teamRepository.save(foundLocalTeam);
+                        teamObjects.push(foundLocalTeam);
 
-                        await this.rosterRepository.deleteAll({
-                            teamId: foundLocalTeam.id,
-                        });
+                        // await this.teamRepository.save(foundLocalTeam, { transaction });
+
+                        // await this.rosterRepository.deleteAll(
+                        //     {
+                        //         teamId: foundLocalTeam.id,
+                        //     },
+                        //     { transaction },
+                        // );
 
                         const roster = await yf.team.roster(team.team_key);
 
@@ -313,17 +321,29 @@ export class LeagueService {
                                         'yahoo',
                                     );
 
-                                    const rosterData = new Roster();
-                                    rosterData.teamId = foundLocalTeam.id;
-                                    rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = remotePlayer.display_position;
-                                    await this.rosterRepository.create(rosterData, { transaction });
+                                    if (!foundPlayer) {
+                                        notFoundPlayers.push(remotePlayer);
+                                        // throw new HttpErrors.BadRequest(
+                                        //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                        // );
+                                    } else {
+                                        const rosterData = new Roster();
+                                        rosterData.teamId = foundLocalTeam.id;
+                                        rosterData.playerId = foundPlayer.id;
+                                        rosterData.displayPosition = remotePlayer.display_position;
+                                        rosterObjects.push(rosterData);
+                                        // await this.rosterRepository.create(rosterData, { transaction });
+                                    }
                                 }
 
                                 return false;
                             }),
                         );
                     } else {
+                        const newTeam: any = {
+                            team: null,
+                            roster: [],
+                        };
                         const teamData = new Team();
 
                         teamData.name = team.name;
@@ -331,9 +351,12 @@ export class LeagueService {
                         teamData.logoUrl = team.team_logos[0].url;
                         teamData.wordMarkUrl = team.url;
                         teamData.leagueId = Number(localLeagueId);
-                        const createdTeam = await this.teamRepository.create(teamData, { transaction });
 
-                        const roster = await yf.team.roster(createdTeam.remoteId);
+                        newTeam.team = teamData;
+
+                        // const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                        const roster = await yf.team.roster(team.team_key.remoteId);
 
                         await Promise.all(
                             roster.roster.map(async (remotePlayer: any) => {
@@ -344,17 +367,62 @@ export class LeagueService {
                                         remotePlayer.selected_position,
                                         'yahoo',
                                     );
-                                    const rosterData = new Roster();
-                                    rosterData.teamId = createdTeam.id;
-                                    rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = remotePlayer.display_position;
-                                    await this.rosterRepository.create(rosterData, { transaction });
+
+                                    if (!foundPlayer) {
+                                        notFoundPlayers.push(remotePlayer);
+                                        // throw new HttpErrors.BadRequest(
+                                        //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                        // );
+                                    } else {
+                                        const rosterData = new Roster();
+                                        // rosterData.teamId = createdTeam.id;
+                                        rosterData.playerId = foundPlayer.id;
+                                        rosterData.displayPosition = remotePlayer.display_position;
+                                        newTeam.roster.push(rosterData);
+                                        // await this.rosterRepository.create(rosterData, { transaction });
+                                    }
                                 }
 
                                 return false;
                             }),
                         );
                     }
+                }),
+            );
+
+        // @ts-ignore
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
+
+        try {
+            
+            await Promise.all(
+                teamObjects.map(async (team: any) => {
+                    await this.teamRepository.save(team, { transaction });
+
+                    await this.rosterRepository.deleteAll(
+                        {
+                            teamId: team.id,
+                        },
+                        { transaction },
+                    );
+                }),
+            );
+
+            await Promise.all(
+                rosterObjects.map(async (rosterEntry: any) => {
+                    await this.rosterRepository.create(rosterEntry, { transaction });
+                }),
+            );
+
+            await Promise.all(
+                newTeams.map(async (newTeam: any) => {
+                    const createdTeam = await this.teamRepository.create(newTeam.team, { transaction });
+                    await Promise.all(
+                        newTeam.roster.map(async (rosterEntry: any) => {
+                            rosterEntry.teamId = createdTeam.id;
+                            await this.rosterRepository.create(rosterEntry, { transaction });
+                        }),
+                    );
                 }),
             );
 
@@ -392,182 +460,203 @@ export class LeagueService {
 
         const { espns2, espnswid } = userData;
 
-        // @ts-ignore
-        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.SERIALIZABLE);
-        try {
-            const league = await this.fetchESPNLeague(espns2 || '', espnswid || '', leagueId || '');
+        const league = await this.fetchESPNLeague(espns2 || '', espnswid || '', leagueId || '');
 
-            const teamsInfo = await this.fetchESPNLeagueTeams(espns2 || '', espnswid || '', leagueId || '');
+        const teamsInfo = await this.fetchESPNLeagueTeams(espns2 || '', espnswid || '', leagueId || '');
 
-            const teamIds = teamsInfo.map((team: any) => team.id);
+        const teamIds = teamsInfo.map((team: any) => team.id);
 
-            const leaguePromise = await this.fetchESPNLeagueTeamsByIds(
-                espns2 || '',
-                espnswid || '',
-                teamIds,
-                league.seasonId,
-                leagueId || '',
-            );
+        const leaguePromise = await this.fetchESPNLeagueTeamsByIds(
+            espns2 || '',
+            espnswid || '',
+            teamIds,
+            league.seasonId,
+            leagueId || '',
+        );
 
-            const leagueInfo = leaguePromise.data;
+        const leagueInfo = leaguePromise.data;
 
-            const notFoundPlayers: any[] = [];
+        const notFoundPlayers: any[] = [];
 
-            const { teams } = leagueInfo;
+        const { teams } = leagueInfo;
 
-            const localPlayers = await this.playerRepo.find();
-            const localTeams = await this.teamRepository.find({
-                where: {
-                    leagueId: localLeagueId,
-                },
-            });
+        const localPlayers = await this.playerRepo.find();
+        const localTeams = await this.teamRepository.find({
+            where: {
+                leagueId: localLeagueId,
+            },
+        });
 
-            await Promise.all(
-                teams.map(async (team: any) => {
-                    const foundLocalTeam = localTeams.find(
-                        localTeam => `${leagueId}-${team.id}` === localTeam.remoteId,
+        const teamObjects: any[] = [];
+        const rosterObjects: any[] = [];
+
+        const newTeams: any[] = [];
+
+        await Promise.all(
+            teams.map(async (team: any) => {
+                const foundLocalTeam = localTeams.find(localTeam => `${leagueId}-${team.id}` === localTeam.remoteId);
+
+                if (foundLocalTeam) {
+                    foundLocalTeam.name = `${team.location} ${team.nickname}`;
+                    foundLocalTeam.remoteId = `${leagueId}-${team.id}`;
+                    foundLocalTeam.logoUrl = team.logo;
+                    foundLocalTeam.wordMarkUrl = team.abbrev;
+                    // foundLocalTeam.leagueId = Number(localLeagueId);
+
+                    teamObjects.push(foundLocalTeam);
+                    // await this.teamRepository.save(foundLocalTeam);
+
+                    // await this.rosterRepository.deleteAll(
+                    //     {
+                    //         teamId: foundLocalTeam.id,
+                    //     },
+                    //     { transaction },
+                    // );
+
+                    const roster = team?.roster ? team.roster.entries : [];
+
+                    const sortedRoster = roster.sort((a: any, b: any) => {
+                        return a.lineupSlotId - b.lineupSlotId;
+                    });
+
+                    await Promise.all(
+                        sortedRoster.map(async (remotePlayer: any) => {
+                            if (remotePlayer.lineupSlotId !== 20) {
+                                const normalisedRemotePlayer = {
+                                    name: {
+                                        first: remotePlayer?.playerPoolEntry?.player.firstName,
+                                        last: remotePlayer?.playerPoolEntry?.player.lastName,
+                                    },
+                                    player_id: remotePlayer?.playerPoolEntry?.player.id,
+                                    display_position:
+                                        ESPN_POSITION_MAPPING[remotePlayer?.playerPoolEntry?.player.defaultPositionId],
+                                    team_position: ESPN_LINEUP_SLOT_MAPPING[remotePlayer?.lineupSlotId],
+                                };
+
+                                const foundPlayer = await this.findPlayer(
+                                    normalisedRemotePlayer,
+                                    localPlayers,
+                                    normalisedRemotePlayer.team_position,
+                                    'espn',
+                                );
+
+                                if (!foundPlayer) {
+                                    notFoundPlayers.push(remotePlayer);
+                                    // throw new HttpErrors.BadRequest(
+                                    //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                    // );
+                                } else {
+                                    const rosterData = new Roster();
+                                    rosterData.teamId = foundLocalTeam.id;
+                                    rosterData.playerId = foundPlayer.id;
+                                    rosterData.displayPosition = normalisedRemotePlayer.team_position;
+                                    rosterObjects.push(rosterData);
+
+                                    // await this.rosterRepository.create(rosterData, { transaction });
+                                }
+                            }
+                        }),
+                    );
+                } else {
+                    const newTeam: any = {
+                        team: null,
+                        roster: [],
+                    };
+
+                    const teamData = new Team();
+                    teamData.name = `${team.location} ${team.nickname}`;
+                    teamData.remoteId = `${leagueId}-${team.id}`;
+                    teamData.logoUrl = team.logo;
+                    teamData.wordMarkUrl = team.abbrev;
+
+                    newTeam.team = teamData;
+
+                    // const createdTeam = await this.teamRepository.create(teamData, { transaction });
+
+                    const roster = team?.roster ? team.roster.entries : [];
+
+                    const sortedRoster = roster.sort((a: any, b: any) => {
+                        return a.lineupSlotId - b.lineupSlotId;
+                    });
+
+                    await Promise.all(
+                        sortedRoster.map(async (remotePlayer: any) => {
+                            if (remotePlayer.lineupSlotId !== 20) {
+                                const normalisedRemotePlayer = {
+                                    name: {
+                                        first: remotePlayer?.playerPoolEntry?.player.firstName,
+                                        last: remotePlayer?.playerPoolEntry?.player.lastName,
+                                    },
+                                    player_id: remotePlayer?.playerPoolEntry?.player.id,
+                                    display_position:
+                                        ESPN_POSITION_MAPPING[remotePlayer?.playerPoolEntry?.player.defaultPositionId],
+                                    team_position: ESPN_LINEUP_SLOT_MAPPING[remotePlayer?.lineupSlotId],
+                                };
+
+                                const foundPlayer = await this.findPlayer(
+                                    normalisedRemotePlayer,
+                                    localPlayers,
+                                    normalisedRemotePlayer.team_position,
+                                    'espn',
+                                );
+
+                                if (!foundPlayer) {
+                                    notFoundPlayers.push(remotePlayer);
+                                    // throw new HttpErrors.BadRequest(
+                                    //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                    // );
+                                } else {
+                                    const rosterData = new Roster();
+                                    // rosterData.teamId = createdTeam.id;
+                                    rosterData.playerId = foundPlayer.id;
+                                    rosterData.displayPosition = normalisedRemotePlayer.team_position;
+                                    newTeam.roster.push(rosterData);
+                                    // await this.rosterRepository.create(rosterData, { transaction });
+                                }
+                            }
+
+                            return false;
+                        }),
                     );
 
-                    if (foundLocalTeam) {
-                        foundLocalTeam.name = `${team.location} ${team.nickname}`;
-                        foundLocalTeam.remoteId = `${leagueId}-${team.id}`;
-                        foundLocalTeam.logoUrl = team.logo;
-                        foundLocalTeam.wordMarkUrl = team.abbrev;
-                        // foundLocalTeam.leagueId = Number(localLeagueId);
-                        await this.teamRepository.save(foundLocalTeam);
+                    newTeams.push(newTeam);
+                }
 
-                        await this.rosterRepository.deleteAll({
-                            teamId: foundLocalTeam.id,
-                        });
+                return false;
+            }),
+        );
 
-                        const roster = team?.roster ? team.roster.entries : [];
+        const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
 
-                        const sortedRoster = roster.sort((a: any, b: any) => {
-                            return a.lineupSlotId - b.lineupSlotId;
-                        });
+        try {
+            await Promise.all(
+                teamObjects.map(async (team: any) => {
+                    await this.teamRepository.save(team, { transaction });
 
-                        await Promise.all(
-                            sortedRoster.map(async (remotePlayer: any) => {
-                                if (remotePlayer.lineupSlotId !== 20) {
-                                    const normalisedRemotePlayer = {
-                                        name: {
-                                            first: remotePlayer?.playerPoolEntry?.player.firstName,
-                                            last: remotePlayer?.playerPoolEntry?.player.lastName,
-                                        },
-                                        player_id: remotePlayer?.playerPoolEntry?.player.id,
-                                        display_position:
-                                            ESPN_POSITION_MAPPING[
-                                                remotePlayer?.playerPoolEntry?.player.defaultPositionId
-                                            ],
-                                        team_position: ESPN_LINEUP_SLOT_MAPPING[remotePlayer?.lineupSlotId],
-                                    };
+                    await this.rosterRepository.deleteAll(
+                        {
+                            teamId: team.id,
+                        },
+                        { transaction },
+                    );
+                }),
+            );
 
-                                    const foundPlayer = await this.findPlayer(
-                                        normalisedRemotePlayer,
-                                        localPlayers,
-                                        normalisedRemotePlayer.team_position,
-                                        'espn',
-                                    );
+            await Promise.all(
+                rosterObjects.map(async (rosterEntry: any) => {
+                    await this.rosterRepository.create(rosterEntry, { transaction });
+                }),
+            );
 
-                                    if (!foundPlayer) {
-                                        notFoundPlayers.push(remotePlayer);
-                                        const user = await this.userRepository.findById(userId);
-                                        // await this.userService.sendEmail(
-                                        //     user,
-                                        //     EMAIL_TEMPLATES.LEAGUE_PLAYER_NOT_FOUND,
-                                        //     {
-                                        //         user: user,
-                                        //         text: {
-                                        //             title: `Player Not Found.`,
-                                        //             subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
-                                        //         },
-                                        //     },
-                                        //     process.env.ADMIN_EMAIL,
-                                        // );
-                                        // throw new HttpErrors.BadRequest(
-                                        //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
-                                        // );
-                                    } else {
-                                        const rosterData = new Roster();
-                                        rosterData.teamId = foundLocalTeam.id;
-                                        rosterData.playerId = foundPlayer.id;
-                                        rosterData.displayPosition = normalisedRemotePlayer.team_position;
-                                        await this.rosterRepository.create(rosterData, { transaction });
-                                    }
-                                }
-                            }),
-                        );
-                    } else {
-                        const teamData = new Team();
-
-                        teamData.name = `${team.location} ${team.nickname}`;
-                        teamData.remoteId = `${leagueId}-${team.id}`;
-                        teamData.logoUrl = team.logo;
-                        teamData.wordMarkUrl = team.abbrev;
-                        const createdTeam = await this.teamRepository.create(teamData, { transaction });
-
-                        const roster = team?.roster ? team.roster.entries : [];
-
-                        const sortedRoster = roster.sort((a: any, b: any) => {
-                            return a.lineupSlotId - b.lineupSlotId;
-                        });
-
-                        await Promise.all(
-                            sortedRoster.map(async (remotePlayer: any) => {
-                                if (remotePlayer.lineupSlotId !== 20) {
-                                    const normalisedRemotePlayer = {
-                                        name: {
-                                            first: remotePlayer?.playerPoolEntry?.player.firstName,
-                                            last: remotePlayer?.playerPoolEntry?.player.lastName,
-                                        },
-                                        player_id: remotePlayer?.playerPoolEntry?.player.id,
-                                        display_position:
-                                            ESPN_POSITION_MAPPING[
-                                                remotePlayer?.playerPoolEntry?.player.defaultPositionId
-                                            ],
-                                        team_position: ESPN_LINEUP_SLOT_MAPPING[remotePlayer?.lineupSlotId],
-                                    };
-
-                                    const foundPlayer = await this.findPlayer(
-                                        normalisedRemotePlayer,
-                                        localPlayers,
-                                        normalisedRemotePlayer.team_position,
-                                        'espn',
-                                    );
-
-                                    if (!foundPlayer) {
-                                        notFoundPlayers.push(remotePlayer);
-                                        const user = await this.userRepository.findById(userId);
-                                        // await this.userService.sendEmail(
-                                        //     user,
-                                        //     EMAIL_TEMPLATES.LEAGUE_PLAYER_NOT_FOUND,
-                                        //     {
-                                        //         user: user,
-                                        //         text: {
-                                        //             title: `Player Not Found.`,
-                                        //             subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
-                                        //         },
-                                        //     },
-                                        //     process.env.ADMIN_EMAIL,
-                                        // );
-                                        // throw new HttpErrors.BadRequest(
-                                        //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
-                                        // );
-                                    } else {
-                                        const rosterData = new Roster();
-                                        rosterData.teamId = createdTeam.id;
-                                        rosterData.playerId = foundPlayer.id;
-                                        rosterData.displayPosition = normalisedRemotePlayer.team_position;
-                                        await this.rosterRepository.create(rosterData, { transaction });
-                                    }
-                                }
-
-                                return false;
-                            }),
-                        );
-                    }
-
-                    return false;
+            await Promise.all(
+                newTeams.map(async (newTeam: any) => {
+                    const createdTeam = await this.teamRepository.create(newTeam.team, { transaction });
+                    await Promise.all(
+                        newTeam.roster.map(async (rosterEntry: any) => {
+                            rosterEntry.teamId = createdTeam.id;
+                            await this.rosterRepository.create(rosterEntry, { transaction });
+                        }),
+                    );
                 }),
             );
 

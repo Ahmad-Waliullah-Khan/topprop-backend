@@ -4,6 +4,7 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import moment from 'moment';
 
 const logger = require('../utils/logger');
 
@@ -16,6 +17,7 @@ export class YahooSyncLeaguesCron extends CronJob {
             start: true,
             onTick: async () => {
                 try {
+                    logger.info(`Yahoo cron started at ` + moment().format('DD-MM-YYYY hh:mm:ss a'));
                     await this.cronService.syncYahooLeagues();
                     this.cronService.cronLogger(CRON_JOBS.YAHOO_SYNC_LEAGUES_CRON);
 
