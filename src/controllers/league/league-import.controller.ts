@@ -28,9 +28,8 @@ import {FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR} from '@src/utils/valida
 import {isEmpty} from 'lodash';
 import Schema from 'validate';
 import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '../../utils/constants/league.constants';
-const { Client } = require('espn-fantasy-football-api/node-dev');
+import logger from '../../utils/logger';
 const YahooFantasy = require('yahoo-fantasy');
-const logger = require('../../utils/logger');
 
 export class LeagueImportController {
     constructor(

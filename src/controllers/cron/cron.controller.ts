@@ -8,7 +8,7 @@ import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {ICommonHttpResponse} from '@src/utils/interfaces';
 import {CRON_MESSAGES} from '@src/utils/messages';
 import chalk from 'chalk';
-const logger = require('../../utils/logger');
+import logger from '../../utils/logger';
 
 // import {inject} from '@loopback/core';
 
@@ -168,5 +168,5 @@ export class CronController {
 
         return { data: 'Win Check' };
     }
-} 
+}
 

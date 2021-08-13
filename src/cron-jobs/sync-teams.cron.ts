@@ -5,7 +5,7 @@ import {TeamRepository} from '@src/repositories';
 import {SportsDataService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
-const logger = require('../utils/logger');
+import logger from '../utils/logger';
 
 @cronJob()
 export class SyncTeamsCron extends CronJob {

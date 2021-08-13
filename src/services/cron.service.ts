@@ -35,9 +35,9 @@ import {
     TIMEFRAMES
 } from '../utils/constants';
 import {DST_IDS} from '../utils/constants/dst.constants';
+import logger from '../utils/logger';
+import sleep from '../utils/sleep';
 
-const logger = require('../utils/logger');
-const sleep = require('../utils/sleep');
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {

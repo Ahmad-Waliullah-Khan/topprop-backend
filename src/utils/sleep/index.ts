@@ -4,4 +4,4 @@ const sleep = async function sleepHelper(delay: number) {
  });
 }
 
-module.exports = sleep;
+export default sleep;

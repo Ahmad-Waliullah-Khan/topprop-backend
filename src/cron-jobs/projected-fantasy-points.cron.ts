@@ -4,8 +4,8 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import logger from '../utils/logger';
 
-const logger = require('../utils/logger');
 
 @cronJob()
 export class ProjectedFantasyPointsCron extends CronJob {

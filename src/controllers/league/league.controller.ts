@@ -51,7 +51,6 @@ import {find, isEmpty} from 'lodash';
 import moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 import Schema from 'validate';
-const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueController {
     constructor(
@@ -1300,6 +1299,7 @@ export class LeagueController {
         const creatorTeam = await this.teamRepository.findById(leagueContestData.creatorTeamId);
         const claimerTeam = await this.teamRepository.findById(leagueContestData.claimerTeamId);
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
+        const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
         const league = await this.leagueRepository.findById(leagueContestData.leagueId);
         this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
             user,
@@ -1320,8 +1320,8 @@ export class LeagueController {
             leagueContestData,
             moment: moment,
             text: {
-                title: `TopProp - Your contest in ${league.name} has been claimed`,
-                subtitle: `Contest claimed by ${user.fullName} on ${moment(leagueContestData.updatedAt).format(
+                title: `Your contest in ${league.name} has been claimed`,
+                subtitle: `Contest claimed by ${claimerUser.fullName} on ${moment(leagueContestData.updatedAt).format(
                     'dddd, MMMM Do YYYY, h:mm:ss a',
                 )}`,
             },
