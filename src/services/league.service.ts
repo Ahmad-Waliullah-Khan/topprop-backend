@@ -14,8 +14,11 @@ import {
 import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '@src/utils/constants/league.constants';
 import { MiscHelpers } from '@src/utils/helpers';
 import axios from 'axios';
+import chalk from 'chalk';
+import moment from 'moment';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
+const logger = require('../utils/logger');
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class LeagueService {
@@ -248,38 +251,39 @@ export class LeagueService {
 
         const leagueId = localLeague ? localLeague.remoteId : 0;
 
-        const refreshedYahooTokens = await this.refreshYahooAccessTokens(userData.yahooRefreshToken);
+        let teamObjects: any[] = [];
+        let rosterObjects: any[] = [];
+        let newTeams: any[] = [];
+        let league;
 
-        const { access_token, refresh_token } = refreshedYahooTokens;
-        userData.yahooAccessToken = access_token ? access_token : userData.yahooAccessToken;
-        userData.yahooRefreshToken = refresh_token ? refresh_token : userData.yahooRefreshToken;
+        try {
+            const refreshedYahooTokens = await this.refreshYahooAccessTokens(userData.yahooRefreshToken);
 
-        const yf = new YahooFantasy(
-            process.env.YAHOO_APPLICATION_KEY,
-            process.env.YAHOO_SECRET_KEY,
-            ({ access_token, refresh_token }: { access_token: string; refresh_token: string }) => {
-                return new Promise<void>((resolve, reject) => {
-                    const newAccessToken = access_token;
-                    const newRefreshToken = refresh_token;
-                    userData.yahooAccessToken = newAccessToken ? newAccessToken : userData.yahooAccessToken;
-                    userData.yahooRefreshToken = newRefreshToken ? newRefreshToken : userData.yahooRefreshToken;
-                    this.userRepository.save(userData).then(() => {
-                        return resolve();
+            const { access_token, refresh_token } = refreshedYahooTokens;
+            userData.yahooAccessToken = access_token ? access_token : userData.yahooAccessToken;
+            userData.yahooRefreshToken = refresh_token ? refresh_token : userData.yahooRefreshToken;
+
+            const yf = new YahooFantasy(
+                process.env.YAHOO_APPLICATION_KEY,
+                process.env.YAHOO_SECRET_KEY,
+                ({ access_token, refresh_token }: { access_token: string; refresh_token: string }) => {
+                    return new Promise<void>((resolve, reject) => {
+                        const newAccessToken = access_token;
+                        const newRefreshToken = refresh_token;
+                        userData.yahooAccessToken = newAccessToken ? newAccessToken : userData.yahooAccessToken;
+                        userData.yahooRefreshToken = newRefreshToken ? newRefreshToken : userData.yahooRefreshToken;
+                        this.userRepository.save(userData).then(() => {
+                            return resolve();
+                        });
                     });
-                });
-            },
-        );
-        yf.setUserToken(userData.yahooAccessToken);
-        yf.setRefreshToken(userData.yahooRefreshToken);
+                },
+            );
+            yf.setUserToken(userData.yahooAccessToken);
+            yf.setRefreshToken(userData.yahooRefreshToken);
 
-        const notFoundPlayers: any[] = [];
+            const notFoundPlayers: any[] = [];
 
-        const teamObjects: any[] = [];
-        const rosterObjects: any[] = [];
-
-        const newTeams: any[] = [];
-
-        const localPlayers = await this.playerRepo.find();
+            const localPlayers = await this.playerRepo.find();
             const localTeams = await this.teamRepository.find({
                 where: {
                     leagueId: localLeagueId,
@@ -390,11 +394,25 @@ export class LeagueService {
                 }),
             );
 
+            league = await yf.league.meta(leagueId);
+        } catch (error) {
+            logger.error(
+                chalk.redBright(
+                    `Error on yahoo league sync for leagueID ${leagueId} at ${moment().format(
+                        'DD-MM-YYYY hh:mm:ss a',
+                    )} `,
+                    error,
+                ),
+            );
+            const leagueData = new League();
+            leagueData.syncStatus = 'failed';
+            const updatedLeague = await this.leagueRepository.updateById(Number(localLeague.id), leagueData);
+        }
+
         // @ts-ignore
         const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
 
         try {
-            
             await Promise.all(
                 teamObjects.map(async (team: any) => {
                     await this.teamRepository.save(team, { transaction });
@@ -426,10 +444,9 @@ export class LeagueService {
                 }),
             );
 
-            const league = await yf.league.meta(leagueId);
             const leagueData = new League();
 
-            leagueData.name = league.name;
+            leagueData.name = league?.name;
             leagueData.syncStatus = 'success';
             leagueData.lastSyncTime = new Date();
             leagueData.userId = userId;
@@ -460,19 +477,38 @@ export class LeagueService {
 
         const { espns2, espnswid } = userData;
 
-        const league = await this.fetchESPNLeague(espns2 || '', espnswid || '', leagueId || '');
+        let league;
+        let teamsInfo;
+        let teamIds;
+        let leaguePromise;
 
-        const teamsInfo = await this.fetchESPNLeagueTeams(espns2 || '', espnswid || '', leagueId || '');
+        try {
+            league = await this.fetchESPNLeague(espns2 || '', espnswid || '', leagueId || '');
 
-        const teamIds = teamsInfo.map((team: any) => team.id);
+            teamsInfo = await this.fetchESPNLeagueTeams(espns2 || '', espnswid || '', leagueId || '');
 
-        const leaguePromise = await this.fetchESPNLeagueTeamsByIds(
-            espns2 || '',
-            espnswid || '',
-            teamIds,
-            league.seasonId,
-            leagueId || '',
-        );
+            teamIds = teamsInfo.map((team: any) => team.id);
+
+            leaguePromise = await this.fetchESPNLeagueTeamsByIds(
+                espns2 || '',
+                espnswid || '',
+                teamIds,
+                league.seasonId,
+                leagueId || '',
+            );
+        } catch (error) {
+            logger.error(
+                chalk.redBright(
+                    `Error on espn league sync for leagueID ${leagueId} at ${moment().format(
+                        'DD-MM-YYYY hh:mm:ss a',
+                    )} `,
+                    error,
+                ),
+            );
+            const leagueData = new League();
+            leagueData.syncStatus = 'failed';
+            const updatedLeague = await this.leagueRepository.updateById(Number(localLeague.id), leagueData);
+        }
 
         const leagueInfo = leaguePromise.data;
 
@@ -681,6 +717,8 @@ export class LeagueService {
 
         return true;
     }
+
+    async invalidateLeagueSync(leagueId: number) {}
 
     async fetchLeagueInclude() {
         return {

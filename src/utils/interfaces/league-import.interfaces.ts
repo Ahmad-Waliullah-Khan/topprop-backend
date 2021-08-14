@@ -21,3 +21,13 @@ export interface ILeagueImportRequestYahoo extends League {
     refreshToken: string;
     scoringTypeId: number;
 }
+
+export interface ILeagueSyncRequestEspn extends League {
+    espnS2: string;
+    swid: string;
+    leagueId: number;
+}
+export interface ILeagueSyncRequestYahoo extends League {
+    leagueId: number;
+    code: string;
+}

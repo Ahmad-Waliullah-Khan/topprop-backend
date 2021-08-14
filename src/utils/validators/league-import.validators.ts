@@ -50,6 +50,14 @@ export const FETCH_LEAGUE_VALIDATOR = {
 };
 
 export const IMPORT_LEAGUE_VALIDATOR = {
+    code: {
+        required: true,
+        type: String,
+        message: {
+            required: 'Code is required.',
+            type: 'Code must be string.',
+        },
+    },
     leagueId: {
         required: true,
         type: Number,
