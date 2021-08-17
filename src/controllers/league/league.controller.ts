@@ -25,9 +25,7 @@ import {
     CONTEST_STATUSES,
     CONTEST_TYPES,
     EMAIL_TEMPLATES,
-    PERMISSIONS,
-    SPREAD_TYPE,
-    SCORING_TYPE
+    PERMISSIONS, SCORING_TYPE, SPREAD_TYPE
 } from '@src/utils/constants';
 import {ErrorHandler} from '@src/utils/helpers';
 import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
@@ -239,7 +237,15 @@ export class LeagueController {
                     });
 
                     if (foundMember) {
+                        await this.teamRepository.updateAll({
+                            userId: undefined,
+                            updatedAt: moment().toDate().toString(),
+                        }, {userId: foundMember.userId});
                         if (invitee.teamId) {
+                            await this.teamRepository.updateAll({
+                                userId: undefined,
+                                updatedAt: moment().toDate().toString(),
+                            }, {userId: foundMember.userId});
                             await this.teamRepository.updateById(invitee.teamId, {
                                 userId: foundMember.userId,
                                 updatedAt: moment().toDate().toString(),
