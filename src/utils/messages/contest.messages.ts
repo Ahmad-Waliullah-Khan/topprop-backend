@@ -4,4 +4,5 @@ export const CONTEST_MESSAGES = {
     CLAIM_SUCCESS: `Contest claimed Successfully.`,
     CONTEST_ALREADY_MATCHED: `Contest already matched.`,
     INSUFFICIENT_BALANCE: `Insufficient Balance in Wallet.`,
+    BALANCE_INSUFFICIENT: `Wallet Balance is Insufficient for this action.`,
 };

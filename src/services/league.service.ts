@@ -259,7 +259,7 @@ export class LeagueService {
         try {
             const refreshedYahooTokens = await this.refreshYahooAccessTokens(userData.yahooRefreshToken);
 
-            const { access_token, refresh_token } = refreshedYahooTokens;
+            const { access_token, refresh_token } = refreshedYahooTokens.data;
             userData.yahooAccessToken = access_token ? access_token : userData.yahooAccessToken;
             userData.yahooRefreshToken = refresh_token ? refresh_token : userData.yahooRefreshToken;
 
@@ -278,8 +278,8 @@ export class LeagueService {
                     });
                 },
             );
-            yf.setUserToken(userData.yahooAccessToken);
-            yf.setRefreshToken(userData.yahooRefreshToken);
+            yf.setUserToken(access_token);
+            yf.setRefreshToken(refresh_token);
 
             const notFoundPlayers: any[] = [];
 
@@ -396,12 +396,13 @@ export class LeagueService {
 
             league = await yf.league.meta(leagueId);
         } catch (error) {
+            console.log('🚀 ~ file: league.service.ts ~ line 404 ~ LeagueService ~ resyncYahoo ~ error', error);
             logger.error(
                 chalk.redBright(
                     `Error on yahoo league sync for leagueID ${leagueId} at ${moment().format(
                         'DD-MM-YYYY hh:mm:ss a',
                     )} `,
-                    error,
+                    error.message,
                 ),
             );
             const leagueData = new League();
@@ -446,7 +447,7 @@ export class LeagueService {
 
             const leagueData = new League();
 
-            leagueData.name = league?.name;
+            leagueData.name = league.name;
             leagueData.syncStatus = 'success';
             leagueData.lastSyncTime = new Date();
             leagueData.userId = userId;
@@ -458,7 +459,7 @@ export class LeagueService {
             // await transaction.rollback();
             await transaction.commit();
         } catch (error) {
-            console.log('resyncYahoo: Ln 376 league.service.ts ~ error', error);
+            console.log('resyncYahoo: Ln 462 league.service.ts ~ error', error);
             await transaction.rollback();
             return false;
         }
