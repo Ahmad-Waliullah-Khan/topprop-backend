@@ -7,7 +7,9 @@ import {SecurityBindings, securityId} from '@loopback/security';
 import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
 import {
     BetRepository,
-    ContestRosterRepository, ContestTeamRepository, ImportSourceRepository,
+    ContestRosterRepository,
+    ContestTeamRepository,
+    ImportSourceRepository,
     InviteRepository,
     LeagueContestRepository,
     LeagueRepository,
@@ -41,16 +43,13 @@ import {
     ILeagueResync
 } from '@src/utils/interfaces';
 import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
-import {
-    INVITE_VALIDATOR,
-    LEAGUE_CONTEST_CLAIM_VALIDATOR,
-    LEAGUE_CONTEST_VALIDATOR
-} from '@src/utils/validators';
+import {INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
 import {find, isEmpty} from 'lodash';
 import moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 import Schema from 'validate';
 const YahooFantasy = require('yahoo-fantasy');
+const logger = require('../../utils/logger');
 
 export class LeagueController {
     constructor(
@@ -652,7 +651,7 @@ export class LeagueController {
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
-            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.BALANCE_INSUFFICIENT);
 
             const winBonusFlag = false;
 
@@ -1395,7 +1394,6 @@ export class LeagueController {
                 )}`,
             },
         });
-
 
         return {
             message: CONTEST_MESSAGES.CLAIM_SUCCESS,

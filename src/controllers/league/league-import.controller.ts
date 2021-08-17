@@ -697,9 +697,9 @@ export class LeagueImportController {
         if (userId !== league.userId) throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.NOT_LEAGUE_ADMIN);
 
         try {
-            const tokenResponse = await this.leagueService.fetchYahooTokens(body.code);
+            const tokenResponse = await this.leagueService.fetchYahooTokens(code);
             const { access_token, refresh_token } = tokenResponse.data;
-
+            
             if (userData) {
                 userData.yahooRefreshToken = refresh_token || null;
                 userData.yahooAccessToken = access_token || null;
