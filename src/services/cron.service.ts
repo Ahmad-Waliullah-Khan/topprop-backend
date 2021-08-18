@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,9 +11,9 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
@@ -947,7 +947,7 @@ export class CronService {
                                 playerFantasyPoints: rosterPlayerFantasyPoints,
                             };
 
-                            return await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+                            return this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
                         }
                     }),
                 );
@@ -978,7 +978,7 @@ export class CronService {
                             playerFantasyPoints: rosterPlayerFantasyPoints,
                         };
 
-                        return await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+                        return this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
                     }
                 });
 
@@ -1441,6 +1441,7 @@ export class CronService {
             const claimerUser = '';
             const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
             const receiverUser = creatorUser;
+            const user = creatorUser;
             await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                 contestData,
                 creatorUser,
@@ -1448,6 +1449,7 @@ export class CronService {
                 creatorTeam,
                 claimerTeam,
                 receiverUser,
+                user,
                 text: {
                     title: 'League Contest Closed',
                     subtitle: `Your league contest has been closed`,
@@ -1740,6 +1742,7 @@ export class CronService {
                 const claimerUser = '';
                 const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
                 const receiverUser = creatorUser;
+                const user = creatorUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
@@ -1747,6 +1750,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    user,
                     text: {
                         title: 'League Contest Closed',
                         subtitle: `Your league contest has been closed`,
@@ -1789,6 +1793,7 @@ export class CronService {
                 const claimerUser = await this.userRepository.findById(unclaimedContest.claimerId);
                 const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
                 let receiverUser = creatorUser;
+                let user = creatorUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
@@ -1796,6 +1801,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    user,
                     text: {
                         title: 'League Contest Closed',
                         subtitle: `Your league contest has been closed`,
@@ -1803,6 +1809,7 @@ export class CronService {
                 });
 
                 receiverUser = claimerUser;
+                user = claimerUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
@@ -1810,6 +1817,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    user,
                     text: {
                         title: 'League Contest Closed',
                         subtitle: `Your league contest has been closed`,
