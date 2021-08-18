@@ -1364,32 +1364,36 @@ export class LeagueController {
         const myContests = await this.leagueContestRepository.find(myContestFilter);
         const contests = await this.leagueContestRepository.find(contestFilter);
 
-        const user = await this.userRepository.findById(userId);
+        let user = await this.userRepository.findById(userId);
         const creatorTeam = await this.teamRepository.findById(leagueContestData.creatorTeamId);
         const claimerTeam = await this.teamRepository.findById(leagueContestData.claimerTeamId);
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
+        const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
         const league = await this.leagueRepository.findById(leagueContestData.leagueId);
         this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
             user,
             creatorUser,
             creatorTeam,
             claimerTeam,
+            claimerUser,
             leagueContestData,
             text: {
                 title: `You have claimed a contest in ${league.name}`,
                 subtitle: 'Contest details are listed below',
             },
         });
+        user = creatorUser;
         this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
+            user,
             claimerTeam,
             creatorTeam,
-            user,
+            claimerUser,
             leagueContestData,
             moment: moment,
             text: {
                 title: `TopProp - Your contest in ${league.name} has been claimed`,
-                subtitle: `Contest claimed by ${user.fullName} on ${moment(leagueContestData.updatedAt).format(
+                subtitle: `Contest claimed by ${claimerUser.fullName} on ${moment(leagueContestData.updatedAt).format(
                     'dddd, MMMM Do YYYY, h:mm:ss a',
                 )}`,
             },
