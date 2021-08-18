@@ -57,6 +57,8 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         };
         this.bind(RestBindings.REQUEST_BODY_PARSER_OPTIONS).to(requestBodyParserOptions);
 
+        
+
         //Binding DB credentials
         !isEqual(process.env.NODE_ENV, 'test') && ApplicationHelpers.bindDbSourceCredential(this);
 
@@ -104,6 +106,8 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         this.component(AuthenticationComponent);
         this.component(AuthorizationComponent);
+
+        this.bind(RestBindings.ERROR_WRITER_OPTIONS).to({ debug: false, safeFields: ['errorCode'] });
 
         // Customize @loopback/rest-explorer configuration here
         // this.configure(RestExplorerBindings.COMPONENT).to({
