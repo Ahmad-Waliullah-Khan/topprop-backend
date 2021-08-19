@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,15 +11,15 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {SportsDataService, UserService} from '@src/services';
+import { SportsDataService, UserService } from '@src/services';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import util from 'util';
-import {LeagueService} from '../services/league.service';
+import { LeagueService } from '../services/league.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -32,9 +32,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES
+    TIMEFRAMES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 
 const logger = require('../utils/logger');
 const sleep = require('../utils/sleep');
@@ -111,12 +111,12 @@ export class CronService {
             case CRON_JOBS.PLAYERS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute every wednesday
-                        cronTiming = '0 0 * * * 3';
+                        // 0th second of 0th minute at 10am every tuesday
+                        cronTiming = '0 0 10 * * 2';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 0th minute every wednesday
-                        cronTiming = '0 0 * * * 3';
+                        // 0th second of 0th minute at 10am every tuesday
+                        cronTiming = '0 0 10 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute of every hour of every day
@@ -127,12 +127,12 @@ export class CronService {
             case CRON_JOBS.SPECIAL_TEAMS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute every wednesday
-                        cronTiming = '0 0 * * * 3';
+                        // 0th second of 0th minute at 10am every tuesday
+                        cronTiming = '0 0 10 * * 2';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 0th minute every wednesday
-                        cronTiming = '0 0 * * * 3';
+                        // 0th second of 0th minute at 10am every tuesday
+                        cronTiming = '0 0 10 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute of every hour of every day
@@ -148,7 +148,7 @@ export class CronService {
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of 15th minute every wednesday
-                        cronTiming = '0 0 3 * * 2';
+                        cronTiming = '0 0 3 * * 3';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 5th minute from 0th minute to 40th minute
@@ -207,12 +207,12 @@ export class CronService {
             case CRON_JOBS.CLOSE_CONTEST_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 2am every tuesday
-                        cronTiming = '0 0 2 * * 2';
+                        // 9am every tuesday
+                        cronTiming = '0 0 9 * * 2';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 2am every tuesday
-                        cronTiming = '0 0 2 * * 2';
+                        // 9am every tuesday
+                        cronTiming = '0 0 9 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute of 0th hour of every day
@@ -361,9 +361,13 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
         const localPlayers = await this.playerRepository.find();
+        const ruledOutPlayer: number[] = [];
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
+                if (remotePlayer.ProjectedFantasyPoints === 0 && foundLocalPlayer.projectedFantasyPoints > 0) {
+                    ruledOutPlayer.push(foundLocalPlayer.id);
+                }
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         foundLocalPlayer.opponentName = remotePlayer.Opponent;
@@ -390,6 +394,9 @@ export class CronService {
                 }
             }
         });
+        if (ruledOutPlayer.length > 0) {
+            await this.leagueVoidContests(ruledOutPlayer);
+        }
 
         return playerPromises;
     }
@@ -1234,7 +1241,6 @@ export class CronService {
                         },
                     });
 
-
                     this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
@@ -1260,7 +1266,6 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
-
                     this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
@@ -1281,7 +1286,6 @@ export class CronService {
                             ).format(underdog.netEarnings)}`,
                         },
                     });
-
 
                     this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
@@ -1459,6 +1463,688 @@ export class CronService {
 
         return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : filteredContests;
     }
+
+    async leagueCoercedWinCheck(contestIds: number[]) {
+        logger.debug('League contest graded because players have isOver false', contestIds.toString());
+        const favorite = {
+            type: CONTEST_STAKEHOLDERS.PENDING,
+            gameWin: false,
+            coversSpread: false,
+            winBonus: false,
+            netEarnings: 0,
+            teamWinBonus: 0,
+            teamMaxWin: 0,
+            teamCover: 0,
+            teamSpread: 0,
+            teamId: 0,
+            userId: 0,
+            fantasyPoints: 0,
+            projectedFantasyPoints: 0,
+        };
+
+        const underdog = {
+            type: CONTEST_STAKEHOLDERS.PENDING,
+            gameWin: false,
+            coversSpread: false,
+            winBonus: false,
+            netEarnings: 0,
+            teamWinBonus: 0,
+            teamMaxWin: 0,
+            teamCover: 0,
+            teamSpread: 0,
+            teamId: 0,
+            userId: 0,
+            fantasyPoints: 0,
+            projectedFantasyPoints: 0,
+        };
+
+        const includes = await this.leagueService.fetchLeagueContestInclude();
+
+        const contests = await this.leagueContestRepository.find({
+            where: {
+                id: { inq: contestIds },
+            },
+            include: includes.include,
+        });
+
+        let creatorTeamFantasyPoints = 0;
+        let claimerTeamFantasyPoints = 0;
+
+        const filteredContests = await Promise.all(
+            contests.filter(async contest => {
+                const { creatorContestTeam, claimerContestTeam, league } = contest;
+                const creatorRoster = creatorContestTeam?.contestRosters || [];
+                const claimerRoster = claimerContestTeam?.contestRosters || [];
+                let validContest = true;
+                const scoringCreatorRoster = await Promise.all(
+                    creatorRoster.map(async rosterEntry => {
+                        //@ts-ignore
+                        const currentPlayer = rosterEntry?.player;
+                        let rosterPlayerFantasyPoints = 0;
+                        switch (league.scoringTypeId) {
+                            case SCORING_TYPE.HALFPPR:
+                                creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                break;
+                            case SCORING_TYPE.FULLPPR:
+                                creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                break;
+                            case SCORING_TYPE.NOPPR:
+                                // Standard PPR
+                                creatorTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                                break;
+                        }
+
+                        const contestRosterData = {
+                            playerFantasyPoints: rosterPlayerFantasyPoints ? rosterPlayerFantasyPoints : 0,
+                        };
+
+                        return this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+                    }),
+                );
+                claimerRoster?.map(async rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    if (currentPlayer.isOver === false) {
+                        validContest = false;
+                    } else {
+                        let rosterPlayerFantasyPoints = 0;
+                        switch (league.scoringTypeId) {
+                            case SCORING_TYPE.HALFPPR:
+                                claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                                break;
+                            case SCORING_TYPE.FULLPPR:
+                                claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                break;
+                            case SCORING_TYPE.NOPPR:
+                                // Standard PPR
+                                claimerTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
+                                rosterPlayerFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                                break;
+                        }
+
+                        const contestRosterData = {
+                            playerFantasyPoints: rosterPlayerFantasyPoints,
+                        };
+
+                        return this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+                    }
+                });
+
+                return validContest;
+            }),
+        );
+
+        filteredContests.map(async contest => {
+            const entryAmount = Number(contest.entryAmount);
+            const mlValue = Number(contest.mlValue);
+            const spreadValue = Number(contest.spreadValue);
+            let topPropProfit = 0;
+            let winner = '';
+
+            if (contest.creatorTeamSpread < contest.claimerTeamSpread) {
+                favorite.type = CONTEST_STAKEHOLDERS.CREATOR;
+                favorite.teamWinBonus = contest.creatorTeamWinBonus;
+                favorite.teamMaxWin = contest.creatorTeamMaxWin;
+                favorite.teamCover = contest.creatorTeamCover;
+                favorite.teamSpread = contest.creatorTeamSpread;
+                favorite.userId = contest.creatorId;
+                favorite.teamId = contest.creatorTeamId;
+                favorite.fantasyPoints = creatorTeamFantasyPoints;
+                favorite.projectedFantasyPoints = contest.creatorTeamProjFantasyPoints || 0;
+
+                underdog.type = CONTEST_STAKEHOLDERS.CLAIMER;
+                underdog.teamWinBonus = contest.claimerTeamWinBonus;
+                underdog.teamMaxWin = contest.claimerTeamMaxWin;
+                underdog.teamCover = contest.claimerTeamCover;
+                underdog.teamSpread = contest.claimerTeamSpread;
+                underdog.userId = contest.claimerId;
+                underdog.teamId = contest.claimerTeamId;
+                underdog.fantasyPoints = claimerTeamFantasyPoints;
+                underdog.projectedFantasyPoints = contest.claimerTeamProjFantasyPoints || 0;
+            } else {
+                underdog.type = CONTEST_STAKEHOLDERS.CREATOR;
+                underdog.teamWinBonus = contest.creatorTeamWinBonus;
+                underdog.teamMaxWin = contest.creatorTeamMaxWin;
+                underdog.teamCover = contest.creatorTeamCover;
+                underdog.teamSpread = contest.creatorTeamSpread;
+                underdog.userId = contest.creatorId;
+                underdog.teamId = contest.creatorTeamId;
+                underdog.fantasyPoints = creatorTeamFantasyPoints;
+                underdog.projectedFantasyPoints = contest.creatorTeamProjFantasyPoints || 0;
+
+                favorite.type = CONTEST_STAKEHOLDERS.CLAIMER;
+                favorite.teamWinBonus = contest.claimerTeamWinBonus;
+                favorite.teamMaxWin = contest.claimerTeamMaxWin;
+                favorite.teamCover = contest.claimerTeamCover;
+                favorite.teamSpread = contest.claimerTeamSpread;
+                favorite.userId = contest.claimerId;
+                favorite.teamId = contest.claimerTeamId;
+                favorite.fantasyPoints = claimerTeamFantasyPoints;
+                favorite.projectedFantasyPoints = contest.claimerTeamProjFantasyPoints || 0;
+            }
+
+            // TEST BENCH START
+            // favorite.fantasyPoints = 6;
+            // underdog.fantasyPoints = 2;
+            // TEST BENCH END
+
+            favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
+            underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
+
+            favorite.coversSpread = favorite.fantasyPoints - underdog.teamSpread > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + underdog.teamSpread > favorite.fantasyPoints;
+
+            favorite.winBonus = false;
+            underdog.winBonus = false;
+
+            if (favorite.gameWin && favorite.coversSpread) {
+                // Row 1 & 2 of wiki combination table
+                favorite.netEarnings = favorite.teamMaxWin;
+                underdog.netEarnings = -entryAmount;
+                topPropProfit = entryAmount - favorite.teamMaxWin;
+                winner = 'favorite';
+            }
+
+            if (underdog.gameWin && underdog.coversSpread) {
+                // Row 3 & 4 of wiki combination table
+                favorite.netEarnings = -entryAmount;
+                underdog.netEarnings = underdog.teamMaxWin;
+                topPropProfit = entryAmount - underdog.teamMaxWin;
+                winner = 'underdog';
+            }
+
+            if (favorite.gameWin && !favorite.coversSpread) {
+                // Row 5 & 6 of wiki combination table
+                favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
+                underdog.netEarnings = favorite.teamCover - mlValue;
+                topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+                winner = 'underdog';
+            }
+
+            if (!favorite.coversSpread && !underdog.coversSpread) {
+                // Draw
+                favorite.netEarnings = entryAmount;
+                underdog.netEarnings = entryAmount;
+                topPropProfit = 0;
+                winner = 'push';
+            }
+
+            if (!favorite.gameWin && !underdog.gameWin) {
+                // Draw
+                favorite.netEarnings = entryAmount;
+                underdog.netEarnings = entryAmount;
+                topPropProfit = 0;
+                winner = 'push';
+            }
+
+            if (winner === 'push') {
+                const constestData = {
+                    topPropProfit: topPropProfit,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+
+                await this.leagueContestRepository.updateById(contest.id, constestData);
+
+                const entryGain = new Gain();
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = favorite.userId;
+                entryGain.contenderId = underdog.teamId;
+                entryGain.contestId = contest.id;
+
+                // console.log('🚀 ~ refund data for favorite', entryGain);
+
+                await this.gainRepository.create(entryGain);
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = underdog.userId;
+                entryGain.contenderId = favorite.teamId;
+                entryGain.contestId = contest.id;
+
+                // console.log('🚀 ~ refund data for underdog', entryGain);
+
+                await this.gainRepository.create(entryGain);
+
+                //Send Contest Closed mail
+                const contestData = await this.leagueContestRepository.findById(contest.id);
+                const creatorUser = await this.userRepository.findById(favorite.userId);
+                const creatorTeam = await this.teamRepository.findById(favorite.teamId);
+                const claimerUser = await this.userRepository.findById(underdog.userId);
+                const claimerTeam = await this.teamRepository.findById(underdog.teamId);
+                let receiverUser = creatorUser;
+
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your contest has been closed`,
+                    },
+                });
+                receiverUser = claimerUser;
+
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your contest has been closed`,
+                    },
+                });
+            } else {
+                const winnerId = winner === 'favorite' ? favorite.userId : underdog.userId;
+                const winnerLabel = winner === 'favorite' ? favorite.type : underdog.type;
+                const creatorWinAmount =
+                    favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? favorite.netEarnings : underdog.netEarnings;
+
+                const claimerWinAmount =
+                    favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.netEarnings : favorite.netEarnings;
+
+                const constestData = {
+                    winnerId: winnerId,
+                    topPropProfit: topPropProfit,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: winnerLabel,
+                    creatorWinAmount: creatorWinAmount,
+                    claimerWinAmount: claimerWinAmount,
+                };
+
+                await this.leagueContestRepository.updateById(contest.id, constestData);
+
+                const contestDataForEmail = await this.leagueContestRepository.findById(contest.id);
+
+                const userId = winner === 'favorite' ? favorite.userId : underdog.userId;
+                const contenderId = winner === 'favorite' ? underdog.teamId : favorite.teamId;
+                const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
+
+                const entryGain = new Gain();
+
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = userId;
+                entryGain.contenderId = contenderId;
+                entryGain.contestId = contest.id;
+
+                // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
+
+                await this.gainRepository.create(entryGain);
+
+                const winningGain = new Gain();
+
+                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.userId = userId;
+                winningGain.contenderId = contenderId;
+                winningGain.contestId = contest.id;
+
+                // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
+
+                await this.gainRepository.create(winningGain);
+
+                if (winner === 'favorite') {
+                    const contestData = contestDataForEmail;
+                    const winnerUser = await this.userRepository.findById(favorite.userId);
+                    const winnerTeam = await this.teamRepository.findById(favorite.teamId);
+                    const loserUser = await this.userRepository.findById(underdog.userId);
+                    const loserTeam = await this.teamRepository.findById(underdog.teamId);
+
+                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: favorite.netEarnings,
+                        text: {
+                            title: 'League Contest Won',
+                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}`,
+                        },
+                    });
+
+                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: underdog.netEarnings,
+                        text: {
+                            title: 'League Contest Lost',
+                            subtitle: `Sorry, You have lost the league contest. Your net earnings are
+                                        ${new Intl.NumberFormat('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD',
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        }).format(underdog.netEarnings)}`,
+                        },
+                    });
+                } else if (winner === 'underdog') {
+                    const contestData = contestDataForEmail;
+                    const winnerUser = await this.userRepository.findById(underdog.userId);
+                    const winnerTeam = await this.teamRepository.findById(underdog.teamId);
+                    const loserUser = await this.userRepository.findById(favorite.userId);
+                    const loserTeam = await this.teamRepository.findById(favorite.teamId);
+
+                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: underdog.netEarnings,
+                        text: {
+                            title: 'League Contest Won',
+                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(underdog.netEarnings)}`,
+                        },
+                    });
+
+                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                        winnerUser,
+                        loserUser,
+                        winnerTeam,
+                        loserTeam,
+                        contestData,
+                        netEarnings: favorite.netEarnings,
+                        text: {
+                            title: 'League Contest Lost',
+                            subtitle: `Sorry, You have lost the league contest. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}`,
+                        },
+                    });
+                } else {
+                    //Send Draw Email
+                    const contestData = contestDataForEmail;
+                    const favoriteUser = await this.userRepository.findById(favorite.userId);
+                    const favoriteTeam = await this.teamRepository.findById(favorite.teamId);
+
+                    const underdogUser = await this.userRepository.findById(underdog.userId);
+                    const underdogTeam = await this.teamRepository.findById(underdog.teamId);
+
+                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
+                        favoriteUser,
+                        underdogUser,
+                        favoriteTeam,
+                        underdogTeam,
+                        contestData,
+                        text: {
+                            title: 'League Contest was a push',
+                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(favorite.netEarnings)}`,
+                        },
+                    });
+
+                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
+                        favoriteUser,
+                        underdogUser,
+                        favoriteTeam,
+                        underdogTeam,
+                        contestData,
+                        text: {
+                            title: 'League Contest was a push',
+                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
+                                'en-US',
+                                {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                },
+                            ).format(underdog.netEarnings)}`,
+                        },
+                    });
+                }
+            }
+        });
+
+        const contestsUnmatched = await this.leagueContestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+            },
+            include: includes.include,
+        });
+
+        const filteredUnClaimedLeagueContests = contestsUnmatched.filter(contest => {
+            const { creatorContestTeam, claimerContestTeam, league } = contest;
+            const creatorRoster = creatorContestTeam?.contestRosters;
+            const claimerRoster = claimerContestTeam?.contestRosters;
+            let validContest = true;
+            creatorRoster?.map(rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                if (currentPlayer.isOver === false) {
+                    validContest = false;
+                } else {
+                    switch (league.scoringTypeId) {
+                        case SCORING_TYPE.HALFPPR:
+                            creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                            break;
+                        case SCORING_TYPE.FULLPPR:
+                            creatorTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
+                            break;
+                        case SCORING_TYPE.NOPPR:
+                            // Standard PPR
+                            creatorTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
+                            break;
+                    }
+                }
+            });
+            claimerRoster?.map(rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                if (currentPlayer.isOver === false) {
+                    validContest = false;
+                } else {
+                    switch (league.scoringTypeId) {
+                        case SCORING_TYPE.HALFPPR:
+                            claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                            break;
+                        case SCORING_TYPE.FULLPPR:
+                            claimerTeamFantasyPoints += Number(currentPlayer.fantasyPointsFullPpr || 0);
+                            break;
+                        case SCORING_TYPE.NOPPR:
+                            // Standard PPR
+                            claimerTeamFantasyPoints += Number(currentPlayer.fantasyPoints || 0);
+                            break;
+                    }
+                }
+            });
+
+            return validContest;
+        });
+
+        filteredUnClaimedLeagueContests.map(async unclaimedContest => {
+            const constestData = {
+                topPropProfit: 0,
+                status: CONTEST_STATUSES.CLOSED,
+                ended: true,
+                endedAt: moment(),
+                winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                creatorWinAmount: 0,
+                claimerWinAmount: 0,
+            };
+
+            await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
+
+            const entryGain = new Gain();
+
+            entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
+            entryGain.userId = unclaimedContest.creatorId;
+            entryGain.contenderId = unclaimedContest.claimerTeamId;
+            entryGain.contestId = unclaimedContest.id;
+
+            await this.gainRepository.create(entryGain);
+
+            //Send Contest Closed mail
+            const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+            const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+            const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+            const claimerUser = '';
+            const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+            const receiverUser = creatorUser;
+            const user = creatorUser;
+            await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                contestData,
+                creatorUser,
+                claimerUser,
+                creatorTeam,
+                claimerTeam,
+                receiverUser,
+                user,
+                text: {
+                    title: 'League Contest Closed',
+                    subtitle: `Your league contest has been closed`,
+                },
+            });
+        });
+
+        return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : filteredContests;
+    }
+
+    // async voidContests(playerId: number) {
+    //     const favorite = {
+    //         type: CONTEST_STAKEHOLDERS.PENDING,
+    //         gameWin: false,
+    //         coversSpread: false,
+    //         winBonus: false,
+    //         netEarnings: 0,
+    //         playerWinBonus: 0,
+    //         playerMaxWin: 0,
+    //         playerCover: 0,
+    //         playerSpread: 0,
+    //         playerId: 0,
+    //         userId: 0,
+    //         fantasyPoints: 0,
+    //         projectedFantasyPoints: 0,
+    //     };
+
+    //     const underdog = {
+    //         type: CONTEST_STAKEHOLDERS.PENDING,
+    //         gameWin: false,
+    //         coversSpread: false,
+    //         winBonus: false,
+    //         netEarnings: 0,
+    //         playerWinBonus: 0,
+    //         playerMaxWin: 0,
+    //         playerCover: 0,
+    //         playerSpread: 0,
+    //         playerId: 0,
+    //         userId: 0,
+    //         fantasyPoints: 0,
+    //         projectedFantasyPoints: 0,
+    //     };
+
+    //     const contests = await this.contestRepository.find({
+    //         where: {
+    //             status: CONTEST_STATUSES.OPEN,
+    //             ended: false,
+    //         },
+    //         include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+    //     });
+
+    //     contests.map(async contest => {
+    //         const entryAmount = Number(contest.entryAmount);
+
+    //         if (contest.claimerId === null) {
+    //             // Unmatched
+    //             const constestData = {
+    //                 topPropProfit: 0,
+    //                 status: CONTEST_STATUSES.CLOSED,
+    //                 ended: true,
+    //                 endedAt: moment(),
+    //                 winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+    //                 creatorWinAmount: 0,
+    //                 claimerWinAmount: 0,
+    //             };
+    //             await this.contestRepository.updateById(contest.id, constestData);
+
+    //             const entryGain = new Gain();
+    //             entryGain.amount = Number(entryAmount) * 100;
+    //             entryGain.userId = favorite.userId;
+    //             entryGain.contenderId = favorite.playerId;
+    //             entryGain.contestId = contest.id;
+    //             await this.gainRepository.create(entryGain);
+    //         } else {
+    //             // No data so autoclose
+    //             const constestData = {
+    //                 topPropProfit: 0,
+    //                 status: CONTEST_STATUSES.CLOSED,
+    //                 ended: true,
+    //                 endedAt: moment(),
+    //                 winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+    //                 creatorWinAmount: 0,
+    //                 claimerWinAmount: 0,
+    //             };
+    //             await this.contestRepository.updateById(contest.id, constestData);
+
+    //             const entryGain = new Gain();
+    //             entryGain.amount = Number(entryAmount) * 100;
+    //             entryGain.userId = favorite.userId;
+    //             entryGain.contenderId = underdog.playerId;
+    //             entryGain.contestId = contest.id;
+
+    //             await this.gainRepository.create(entryGain);
+
+    //             entryGain.amount = Number(entryAmount) * 100;
+    //             entryGain.userId = underdog.userId;
+    //             entryGain.contenderId = favorite.playerId;
+    //             entryGain.contestId = contest.id;
+
+    //             await this.gainRepository.create(entryGain);
+    //         }
+    //     });
+
+    //     return contests;
+    // }
 
     async closeContests() {
         const favorite = {
@@ -1705,13 +2391,114 @@ export class CronService {
 
         const contestsUnclaimed = await this.leagueContestRepository.find({
             where: {
-                status: CONTEST_STATUSES.OPEN,
+                or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }],
                 ended: false,
             },
             include: includes.include,
         });
 
+        const coercedLeagueContests: number[] = [];
+
         contestsUnclaimed.map(async unclaimedContest => {
+            const entryAmount = Number(unclaimedContest.entryAmount);
+
+            if (unclaimedContest.claimerId === null) {
+                // Unmatched
+                const constestData = {
+                    topPropProfit: 0,
+                    status: CONTEST_STATUSES.CLOSED,
+                    ended: true,
+                    endedAt: moment(),
+                    winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                    creatorWinAmount: 0,
+                    claimerWinAmount: 0,
+                };
+                await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
+
+                const entryGain = new Gain();
+                entryGain.contestType = 'League';
+                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.userId = unclaimedContest.creatorId;
+                entryGain.contenderId = unclaimedContest.creatorTeamId;
+                entryGain.contestId = unclaimedContest.id;
+                await this.gainRepository.create(entryGain);
+
+                //Send Contest Closed mail
+                const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+                const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+                const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+                const claimerUser = '';
+                const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+                const receiverUser = creatorUser;
+                const user = creatorUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                    contestData,
+                    creatorUser,
+                    claimerUser,
+                    creatorTeam,
+                    claimerTeam,
+                    receiverUser,
+                    user,
+                    text: {
+                        title: 'League Contest Closed',
+                        subtitle: `Your league contest has been closed`,
+                    },
+                });
+            } else {
+                // No data so auto-close
+                coercedLeagueContests.push(unclaimedContest.id);
+            }
+        });
+
+        if (coercedLeagueContests.length > 0) {
+            await this.leagueCoercedWinCheck(coercedLeagueContests);
+        }
+
+        return contestsUnclaimed;
+    }
+
+    async leagueVoidContests(playerIds: number[]) {
+        logger.debug('League contest voided because players are ruled out', playerIds.toString());
+        const includes = await this.leagueService.fetchLeagueContestInclude();
+
+        const contests = await this.leagueContestRepository.find({
+            where: {
+                or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }],
+                ended: false,
+            },
+            include: includes.include,
+        });
+
+        const filteredContests = await Promise.all(
+            contests.filter(async contest => {
+                const { creatorContestTeam, claimerContestTeam, league } = contest;
+                const creatorRoster = creatorContestTeam?.contestRosters || [];
+                const claimerRoster = claimerContestTeam?.contestRosters || [];
+                let voidContest = false;
+                await Promise.all(
+                    creatorRoster.map(async rosterEntry => {
+                        //@ts-ignore
+                        const currentPlayer = rosterEntry?.player;
+                        if (playerIds.includes(currentPlayer.id)) {
+                            voidContest = true;
+                        }
+                    }),
+                );
+
+                await Promise.all(
+                    claimerRoster.map(async rosterEntry => {
+                        //@ts-ignore
+                        const currentPlayer = rosterEntry?.player;
+                        if (playerIds.includes(currentPlayer.id)) {
+                            voidContest = true;
+                        }
+                    }),
+                );
+                return voidContest;
+            }),
+        );
+
+        filteredContests.map(async unclaimedContest => {
             const entryAmount = Number(unclaimedContest.entryAmount);
 
             if (unclaimedContest.claimerId === null) {
@@ -1803,8 +2590,8 @@ export class CronService {
                     receiverUser,
                     user,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your league contest has been closed`,
+                        title: 'Your TopProp Contest has been Voided',
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
                     },
                 });
 
@@ -1819,14 +2606,14 @@ export class CronService {
                     receiverUser,
                     user,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your league contest has been closed`,
+                        title: 'Your TopProp Contest has been Voided',
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
                     },
                 });
             }
         });
-
-        return contestsUnclaimed;
+        logger.debug('League contests voided', JSON.stringify(filteredContests));
+        return filteredContests;
     }
 
     async syncESPNLeagues() {
