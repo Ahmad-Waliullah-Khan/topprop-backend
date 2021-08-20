@@ -1477,10 +1477,10 @@ export class LeagueController {
         const { leagueId } = body;
 
         const existingLeague = await this.leagueRepository.findById(Number(leagueId));
-
+        
         const importSourceData = await this.importSourceRepository.findById(existingLeague.importSourceId);
         const importSource = importSourceData.name;
-
+        
         if (importSource === 'yahoo') {
             if (await this.leagueService.resyncYahoo(leagueId)) {
                 const includes = await this.leagueService.fetchLeagueInclude();
