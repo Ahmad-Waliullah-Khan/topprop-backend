@@ -50,6 +50,7 @@ import { find, isEmpty } from 'lodash';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import Schema from 'validate';
+import { MiscHelpers } from '@src/utils/helpers';
 const YahooFantasy = require('yahoo-fantasy');
 const logger = require('../../utils/logger');
 
@@ -230,29 +231,25 @@ export class LeagueController {
             ],
         });
 
+        const filteredInvitees = MiscHelpers.getUniqueItemsByProperties(invitees, 'email');
+
         try {
             await Promise.all(
-                invitees.map(async invitee => {
+                filteredInvitees.map(async (invitee: any) => {
                     const foundMember = find(league.members, (member: any) => {
                         return invitee.email === member.user.email;
                     });
 
                     if (foundMember) {
-                        await this.teamRepository.updateAll(
-                            {
-                                userId: undefined,
-                                updatedAt: moment().toDate().toString(),
-                            },
-                            { userId: foundMember.userId },
-                        );
                         if (invitee.teamId) {
                             await this.teamRepository.updateAll(
                                 {
                                     userId: undefined,
                                     updatedAt: moment().toDate().toString(),
                                 },
-                                { userId: foundMember.userId },
+                                { userId: foundMember.userId, leagueId: id },
                             );
+
                             await this.teamRepository.updateById(invitee.teamId, {
                                 userId: foundMember.userId,
                                 updatedAt: moment().toDate().toString(),
@@ -1473,14 +1470,13 @@ export class LeagueController {
         // const validation = new Schema(validationSchema, { strip: true });
         // const validationErrors = validation.validate(body);
         // if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
-
-        const { leagueId } = body;
+        const leagueId = body.leagueId || 0;
 
         const existingLeague = await this.leagueRepository.findById(Number(leagueId));
-        
+
         const importSourceData = await this.importSourceRepository.findById(existingLeague.importSourceId);
         const importSource = importSourceData.name;
-        
+
         if (importSource === 'yahoo') {
             if (await this.leagueService.resyncYahoo(leagueId)) {
                 const includes = await this.leagueService.fetchLeagueInclude();

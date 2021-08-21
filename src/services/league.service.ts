@@ -245,7 +245,7 @@ export class LeagueService {
         return winBonus;
     }
 
-    async resyncYahoo(localLeagueId?: number) {
+    async resyncYahoo(localLeagueId: number) {
         const localLeague = await this.leagueRepository.findById(Number(localLeagueId));
 
         const userId = localLeague ? localLeague.userId : 0;
@@ -399,26 +399,7 @@ export class LeagueService {
 
             league = await yf.league.meta(leagueId);
         } catch (error) {
-            const leagueData = new League();
-            leagueData.syncStatus = 'failed';
-            await this.leagueRepository.updateById(Number(localLeague.id), leagueData);
-
-            const user = await this.userRepository.findById(userId);
-
-            const templateData = {
-                user: {
-                    fullName: 'League Commissioner',
-                },
-                senderName: user.fullName,
-                leagueId: leagueId,
-                sourceName: 'YAHOO',
-                text: {
-                    title: 'Top Prop - Sync Failed',
-                    subtitle: `League Sync failed for league - ${localLeague.name}`,
-                },
-            };
-
-            await this.userService.sendEmail(localLeague.userId, EMAIL_TEMPLATES.ADMIN_SYNC_FAILED, templateData);
+            this.handleSyncFail(localLeagueId, 'YAHOO');
 
             if (error.response) {
                 logger.error(
@@ -495,33 +476,14 @@ export class LeagueService {
             console.log('resyncYahoo: Ln 462 league.service.ts ~ error', error);
             await transaction.rollback();
 
-            const leagueData = new League();
-            leagueData.syncStatus = 'failed';
-            await this.leagueRepository.updateById(Number(localLeague.id), leagueData);
-
-            const user = await this.userRepository.findById(localLeague.userId);
-
-            const templateData = {
-                user: {
-                    fullName: 'League Commissioner',
-                },
-                senderName: user.fullName,
-                leagueId: leagueId,
-                sourceName: 'YAHOO',
-                text: {
-                    title: 'Top Prop - Sync Failed',
-                    subtitle: `League Sync failed for league - ${localLeague.name}`,
-                },
-            };
-
-            await this.userService.sendEmail(localLeague.userId, EMAIL_TEMPLATES.ADMIN_SYNC_FAILED, templateData);
+            this.handleSyncFail(localLeagueId, 'YAHOO');
             return false;
         }
 
         return true;
     }
 
-    async resyncESPN(localLeagueId?: number) {
+    async resyncESPN(localLeagueId: number) {
         const localLeague = await this.leagueRepository.findById(Number(localLeagueId));
 
         const userId = localLeague ? localLeague.userId : 0;
@@ -560,28 +522,8 @@ export class LeagueService {
                     error,
                 ),
             );
-            const leagueData = new League();
-            leagueData.syncStatus = 'failed';
 
-            const user = await this.userRepository.findById(userId);
-
-            const localLeague = await this.leagueRepository.findById(Number(leagueId));
-
-            const templateData = {
-                user: {
-                    fullName: 'League Commissioner',
-                },
-                leagueId: leagueId,
-                sourceName: 'ESPN',
-                text: {
-                    title: 'Top Prop - Sync Failed',
-                    subtitle: `League Sync failed for league - ${localLeague.name}`,
-                },
-            };
-
-            await this.userService.sendEmail(localLeague.userId, EMAIL_TEMPLATES.ADMIN_SYNC_FAILED, templateData);
-
-            const updatedLeague = await this.leagueRepository.updateById(Number(localLeague.id), leagueData);
+            this.handleSyncFail(localLeagueId, 'ESPN');
         }
 
         const leagueInfo = leaguePromise.data;
@@ -786,15 +728,28 @@ export class LeagueService {
         } catch (error) {
             console.log('resyncESPN: Ln 562 league.service.ts ~ error', error);
             await transaction.rollback();
-            const user = await this.userRepository.findById(userId);
-            const localLeague = await this.leagueRepository.findById(Number(leagueId));
+            
+            this.handleSyncFail(localLeagueId, 'ESPN');
+            
+            return false;
+        }
+
+        return true;
+    }
+
+    async handleSyncFail(leagueId: number, sourceName: string) {
+        const localLeague = await this.leagueRepository.findById(Number(leagueId));
+        if (localLeague.syncStatus === 'success') {
+            const leagueData = new League();
+            leagueData.syncStatus = 'failed';
+            await this.leagueRepository.updateById(Number(localLeague.id), leagueData);
 
             const templateData = {
                 user: {
                     fullName: 'League Commissioner',
                 },
                 leagueId: leagueId,
-                sourceName: 'ESPN',
+                sourceName: sourceName,
                 text: {
                     title: 'Top Prop - Sync Failed',
                     subtitle: `League Sync failed for league - ${localLeague.name}`,
@@ -802,10 +757,7 @@ export class LeagueService {
             };
 
             await this.userService.sendEmail(localLeague.userId, EMAIL_TEMPLATES.ADMIN_SYNC_FAILED, templateData);
-            return false;
         }
-
-        return true;
     }
 
     async invalidateLeagueSync(leagueId: number) {}

@@ -49,16 +49,21 @@ export class MiscHelpers {
         const parts = value.split('; ' + name + '=');
         console.log('Parsing cookie: ' + name);
         if (parts.length === 2) {
-          console.log(
-            parts
-              .pop()
-              ?.split(';')
-              .shift()
-          );
-          return parts
-            .pop()
-            ?.split(';')
-            .shift();
+            console.log(parts.pop()?.split(';').shift());
+            return parts.pop()?.split(';').shift();
         }
-      }
+    }
+
+    static getUniqueItemsByProperties(items: any, propNames: string[] | string) {
+        const propNamesArray = Array.from(propNames);
+
+        return items.filter(
+            (item: any, index: number, array: any) =>
+                index === array.findIndex((foundItem: any) => this.isPropValuesEqual(foundItem, item, propNamesArray)),
+        );
+    }
+
+    static isPropValuesEqual(subject: any, target: any, propNames: any) {
+        return propNames.every((propName: any) => subject[propName] === target[propName]);
+    }
 }
