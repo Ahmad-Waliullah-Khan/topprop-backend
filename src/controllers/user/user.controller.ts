@@ -61,6 +61,7 @@ export class UserController {
             confirmPassword: USER_VALIDATORS.confirmPassword,
             signUpState: USER_VALIDATORS.state,
         };
+        const clientHost = process.env.CLIENT_HOST;
 
         const validation = new Schema(validationSchema, { strip: false });
         const validationErrors = validation.validate(body);
@@ -121,8 +122,12 @@ export class UserController {
         this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, {
             user,
             text: {
-                title: `Welcome ${user.fullName}`,
-                subtitle: `Welcome to Top Prop. Continue exploring the web app and don't forget to add some funds!`,
+                title: `Welcome to TopProp!`,
+                subtitle: ``,
+            },
+            link: {
+                url: `${clientHost}`,
+                text: 'Start your journey here',
             },
         });
 
@@ -344,8 +349,9 @@ export class UserController {
             user: newUser,
             // forgotPasswordToken: newUser.forgotPasswordToken,
             text: {
-                title: 'TopProp - Forgot Password',
-                subtitle: `Please follow the next link to set a new password: ${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
+                title: `Hey ${newUser ? newUser.fullName : ''}`,
+                subtitle: `
+                `,
             },
             link: `${clientHost}/reset-password/${newUser.forgotPasswordToken}`,
         });

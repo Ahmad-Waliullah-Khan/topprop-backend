@@ -598,6 +598,7 @@ export class CronService {
                 const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
                 const loserUser = await this.userRepository.findById(underdog.userId);
                 const loserPlayer = await this.playerRepository.findById(underdog.playerId);
+                const clientHost = process.env.CLIENT_HOST;
                 let receiverUser = winnerUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
                     contestData,
@@ -607,8 +608,12 @@ export class CronService {
                     loserPlayer,
                     receiverUser,
                     text: {
-                        title: 'Contest Closed',
-                        subtitle: `Your contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
                 receiverUser = loserUser;
@@ -620,8 +625,12 @@ export class CronService {
                     loserPlayer,
                     receiverUser,
                     text: {
-                        title: 'Contest Closed',
-                        subtitle: `Your contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
             } else {
@@ -675,6 +684,7 @@ export class CronService {
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
+                const clientHost = process.env.CLIENT_HOST;
 
                 if (winner === 'favorite') {
                     const contestData = contestDataForEmail;
@@ -689,17 +699,16 @@ export class CronService {
                         loserPlayer,
                         contestData,
                         netEarnings: favorite.netEarnings,
+                        clientHost,
+                        winAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'Contest Won',
-                            subtitle: `Congratulations, You have won the contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
 
@@ -710,15 +719,16 @@ export class CronService {
                         loserPlayer,
                         contestData,
                         netEarnings: underdog.netEarnings,
+                        clientHost,
+                        lostAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'Contest Lost',
-                            subtitle: `Sorry, You have lost the contest. Your net earnings are
-                                ${new Intl.NumberFormat('en-US', {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                }).format(underdog.netEarnings)}`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
                 } else if (winner === 'underdog') {
@@ -734,17 +744,16 @@ export class CronService {
                         loserPlayer,
                         contestData,
                         netEarnings: underdog.netEarnings,
+                        clientHost,
+                        winAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'Contest Won',
-                            subtitle: `Congratulations, You have won the contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(underdog.netEarnings)}`,
+                            title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
 
@@ -755,17 +764,16 @@ export class CronService {
                         loserPlayer,
                         contestData,
                         netEarnings: favorite.netEarnings,
+                        clientHost,
+                        lostAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'Contest Lost',
-                            subtitle: `Sorry, You have lost the contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
                 } else {
@@ -783,14 +791,16 @@ export class CronService {
                         favoritePlayer,
                         underdogPlayer,
                         contestData,
+                        clientHost,
+                        netEarning: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'Contest was a push',
-                            subtitle: `Your contest was a draw. Your net earnings are ${new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            }).format(favorite.netEarnings)}`,
+                            title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
+                            subtitle: ``,
                         },
                     });
 
@@ -800,14 +810,16 @@ export class CronService {
                         favoritePlayer,
                         underdogPlayer,
                         contestData,
+                        clientHost,
+                        netEarning: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'Contest was a push',
-                            subtitle: `Your contest was a draw. Your net earnings are ${new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            }).format(underdog.netEarnings)}`,
+                            title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
+                            subtitle: ``,
                         },
                     });
                 }
@@ -857,6 +869,8 @@ export class CronService {
             const loserUser = '';
             const loserPlayer = await this.playerRepository.findById(unclaimedContest.claimerPlayerId);
             const receiverUser = winnerUser;
+            const clientHost = process.env.CLIENT_HOST;
+
             await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
                 contestData,
                 winnerUser,
@@ -865,8 +879,12 @@ export class CronService {
                 loserPlayer,
                 receiverUser,
                 text: {
-                    title: 'Contest Closed',
-                    subtitle: `Your contest has been closed`,
+                    title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                    subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                },
+                link: {
+                    url: `${clientHost}`,
+                    text: `Create New Contest`,
                 },
             });
         });
@@ -1135,6 +1153,7 @@ export class CronService {
                 const creatorTeam = await this.teamRepository.findById(favorite.teamId);
                 const claimerUser = await this.userRepository.findById(underdog.userId);
                 const claimerTeam = await this.teamRepository.findById(underdog.teamId);
+                const clientHost = process.env.CLIENT_HOST;
                 let receiverUser = creatorUser;
 
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
@@ -1145,8 +1164,12 @@ export class CronService {
                     claimerTeam,
                     receiverUser,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
                 receiverUser = claimerUser;
@@ -1159,8 +1182,12 @@ export class CronService {
                     claimerTeam,
                     receiverUser,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
             } else {
@@ -1212,6 +1239,7 @@ export class CronService {
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
+                const clientHost = process.env.CLIENT_HOST;
 
                 if (winner === 'favorite') {
                     const contestData = contestDataForEmail;
@@ -1227,17 +1255,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: favorite.netEarnings,
+                        clientHost,
+                        winAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'League Contest Won',
-                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
 
@@ -1248,15 +1275,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: underdog.netEarnings,
+                        clientHost,
+                        lostAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'League Contest Lost',
-                            subtitle: `Sorry, You have lost the league contest. Your net earnings are
-                                        ${new Intl.NumberFormat('en-US', {
-                                            style: 'currency',
-                                            currency: 'USD',
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                        }).format(underdog.netEarnings)}`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
                 } else if (winner === 'underdog') {
@@ -1273,17 +1301,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: underdog.netEarnings,
+                        clientHost,
+                        winAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'League Contest Won',
-                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(underdog.netEarnings)}`,
+                            title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
 
@@ -1294,17 +1321,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: favorite.netEarnings,
+                        clientHost,
+                        lostAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'League Contest Lost',
-                            subtitle: `Sorry, You have lost the league contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
                 } else {
@@ -1322,17 +1348,16 @@ export class CronService {
                         favoriteTeam,
                         underdogTeam,
                         contestData,
+                        clientHost,
+                        netEarning: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'League Contest was a push',
-                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
+                            subtitle: ``,
                         },
                     });
 
@@ -1342,17 +1367,16 @@ export class CronService {
                         favoriteTeam,
                         underdogTeam,
                         contestData,
+                        clientHost,
+                        netEarning: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'League Contest was a push',
-                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(underdog.netEarnings)}`,
+                            title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
+                            subtitle: ``,
                         },
                     });
                 }
@@ -1446,6 +1470,7 @@ export class CronService {
             const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
             const receiverUser = creatorUser;
             const user = creatorUser;
+            const clientHost = process.env.CLIENT_HOST;
             await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                 contestData,
                 creatorUser,
@@ -1455,8 +1480,12 @@ export class CronService {
                 receiverUser,
                 user,
                 text: {
-                    title: 'League Contest Closed',
-                    subtitle: `Your league contest has been closed`,
+                    title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                    subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                },
+                link: {
+                    url: `${clientHost}`,
+                    text: `Create New Contest`,
                 },
             });
         });
@@ -1721,6 +1750,7 @@ export class CronService {
                 const creatorTeam = await this.teamRepository.findById(favorite.teamId);
                 const claimerUser = await this.userRepository.findById(underdog.userId);
                 const claimerTeam = await this.teamRepository.findById(underdog.teamId);
+                const clientHost = process.env.CLIENT_HOST;
                 let receiverUser = creatorUser;
 
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
@@ -1731,8 +1761,12 @@ export class CronService {
                     claimerTeam,
                     receiverUser,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
                 receiverUser = claimerUser;
@@ -1745,8 +1779,12 @@ export class CronService {
                     claimerTeam,
                     receiverUser,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
             } else {
@@ -1794,6 +1832,7 @@ export class CronService {
                 winningGain.userId = userId;
                 winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
+                const clientHost = process.env.CLIENT_HOST;
 
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
@@ -1813,17 +1852,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: favorite.netEarnings,
+                        clientHost,
+                        winAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'League Contest Won',
-                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
 
@@ -1834,15 +1872,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: underdog.netEarnings,
+                        clientHost,
+                        lostAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'League Contest Lost',
-                            subtitle: `Sorry, You have lost the league contest. Your net earnings are
-                                        ${new Intl.NumberFormat('en-US', {
-                                            style: 'currency',
-                                            currency: 'USD',
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                        }).format(underdog.netEarnings)}`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
                 } else if (winner === 'underdog') {
@@ -1859,17 +1898,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: underdog.netEarnings,
+                        clientHost,
+                        winAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'League Contest Won',
-                            subtitle: `Congratulations, You have won the league contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(underdog.netEarnings)}`,
+                            title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
 
@@ -1880,17 +1918,16 @@ export class CronService {
                         loserTeam,
                         contestData,
                         netEarnings: favorite.netEarnings,
+                        clientHost,
+                        lostAmount: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'League Contest Lost',
-                            subtitle: `Sorry, You have lost the league contest. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            subtitle: ``,
                         },
                     });
                 } else {
@@ -1908,17 +1945,16 @@ export class CronService {
                         favoriteTeam,
                         underdogTeam,
                         contestData,
+                        clientHost,
+                        netEarning: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(favorite.netEarnings)}`,
                         text: {
-                            title: 'League Contest was a push',
-                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(favorite.netEarnings)}`,
+                            title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
+                            subtitle: ``,
                         },
                     });
 
@@ -1928,17 +1964,16 @@ export class CronService {
                         favoriteTeam,
                         underdogTeam,
                         contestData,
+                        clientHost,
+                        netEarning: `${new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        }).format(underdog.netEarnings)}`,
                         text: {
-                            title: 'League Contest was a push',
-                            subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                                'en-US',
-                                {
-                                    style: 'currency',
-                                    currency: 'USD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                },
-                            ).format(underdog.netEarnings)}`,
+                            title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
+                            subtitle: ``,
                         },
                     });
                 }
@@ -2032,6 +2067,7 @@ export class CronService {
             const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
             const receiverUser = creatorUser;
             const user = creatorUser;
+            const clientHost = process.env.CLIENT_HOST;
             await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                 contestData,
                 creatorUser,
@@ -2041,8 +2077,12 @@ export class CronService {
                 receiverUser,
                 user,
                 text: {
-                    title: 'League Contest Closed',
-                    subtitle: `Your league contest has been closed`,
+                    title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                    subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                },
+                link: {
+                    url: `${clientHost}`,
+                    text: `Create New Contest`,
                 },
             });
         });
@@ -2431,6 +2471,7 @@ export class CronService {
                 const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
                 const receiverUser = creatorUser;
                 const user = creatorUser;
+                const clientHost = process.env.CLIENT_HOST;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
@@ -2440,8 +2481,12 @@ export class CronService {
                     receiverUser,
                     user,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your league contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
             } else {
@@ -2530,6 +2575,7 @@ export class CronService {
                 const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
                 const receiverUser = creatorUser;
                 const user = creatorUser;
+                const clientHost = process.env.CLIENT_HOST;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
@@ -2539,8 +2585,12 @@ export class CronService {
                     receiverUser,
                     user,
                     text: {
-                        title: 'League Contest Closed',
-                        subtitle: `Your league contest has been closed`,
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
             } else {
@@ -2579,6 +2629,7 @@ export class CronService {
                 const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
                 const claimerUser = await this.userRepository.findById(unclaimedContest.claimerId);
                 const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+                const clientHost = process.env.CLIENT_HOST;
                 let receiverUser = creatorUser;
                 let user = creatorUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
@@ -2590,8 +2641,12 @@ export class CronService {
                     receiverUser,
                     user,
                     text: {
-                        title: 'Your TopProp Contest has been Voided',
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
 
@@ -2606,8 +2661,12 @@ export class CronService {
                     receiverUser,
                     user,
                     text: {
-                        title: 'Your TopProp Contest has been Voided',
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
                     },
                 });
             }
