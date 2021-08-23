@@ -289,8 +289,8 @@ export class LeagueController {
                                     fullName: '',
                                 },
                                 text: {
-                                    title: `You have been invited to ${league.name}`,
-                                    subtitle: `This league invite was sent to you by ${user.fullName}.Please click on the button below to accept the join the league`,
+                                    title: ``,
+                                    subtitle: `You have been invited to ${league.name}. The invite was sent to you by ${user.fullName}. Click on the button below to take your league to new heights.`,
                                 },
                                 link: {
                                     url: `${clientHost}/league/invitation/${invite.token}`,
@@ -1233,8 +1233,9 @@ export class LeagueController {
                 claimerTeam,
                 contestData,
                 text: {
-                    title: `Your contest in ${league.name} has been created`,
-                    subtitle: "We'll let you know when you match with an opponent. Contest details are listed below",
+                    title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
+                    subtitle:
+                        'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
                 },
             });
 
@@ -1383,8 +1384,10 @@ export class LeagueController {
             claimerUser,
             leagueContestData,
             text: {
-                title: `You have claimed a contest in ${league.name}`,
-                subtitle: 'Contest details are listed below',
+                title: `Congratulations ${
+                    user ? user.fullName : ''
+                }, you have matched a contest on TopProp and are cleared for takeoff!`,
+                subtitle: 'Good luck!',
             },
         });
         user = creatorUser;
@@ -1397,10 +1400,10 @@ export class LeagueController {
             leagueContestData,
             moment: moment,
             text: {
-                title: `TopProp - Your contest in ${league.name} has been claimed`,
-                subtitle: `Contest claimed by ${claimerUser.fullName} on ${moment(leagueContestData.updatedAt).format(
-                    'dddd, MMMM Do YYYY, h:mm:ss a',
-                )}`,
+                title: `${
+                    user ? user.fullName : ''
+                }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
+                subtitle: 'Good luck!',
             },
         });
 

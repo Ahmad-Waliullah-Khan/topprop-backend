@@ -1,32 +1,29 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, patch, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
+import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
-import { Contender, Contest, Bet } from '@src/models';
-import { ContestRepository, PlayerRepository, BetRepository, UserRepository } from '@src/repositories';
-import { PlayerResultRepository } from '@src/repositories';
-import { ContestPayoutService, ContestService, WalletService, UserService } from '@src/services';
+import { Bet, Contest } from '@src/models';
 import {
-    API_ENDPOINTS,
-    CONTEST_STATUSES,
-    CONTEST_TYPES,
-    EMAIL_TEMPLATES,
-    MINIMUM_BET_AMOUNT,
-    PERMISSIONS,
-} from '@src/utils/constants';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+    BetRepository,
+    ContestRepository,
+    PlayerRepository,
+    PlayerResultRepository,
+    UserRepository,
+} from '@src/repositories';
+import { ContestPayoutService, ContestService, UserService, WalletService } from '@src/services';
+import { API_ENDPOINTS, CONTEST_STATUSES, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
     ICustomUserProfile,
-    IContestResponses,
 } from '@src/utils/interfaces';
 import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
-import { CONTENDER_VALIDATORS, CONTEST_CREATE_VALIDATORS, CONTEST_CLAIM_VALIDATOR } from '@src/utils/validators';
+import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
 import { isEmpty } from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
@@ -170,7 +167,7 @@ export class ContestController {
         contestData.ended = false;
 
         const createdContest = await this.contestRepository.create(contestData);
-        
+
         const bet = new Bet();
 
         bet.contenderId = creatorPlayerId;
@@ -217,8 +214,9 @@ export class ContestController {
             claimerPlayer,
             contestData,
             text: {
-                title: 'Your contest has been created',
-                subtitle: "We'll let you know when you match with an opponent. Contest details are listed below",
+                title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp.`,
+                subtitle:
+                    'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
             },
         });
 
@@ -333,8 +331,10 @@ export class ContestController {
             claimerPlayer,
             contestData,
             text: {
-                title: 'You have claimed a contest',
-                subtitle: 'Contest details are listed below',
+                title: `Congratulations ${
+                    user ? user.fullName : ''
+                }, you have matched a contest on TopProp and are cleared for takeoff!`,
+                subtitle: 'Good luck!',
             },
         });
         this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.CONTEST_CLAIMED_BY_CLAIMER, {
@@ -345,10 +345,10 @@ export class ContestController {
             contestData,
             moment: moment,
             text: {
-                title: 'TopProp - Your contest has been claimed',
-                subtitle: `Contest claimed by ${user.fullName} on ${moment(contestData.updatedAt).format(
-                    'dddd, MMMM Do YYYY, h:mm:ss a',
-                )}`,
+                title: `${
+                    user ? user.fullName : ''
+                }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
+                subtitle: 'Good luck!',
             },
         });
 
