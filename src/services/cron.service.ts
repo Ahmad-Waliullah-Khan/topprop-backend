@@ -727,7 +727,7 @@ export class CronService {
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
                         text: {
-                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
@@ -772,7 +772,7 @@ export class CronService {
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
                         text: {
-                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
@@ -1292,7 +1292,7 @@ export class CronService {
                         }).format(underdog.netEarnings)}`,
                         maxWin: underdog.teamMaxWin,
                         text: {
-                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
@@ -1340,7 +1340,7 @@ export class CronService {
                         }).format(favorite.netEarnings)}`,
                         maxWin: favorite.teamMaxWin,
                         text: {
-                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
@@ -1898,7 +1898,7 @@ export class CronService {
                         }).format(underdog.netEarnings)}`,
                         maxWin: underdog.teamMaxWin,
                         text: {
-                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
@@ -1946,7 +1946,7 @@ export class CronService {
                         }).format(favorite.netEarnings)}`,
                         maxWin: favorite.teamMaxWin,
                         text: {
-                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
+                            title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
