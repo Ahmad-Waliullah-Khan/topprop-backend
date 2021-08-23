@@ -2076,6 +2076,11 @@ csvtojson@^2.0.10:
     lodash "^4.17.3"
     strip-bom "^2.0.0"
 
+cuss@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/cuss/-/cuss-2.0.0.tgz#7f88210a9dfe3cd60834f1d82af97b62be44f89f"
+  integrity sha512-EHbh7F4GHvgyuakXeic9wtfeEYves17MxLpgIsljCbaDil6auJVsTTLV/qwkZ58+Gu+NKmMHVQm81J3BcEqwUg==
+
 dashdash@^1.12.0:
   version "1.14.1"
   resolved "https://registry.npmjs.org/dashdash/-/dashdash-1.14.1.tgz"

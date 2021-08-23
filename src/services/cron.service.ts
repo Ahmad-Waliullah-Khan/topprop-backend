@@ -1163,6 +1163,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.creatorTeamMaxWin,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -1181,6 +1182,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.claimerTeamMaxWin,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -1199,6 +1201,9 @@ export class CronService {
                 const claimerWinAmount =
                     favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.netEarnings : favorite.netEarnings;
 
+                const loserTeamMaxWin = winner === 'favorite' ? underdog.teamMaxWin : favorite.teamMaxWin;
+                const winnerTeamMaxWin = winner === 'favorite' ? favorite.teamMaxWin : underdog.teamMaxWin;
+
                 const constestData = {
                     winnerId: winnerId,
                     topPropProfit: topPropProfit,
@@ -1208,6 +1213,8 @@ export class CronService {
                     winnerLabel: winnerLabel,
                     creatorWinAmount: creatorWinAmount,
                     claimerWinAmount: claimerWinAmount,
+                    loserTeamMaxWin: loserTeamMaxWin,
+                    winnerTeamMaxWin: winnerTeamMaxWin,
                 };
 
                 await this.leagueContestRepository.updateById(contest.id, constestData);
@@ -1262,6 +1269,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
+                        maxWin: favorite.teamMaxWin,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1282,6 +1290,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
+                        maxWin: underdog.teamMaxWin,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1308,6 +1317,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
+                        maxWin: underdog.teamMaxWin,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1328,6 +1338,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
+                        maxWin: favorite.teamMaxWin,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1355,6 +1366,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
+                        maxWin: favorite.teamMaxWin,
                         text: {
                             title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
                             subtitle: ``,
@@ -1374,6 +1386,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
+                        maxWin: underdog.teamMaxWin,
                         text: {
                             title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
                             subtitle: ``,
@@ -1478,6 +1491,7 @@ export class CronService {
                 creatorTeam,
                 claimerTeam,
                 receiverUser,
+                maxWin: contestData.creatorTeamMaxWin,
                 user,
                 text: {
                     title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
@@ -1760,6 +1774,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.creatorTeamMaxWin,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -1778,6 +1793,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.claimerTeamMaxWin,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -1859,6 +1875,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
+                        maxWin: favorite.teamMaxWin,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1879,6 +1896,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
+                        maxWin: underdog.teamMaxWin,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1905,6 +1923,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
+                        maxWin: underdog.teamMaxWin,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1925,6 +1944,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
+                        maxWin: favorite.teamMaxWin,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -1952,6 +1972,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(favorite.netEarnings)}`,
+                        maxWin: favorite.teamMaxWin,
                         text: {
                             title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
                             subtitle: ``,
@@ -1971,6 +1992,7 @@ export class CronService {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                         }).format(underdog.netEarnings)}`,
+                        maxWin: underdog.teamMaxWin,
                         text: {
                             title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
                             subtitle: ``,
@@ -2075,6 +2097,7 @@ export class CronService {
                 creatorTeam,
                 claimerTeam,
                 receiverUser,
+                maxWin: contestData.creatorTeamMaxWin,
                 user,
                 text: {
                     title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
@@ -2382,7 +2405,6 @@ export class CronService {
     async fetchSpecialTeams() {
         const remoteTeams = await this.sportsDataService.activeTeams();
         const localPlayers = await this.playerRepository.find();
-        // TODO Need to add logic to add the team to the specialteams table
         const teamPromises = remoteTeams.map(async remoteTeam => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remoteTeam.PlayerID === localPlayer.remoteId);
             // const highResRemotePlayerPhotoUrl = remotePlayer.PhotoUrl.replace('low-res', 'studio-high-res');
@@ -2479,6 +2501,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.creatorTeamMaxWin,
                     user,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
@@ -2583,6 +2606,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.creatorTeamMaxWin,
                     user,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
@@ -2639,6 +2663,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.creatorTeamMaxWin,
                     user,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
@@ -2659,6 +2684,7 @@ export class CronService {
                     creatorTeam,
                     claimerTeam,
                     receiverUser,
+                    maxWin: contestData.claimerTeamMaxWin,
                     user,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
