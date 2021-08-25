@@ -51,7 +51,7 @@ export enum EMAIL_TEMPLATES {
     LEAGUE_CONTEST_CLAIMED_BY_CLAIMER = 'league-claim-contest-creator',
     LEAGUE_CONTEST_WON = 'league-contest-win',
     LEAGUE_CONTEST_LOST = 'league-contest-lose',
-    LEAGUE_CONTEST_DRAW_FAVORITE = 'cleague-ontest-draw-favorite',
+    LEAGUE_CONTEST_DRAW_FAVORITE = 'league-contest-draw-favorite',
     LEAGUE_CONTEST_DRAW_UNDERDOG = 'league-contest-draw-underdog',
     LEAGUE_CONTEST_CLOSED = 'league-contest-close',
 

@@ -4,9 +4,9 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import logger from '../utils/logger';
 
 
-const logger = require('../utils/logger');
 
 @cronJob()
 export class LeagueWinCriteriaCron extends CronJob {
@@ -17,13 +17,13 @@ export class LeagueWinCriteriaCron extends CronJob {
             start: true,
             onTick: async () => {
                 try {
-                    // await this.cronService.leagueWinCheck();
-                    // this.cronService.cronLogger(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
+                    await this.cronService.leagueWinCheck();
+                    this.cronService.cronLogger(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
 
-                    // const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
-                    // const updatedCronTime = new cron.CronTime(updatedCronTiming);
-                    // this.setTime(updatedCronTime);
-                    // this.start();
+                    const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.LEAGUE_WIN_CHECK_CRON);
+                    const updatedCronTime = new cron.CronTime(updatedCronTiming);
+                    this.setTime(updatedCronTime);
+                    this.start();
                 } catch (error) {
                     logger.error(chalk.redBright(`Error on league win criteria cron job. Error: `, error));
                 }

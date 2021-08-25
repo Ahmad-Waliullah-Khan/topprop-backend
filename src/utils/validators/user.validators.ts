@@ -1,4 +1,4 @@
-import {ValidatorHelpers} from '../helpers';
+import { ValidatorHelpers } from '../helpers';
 
 export const USER_VALIDATORS = {
     id: {
@@ -12,7 +12,7 @@ export const USER_VALIDATORS = {
     password: {
         type: String,
         required: true,
-        length: {min: 8},
+        length: { min: 8 },
         //string must contain 1 number , 1 lowercase and 1 uppercase. Extra symbols allowed too.
         // match: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$ <>()=,;:%^&*-_\.+]).{8,}$/,
         message: {
@@ -24,7 +24,7 @@ export const USER_VALIDATORS = {
     confirmPassword: {
         type: String,
         required: true,
-        use: {comparePasswords: ValidatorHelpers.comparePasswords},
+        use: { comparePasswords: ValidatorHelpers.comparePasswords },
         message: {
             comparePasswords: 'Confirm Password must match with password.',
             required: 'Confirm Password is required.',
@@ -49,10 +49,8 @@ export const USER_VALIDATORS = {
     username: {
         type: String,
         required: true,
-        match: /(?=.{5,20}$)(?:[a-zA-Z\d]+(?:(?:\.|-|_)[a-zA-Z\d])*)+$/,
         message: {
             required: 'Username is required.',
-            match: `Username could be alphanumeric and can contain symbols (- _ . -one at a time-) and must contain between 5 and 20 characters.`,
         },
     },
     fullName: {

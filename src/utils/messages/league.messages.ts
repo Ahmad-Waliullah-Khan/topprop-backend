@@ -25,4 +25,6 @@ export const LEAGUE_MESSAGES = {
     DO_NOT_BELONG: `You do not belong to this league. Please request the admin to invite you to the league`,
     RESYNC_SUCCESS: `Resynced League successfully`,
     RESYNC_FAILED: `Failed to resync League data`,
+    NO_REMAINING_PLAYERS_CLAIMER: `All players on the opponent's team have finished playing. Please pick another team`,
+    NO_REMAINING_PLAYERS_CREATOR: `All players on your team have finished playing. Please pick another team`,
 };

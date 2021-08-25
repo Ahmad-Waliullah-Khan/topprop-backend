@@ -5,8 +5,8 @@ import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
 import moment from 'moment';
+import logger from '../utils/logger';
 
-const logger = require('../utils/logger');
 
 @cronJob()
 export class EspnSyncLeaguesCron extends CronJob {

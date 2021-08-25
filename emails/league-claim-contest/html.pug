@@ -121,7 +121,7 @@ head
                                       h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{claimerTeam.name}
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{user.fullName}&nbsp;
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{user.username}&nbsp;
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
                                       p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{claimerTeam.homeOrAway=== "AWAY"? "@" : ""} #{claimerTeam.homeOrAway}
@@ -140,7 +140,7 @@ head
                                       h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{creatorTeam.name}
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorUser.fullName}&nbsp;
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorUser.username}&nbsp;
                                   tr
                                     td(align='center' style='padding:0;Margin:0')
                                       p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#666666;font-size:16px") #{creatorTeam.homeOrAway=== "AWAY"? "@" : ""} #{creatorTeam.homeOrAway}
@@ -164,7 +164,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{leagueContestData.claimerTeamSpread > 0 ? `+${leagueContestData.claimerTeamSpread}` : leagueContestData.claimerTeamSpread}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{leagueContestData.claimerTeamSpread > 0 ? `+${leagueContestData.claimerTeamSpread}` : 0}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')

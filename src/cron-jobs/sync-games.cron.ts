@@ -6,7 +6,7 @@ import {SportsDataService, TIMEFRAMES} from '@src/services';
 import {CRON_JOBS, GAME_TYPES} from '@src/utils/constants';
 import chalk from 'chalk';
 import {isEqual} from 'lodash';
-const logger = require('../utils/logger');
+import logger from '../utils/logger';
 
 @cronJob()
 export class SyncGamesCron extends CronJob {

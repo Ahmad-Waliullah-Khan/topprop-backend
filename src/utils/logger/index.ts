@@ -32,4 +32,4 @@ if (isDevelopment) {
     );
 }
 
-module.exports = logger;
+export default logger;

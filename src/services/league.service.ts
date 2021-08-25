@@ -205,6 +205,8 @@ export class LeagueService {
         } else {
             spread = MiscHelpers.roundValue(creatorProjectedPoints - opponentProjectedPoints, 0.5);
         }
+
+        
         const spreadData = await this.spreadRepo.findOne({
             where: {
                 projectionSpread: spread,

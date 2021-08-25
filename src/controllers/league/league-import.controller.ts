@@ -32,12 +32,12 @@ import {
 import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
 import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
-import { isEmpty } from 'lodash';
+import {isEmpty} from 'lodash';
 import Schema from 'validate';
 import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '../../utils/constants/league.constants';
 const { Client } = require('espn-fantasy-football-api/node-dev');
+import logger from '../../utils/logger';
 const YahooFantasy = require('yahoo-fantasy');
-const logger = require('../../utils/logger');
 
 export class LeagueImportController {
     constructor(
@@ -303,8 +303,8 @@ export class LeagueImportController {
                             if (remotePlayer.lineupSlotId !== 20) {
                                 const normalisedRemotePlayer = {
                                     name: {
-                                        first: remotePlayer?.playerPoolEntry?.player.firstName,
-                                        last: remotePlayer?.playerPoolEntry?.player.lastName,
+                                        first: remotePlayer?.playerPoolEntry?.player?.firstName,
+                                        last: remotePlayer?.playerPoolEntry?.player?.lastName,
                                     },
                                     player_id: remotePlayer?.playerPoolEntry?.player.id,
                                     display_position:
@@ -329,10 +329,10 @@ export class LeagueImportController {
                                             user: user,
                                             text: {
                                                 title: `Player Not Found.`,
-                                                subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
+                                                subtitle: `League player ${remotePlayer?.name?.first} ${remotePlayer?.name?.last} from "${team.name}" not found in TopProp system.`,
                                             },
                                         },
-                                        process.env.ADMIN_EMAIL,
+                                        process.env.SUPPORT_EMAIL_ADDRESS,
                                     );
                                     // throw new HttpErrors.BadRequest(
                                     //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
@@ -509,13 +509,13 @@ export class LeagueImportController {
                                             user: user,
                                             text: {
                                                 title: `Player Not Found.`,
-                                                subtitle: `League player ${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" not found in TopProp system.`,
+                                                subtitle: `League player ${remotePlayer?.name?.first} ${remotePlayer?.name?.last} from "${team.name}" not found in TopProp system.`,
                                             },
                                         },
-                                        process.env.ADMIN_EMAIL,
+                                        process.env.SUPPORT_EMAIL_ADDRESS,
                                     );
                                     throw new HttpErrors.BadRequest(
-                                        `${remotePlayer.name.first} ${remotePlayer.name.last} from "${team.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
+                                        `${remotePlayer?.name?.first} ${remotePlayer?.name?.last} from "${team.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
                                     );
                                 }
                                 const rosterData = new Roster();
