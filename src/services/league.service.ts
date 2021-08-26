@@ -20,7 +20,7 @@ import moment from 'moment';
 import { UserService } from './user.service';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
-const logger = require('../utils/logger');
+import logger from '../utils/logger';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class LeagueService {
@@ -206,7 +206,6 @@ export class LeagueService {
             spread = MiscHelpers.roundValue(creatorProjectedPoints - opponentProjectedPoints, 0.5);
         }
 
-        
         const spreadData = await this.spreadRepo.findOne({
             where: {
                 projectionSpread: spread,
@@ -339,7 +338,7 @@ export class LeagueService {
                                         const rosterData = new Roster();
                                         rosterData.teamId = foundLocalTeam.id;
                                         rosterData.playerId = foundPlayer.id;
-                                        rosterData.displayPosition = remotePlayer.display_position;
+                                        rosterData.displayPosition = remotePlayer.display_position || '';
                                         rosterObjects.push(rosterData);
                                         // await this.rosterRepository.create(rosterData, { transaction });
                                     }
@@ -386,7 +385,7 @@ export class LeagueService {
                                         const rosterData = new Roster();
                                         // rosterData.teamId = createdTeam.id;
                                         rosterData.playerId = foundPlayer.id;
-                                        rosterData.displayPosition = remotePlayer.display_position;
+                                        rosterData.displayPosition = remotePlayer.display_position || '';
                                         newTeam.roster.push(rosterData);
                                         // await this.rosterRepository.create(rosterData, { transaction });
                                     }
@@ -603,8 +602,16 @@ export class LeagueService {
                                     const rosterData = new Roster();
                                     rosterData.teamId = foundLocalTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position;
+                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
                                     rosterObjects.push(rosterData);
+
+                                    if (!normalisedRemotePlayer.team_position) {
+                                        logger.error(
+                                            chalk.redBright(
+                                                `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
+                                            ),
+                                        );
+                                    }
 
                                     // await this.rosterRepository.create(rosterData, { transaction });
                                 }
@@ -663,7 +670,7 @@ export class LeagueService {
                                     const rosterData = new Roster();
                                     // rosterData.teamId = createdTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position;
+                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
                                     newTeam.roster.push(rosterData);
                                     // await this.rosterRepository.create(rosterData, { transaction });
                                 }
@@ -730,9 +737,9 @@ export class LeagueService {
         } catch (error) {
             console.log('resyncESPN: Ln 562 league.service.ts ~ error', error);
             await transaction.rollback();
-            
+
             this.handleSyncFail(localLeagueId, 'ESPN');
-            
+
             return false;
         }
 
