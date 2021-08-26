@@ -280,7 +280,7 @@ export class LeagueController {
 
                         const clientHost = process.env.CLIENT_HOST;
 
-                        this.userService.sendEmail(
+                        await this.userService.sendEmail(
                             user,
                             EMAIL_TEMPLATES.LEAGUE_INVITE,
                             {
@@ -1241,7 +1241,7 @@ export class LeagueController {
 
             const user = await this.userRepository.findById(userId);
             const league = await this.leagueRepository.findById(creatorTeam.leagueId);
-            this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
+            await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
                 user,
                 creatorTeam,
                 claimerTeam,
@@ -1390,7 +1390,7 @@ export class LeagueController {
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
         const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
         const league = await this.leagueRepository.findById(leagueContestData.leagueId);
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
+        await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
             user,
             creatorUser,
             creatorTeam,
@@ -1405,7 +1405,7 @@ export class LeagueController {
             },
         });
         user = creatorUser;
-        this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
+        await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
             user,
             claimerTeam,
