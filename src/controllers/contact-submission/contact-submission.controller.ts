@@ -243,7 +243,7 @@ export class ContactSubmissionController {
             throw new HttpErrors.NotAcceptable(CONTACT_SUBMISSION_MESSAGES.CONTACT_SUBMISSION_ALREADY_REPLIED);
         contactSubmission.reply = body.message;
         contactSubmission.repliedAt = moment().toDate();
-        this.userService.sendEmail(contactSubmission.user as User, EMAIL_TEMPLATES.CONTACT_SUBMISSION_REPLIED, {
+        await this.userService.sendEmail(contactSubmission.user as User, EMAIL_TEMPLATES.CONTACT_SUBMISSION_REPLIED, {
             user: contactSubmission.user as User,
             message: contactSubmission.message,
             messageDate: moment(contactSubmission.createdAt).format('MM/DD/YYYY'),

@@ -691,7 +691,7 @@ export class CronService {
                     const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserPlayer = await this.playerRepository.findById(underdog.playerId);
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -711,7 +711,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -736,7 +736,7 @@ export class CronService {
                     const winnerPlayer = await this.playerRepository.findById(underdog.playerId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserPlayer = await this.playerRepository.findById(favorite.playerId);
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -756,7 +756,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -784,7 +784,7 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogPlayer = await this.playerRepository.findById(underdog.playerId);
 
-                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
+                    await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoritePlayer,
@@ -803,7 +803,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
+                    await this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
                         favoriteUser,
                         underdogUser,
                         favoritePlayer,
@@ -1366,7 +1366,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1387,7 +1387,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1414,7 +1414,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1435,7 +1435,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1464,7 +1464,7 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
+                    await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -1484,7 +1484,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
+                    await this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -1970,7 +1970,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1991,7 +1991,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -2018,7 +2018,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -2039,7 +2039,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -2068,7 +2068,7 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
+                    await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -2088,7 +2088,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
+                    await this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
