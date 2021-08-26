@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,15 +11,15 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import util from 'util';
-import { LeagueService } from '../services/league.service';
+import {LeagueService} from '../services/league.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -32,9 +32,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES,
+    TIMEFRAMES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -1118,6 +1118,61 @@ export class CronService {
 
                 await this.leagueContestRepository.updateById(contest.id, constestData);
 
+                let creatorPlayerActualFantasyPoints = 0
+                let claimerPlayerActualFantasyPoints = 0
+
+                claimerRoster?.map(async rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    const contestRosterData = {
+                        playerFantasyPoints: currentPlayer.fantasyPoints,
+                    };
+                    switch (league.scoringTypeId) {
+
+                        case SCORING_TYPE.HALFPPR:
+                            claimerPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                            contestRosterData.playerFantasyPoints = claimerPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.FULLPPR:
+                            claimerPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                            contestRosterData.playerFantasyPoints = claimerPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.NOPPR:
+                            claimerPlayerActualFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                            contestRosterData.playerFantasyPoints = claimerPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                    }
+                });
+
+                creatorRoster?.map(async rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    const contestRosterData = {
+                        playerFantasyPoints: currentPlayer.fantasyPoints,
+                    };
+                    switch (league.scoringTypeId) {
+
+                        case SCORING_TYPE.HALFPPR:
+                            creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                            contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.FULLPPR:
+                            creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                            contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.NOPPR:
+                            creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                            contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                    }
+                });
+
                 const entryGain = new Gain();
 
                 entryGain.amount = Number(entryAmount) * 100;
@@ -1224,6 +1279,62 @@ export class CronService {
                 const userId = winner === 'favorite' ? favorite.userId : underdog.userId;
                 const contenderId = winner === 'favorite' ? underdog.teamId : favorite.teamId;
                 const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
+
+                let creatorPlayerActualFantasyPoints = 0
+                let claimerPlayerActualFantasyPoints = 0
+
+                claimerRoster?.map(async rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    const contestRosterData = {
+                        playerFantasyPoints: currentPlayer.fantasyPoints,
+                    };
+                    switch (league.scoringTypeId) {
+
+                        case SCORING_TYPE.HALFPPR:
+                            claimerPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                            contestRosterData.playerFantasyPoints = claimerPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.FULLPPR:
+                            claimerPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                            contestRosterData.playerFantasyPoints = claimerPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.NOPPR:
+                            claimerPlayerActualFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                            contestRosterData.playerFantasyPoints = claimerPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                    }
+                });
+
+                creatorRoster?.map(async rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    const contestRosterData = {
+                        playerFantasyPoints: currentPlayer.fantasyPoints,
+                    };
+                    switch (league.scoringTypeId) {
+
+                        case SCORING_TYPE.HALFPPR:
+                            creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                            contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.FULLPPR:
+                            creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                            contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                        case SCORING_TYPE.NOPPR:
+                            creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                            contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                            await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                            break;
+                    }
+                });
+
 
                 const entryGain = new Gain();
 
@@ -1443,6 +1554,36 @@ export class CronService {
             };
 
             await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
+
+            const creatorRoster = creatorContestTeam?.contestRosters;
+            let creatorPlayerActualFantasyPoints = 0
+
+            creatorRoster?.map(async rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                const contestRosterData = {
+                    playerFantasyPoints: currentPlayer.fantasyPoints,
+                };
+                switch (league.scoringTypeId) {
+
+                    case SCORING_TYPE.HALFPPR:
+                        creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsHalfPpr || 0);
+                        contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                        await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                        break;
+                    case SCORING_TYPE.FULLPPR:
+                        creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPointsFullPpr || 0);
+                        contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                        await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                        break;
+                    case SCORING_TYPE.NOPPR:
+                        creatorPlayerActualFantasyPoints = Number(currentPlayer.fantasyPoints || 0);
+                        contestRosterData.playerFantasyPoints = creatorPlayerActualFantasyPoints;
+                        await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData)
+                        break;
+                }
+            });
+
 
             const entryGain = new Gain();
 
@@ -2676,7 +2817,7 @@ export class CronService {
                 playerFantasyPoints: rosterPlayerFantasyPoints,
             };
 
-            return await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+            return this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
         });
     }
 
