@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,15 +11,15 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import util from 'util';
-import { LeagueService } from '../services/league.service';
+import {LeagueService} from '../services/league.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -32,9 +32,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES,
+    TIMEFRAMES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -963,8 +963,8 @@ export class CronService {
 
             const { creatorContestTeam, claimerContestTeam, league } = contest;
 
-            this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
-            this.savePlayerEarnedFantasyPoints(claimerContestTeam, league);
+            await this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
+            await this.savePlayerEarnedFantasyPoints(claimerContestTeam, league);
 
             const creatorRoster = creatorContestTeam?.contestRosters;
             const claimerRoster = claimerContestTeam?.contestRosters;
@@ -1430,7 +1430,7 @@ export class CronService {
 
         filteredUnClaimedLeagueContests.map(async unclaimedContest => {
             const { creatorContestTeam, league } = unclaimedContest;
-            this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
+            await this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
 
             const constestData = {
                 topPropProfit: 0,
@@ -2676,7 +2676,7 @@ export class CronService {
                 playerFantasyPoints: rosterPlayerFantasyPoints,
             };
 
-            return await this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
+            return this.contestRosterRepository.updateById(rosterEntry.id, contestRosterData);
         });
     }
 

@@ -1,10 +1,10 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, IsolationLevel, repository } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
 import {
     BetRepository,
     ContestRosterRepository,
@@ -17,11 +17,11 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { LeagueService } from '@src/services/league.service';
-import { UserService } from '@src/services/user.service';
-import { WalletService } from '@src/services/wallet.service';
+import {LeagueService} from '@src/services/league.service';
+import {UserService} from '@src/services/user.service';
+import {WalletService} from '@src/services/wallet.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -29,10 +29,10 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SCORING_TYPE,
-    SPREAD_TYPE,
+    SPREAD_TYPE
 } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -42,17 +42,16 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
-    ILeagueResync,
+    ILeagueResync
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
-import { INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR } from '@src/utils/validators';
-import { find, isEmpty } from 'lodash';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
+import {INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
+import {find, isEmpty} from 'lodash';
 import moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import Schema from 'validate';
-import { MiscHelpers } from '@src/utils/helpers';
-const YahooFantasy = require('yahoo-fantasy');
 import logger from '../../utils/logger';
+const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueController {
     constructor(
@@ -281,7 +280,7 @@ export class LeagueController {
 
                         const clientHost = process.env.CLIENT_HOST;
 
-                        this.userService.sendEmail(
+                        await this.userService.sendEmail(
                             user,
                             EMAIL_TEMPLATES.LEAGUE_INVITE,
                             {
@@ -1242,7 +1241,7 @@ export class LeagueController {
 
             const user = await this.userRepository.findById(userId);
             const league = await this.leagueRepository.findById(creatorTeam.leagueId);
-            this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
+            await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
                 user,
                 creatorTeam,
                 claimerTeam,
@@ -1391,7 +1390,7 @@ export class LeagueController {
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
         const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
         const league = await this.leagueRepository.findById(leagueContestData.leagueId);
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
+        await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
             user,
             creatorUser,
             creatorTeam,
@@ -1406,7 +1405,7 @@ export class LeagueController {
             },
         });
         user = creatorUser;
-        this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
+        await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
             user,
             claimerTeam,
