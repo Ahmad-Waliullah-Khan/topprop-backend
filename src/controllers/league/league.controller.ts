@@ -560,7 +560,7 @@ export class LeagueController {
             });
 
             if (remainingCreatorPlayers.length === 0)
-                throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NO_REMAINING_PLAYERS_CLAIMER);
+                throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.NO_REMAINING_PLAYERS_CREATOR);
 
             const completedCreatorPlayers = creatorTeamRoster.filter(roster => {
                 return roster.player?.isOver;
@@ -663,7 +663,7 @@ export class LeagueController {
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
             const entryAmount = body.entryAmount || 0;
-            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.BALANCE_INSUFFICIENT);
+            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
             const winBonusFlag = false;
 
@@ -805,7 +805,7 @@ export class LeagueController {
             };
         } catch (error) {
             console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
-            logger.error(error.message);
+            logger.error(JSON.stringify(error));
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
             }
@@ -1018,9 +1018,9 @@ export class LeagueController {
             if (spreadDiff > 50) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.POINT_SPREAD_TOO_LARGE);
 
             const remainingPlayers =
-            remainingClaimerPlayers.length > remainingCreatorPlayers.length
-                ? remainingCreatorPlayers.length
-                : remainingClaimerPlayers.length;
+                remainingClaimerPlayers.length > remainingCreatorPlayers.length
+                    ? remainingCreatorPlayers.length
+                    : remainingClaimerPlayers.length;
 
             if (remainingPlayers <= 2) {
                 creatorTeamSpread = await this.leagueService.calculateSpread(
@@ -1231,9 +1231,10 @@ export class LeagueController {
 
             const bet = new Bet();
 
-            bet.contenderId = creatorTeamId;
+            // bet.contenderId = creatorTeamId;
             bet.userId = userId;
             bet.amount = entryAmount * 100;
+            bet.contestId = createdLeagueContest.id;
 
             await this.betRepository.create(bet, { transaction });
 
@@ -1350,9 +1351,11 @@ export class LeagueController {
 
         const bet = new Bet();
 
-        bet.contenderId = leagueContestData.claimerTeamId;
+        // bet.contenderId = leagueContestData.claimerTeamId;
         bet.userId = userId;
         bet.amount = leagueContestData.entryAmount * 100;
+        bet.contestId = leagueContestId;
+
 
         await this.betRepository.create(bet);
 

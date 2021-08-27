@@ -572,10 +572,10 @@ export class CronService {
                 await this.contestRepository.updateById(contest.id, constestData);
 
                 const entryGain = new Gain();
-
+                entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
-                entryGain.contenderId = underdog.playerId;
+                // entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for favorite', entryGain);
@@ -584,7 +584,7 @@ export class CronService {
 
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = underdog.userId;
-                entryGain.contenderId = favorite.playerId;
+                // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for underdog', entryGain);
@@ -663,10 +663,10 @@ export class CronService {
                 const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
 
                 const entryGain = new Gain();
-
+                entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = userId;
-                entryGain.contenderId = contenderId;
+                // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
@@ -674,10 +674,10 @@ export class CronService {
                 await this.gainRepository.create(entryGain);
 
                 const winningGain = new Gain();
-
+                winningGain.contestType = 'battleground';
                 winningGain.amount = Number(winningAmount) * 100;
                 winningGain.userId = userId;
-                winningGain.contenderId = contenderId;
+                // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
@@ -853,10 +853,10 @@ export class CronService {
             await this.contestRepository.updateById(unclaimedContest.id, constestData);
 
             const entryGain = new Gain();
-
+            entryGain.contestType = 'battleground';
             entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
             entryGain.userId = unclaimedContest.creatorId;
-            entryGain.contenderId = unclaimedContest.creatorPlayerId;
+            // entryGain.contenderId = unclaimedContest.creatorPlayerId;
             entryGain.contestId = unclaimedContest.id;
 
             await this.gainRepository.create(entryGain);
@@ -1119,19 +1119,20 @@ export class CronService {
                 await this.leagueContestRepository.updateById(contest.id, constestData);
 
                 const entryGain = new Gain();
-
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
-                entryGain.contenderId = underdog.teamId;
+                // entryGain.contenderId = underdog.teamId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for favorite', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = underdog.userId;
-                entryGain.contenderId = favorite.teamId;
+                // entryGain.contenderId = favorite.teamId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for underdog', entryGain);
@@ -1226,10 +1227,10 @@ export class CronService {
                 const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
 
                 const entryGain = new Gain();
-
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = userId;
-                entryGain.contenderId = contenderId;
+                // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
@@ -1237,10 +1238,10 @@ export class CronService {
                 await this.gainRepository.create(entryGain);
 
                 const winningGain = new Gain();
-
+                winningGain.contestType = 'League';
                 winningGain.amount = Number(winningAmount) * 100;
                 winningGain.userId = userId;
-                winningGain.contenderId = contenderId;
+                // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
@@ -1445,10 +1446,10 @@ export class CronService {
             await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
 
             const entryGain = new Gain();
-
+            entryGain.contestType = 'League';
             entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
             entryGain.userId = unclaimedContest.creatorId;
-            entryGain.contenderId = unclaimedContest.claimerTeamId;
+            // entryGain.contenderId = unclaimedContest.claimerTeamId;
             entryGain.contestId = unclaimedContest.id;
 
             await this.gainRepository.create(entryGain);
@@ -1691,19 +1692,19 @@ export class CronService {
                 await this.leagueContestRepository.updateById(contest.id, constestData);
 
                 const entryGain = new Gain();
-
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
-                entryGain.contenderId = underdog.teamId;
+                // entryGain.contenderId = underdog.teamId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for favorite', entryGain);
 
                 await this.gainRepository.create(entryGain);
-
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = underdog.userId;
-                entryGain.contenderId = favorite.teamId;
+                // entryGain.contenderId = favorite.teamId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ refund data for underdog', entryGain);
@@ -1800,10 +1801,10 @@ export class CronService {
                 const winningAmount = winner === 'favorite' ? favorite.netEarnings : underdog.netEarnings;
 
                 const entryGain = new Gain();
-
+                entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = userId;
-                entryGain.contenderId = contenderId;
+                // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
 
                 // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
@@ -1811,10 +1812,10 @@ export class CronService {
                 await this.gainRepository.create(entryGain);
 
                 const winningGain = new Gain();
-
+                winningGain.contestType = 'League';
                 winningGain.amount = Number(winningAmount) * 100;
                 winningGain.userId = userId;
-                winningGain.contenderId = contenderId;
+                // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
                 const clientHost = process.env.CLIENT_HOST;
 
@@ -2018,10 +2019,10 @@ export class CronService {
             await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
 
             const entryGain = new Gain();
-
+            entryGain.contestType = 'League';
             entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
             entryGain.userId = unclaimedContest.creatorId;
-            entryGain.contenderId = unclaimedContest.claimerTeamId;
+            // entryGain.contenderId = unclaimedContest.claimerTeamId;
             entryGain.contestId = unclaimedContest.id;
 
             await this.gainRepository.create(entryGain);
@@ -2212,9 +2213,10 @@ export class CronService {
                 await this.contestRepository.updateById(contest.id, constestData);
 
                 const entryGain = new Gain();
+                entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
-                entryGain.contenderId = favorite.playerId;
+                // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
                 await this.gainRepository.create(entryGain);
             } else {
@@ -2231,16 +2233,18 @@ export class CronService {
                 await this.contestRepository.updateById(contest.id, constestData);
 
                 const entryGain = new Gain();
+                entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = favorite.userId;
-                entryGain.contenderId = underdog.playerId;
+                // entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
 
                 await this.gainRepository.create(entryGain);
-
+                
+                entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = underdog.userId;
-                entryGain.contenderId = favorite.playerId;
+                // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
 
                 await this.gainRepository.create(entryGain);
@@ -2430,7 +2434,7 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
-                entryGain.contenderId = unclaimedContest.creatorTeamId;
+                // entryGain.contenderId = unclaimedContest.creatorTeamId;
                 entryGain.contestId = unclaimedContest.id;
                 await this.gainRepository.create(entryGain);
 
@@ -2539,7 +2543,7 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
-                entryGain.contenderId = unclaimedContest.creatorTeamId;
+                // entryGain.contenderId = unclaimedContest.creatorTeamId;
                 entryGain.contestId = unclaimedContest.id;
                 await this.gainRepository.create(entryGain);
 
@@ -2587,7 +2591,7 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.creatorId;
-                entryGain.contenderId = unclaimedContest.claimerId;
+                // entryGain.contenderId = unclaimedContest.claimerId;
                 entryGain.contestId = unclaimedContest.id;
 
                 await this.gainRepository.create(entryGain);
@@ -2595,7 +2599,7 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount) * 100;
                 entryGain.userId = unclaimedContest.claimerId;
-                entryGain.contenderId = unclaimedContest.creatorId;
+                // entryGain.contenderId = unclaimedContest.creatorId;
                 entryGain.contestId = unclaimedContest.id;
 
                 await this.gainRepository.create(entryGain);
