@@ -98,16 +98,22 @@ export class LeagueService {
         const response = await this.fetchESPNAccount(espnS2, swid);
         let seasonId;
         let scoringPeriodId;
-        response.data.preferences.map((preference: any) => {
-            const { id } = preference;
-            const meta = id.split(':');
-            const prefleagueId = meta[1];
-            seasonId = meta[3];
-            scoringPeriodId = meta[2];
-            if (prefleagueId === leagueId) {
-                return false;
-            }
-        });
+        response.data.preferences
+            .filter((data: any) => {
+                const { id } = data;
+                const meta = id.split(':');
+                return meta.length == 4;
+            })
+            .map((preference: any) => {
+                const { id } = preference;
+                const meta = id.split(':');
+                const prefleagueId = meta[1];
+                seasonId = meta[3];
+                scoringPeriodId = meta[2];
+                if (prefleagueId === leagueId) {
+                    return false;
+                }
+            });
 
         const league = await myClient.getLeagueInfo({ seasonId });
         return { ...league, seasonId: seasonId };
@@ -119,16 +125,22 @@ export class LeagueService {
         const response = await this.fetchESPNAccount(espnS2, swid);
         let seasonId;
         let scoringPeriodId;
-        response.data.preferences.map((preference: any) => {
-            const { id } = preference;
-            const meta = id.split(':');
-            const prefleagueId = meta[1];
-            seasonId = meta[3];
-            scoringPeriodId = meta[2];
-            if (prefleagueId === leagueId) {
-                return false;
-            }
-        });
+        response.data.preferences
+            .filter((data: any) => {
+                const { id } = data;
+                const meta = id.split(':');
+                return meta.length == 4;
+            })
+            .map((preference: any) => {
+                const { id } = preference;
+                const meta = id.split(':');
+                const prefleagueId = meta[1];
+                seasonId = meta[3];
+                scoringPeriodId = meta[2];
+                if (prefleagueId === leagueId) {
+                    return false;
+                }
+            });
 
         const teams = await myClient.getTeamsAtWeek({ seasonId, scoringPeriodId });
         return teams;

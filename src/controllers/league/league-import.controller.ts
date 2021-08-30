@@ -32,7 +32,7 @@ import {
 import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
 import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
-import {isEmpty} from 'lodash';
+import { isEmpty } from 'lodash';
 import Schema from 'validate';
 import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '../../utils/constants/league.constants';
 const { Client } = require('espn-fantasy-football-api/node-dev');
@@ -341,8 +341,14 @@ export class LeagueImportController {
                                     const rosterData = new Roster();
                                     rosterData.teamId = createdTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position;
+                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
                                     await this.rosterRepository.create(rosterData, { transaction });
+
+                                    if (!remotePlayer.team_position) {
+                                        logger.error(
+                                            `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
+                                        );
+                                    }
                                 }
                             }
 
@@ -521,8 +527,14 @@ export class LeagueImportController {
                                 const rosterData = new Roster();
                                 rosterData.teamId = createdTeam.id;
                                 rosterData.playerId = foundPlayer.id;
-                                rosterData.displayPosition = remotePlayer.display_position;
+                                rosterData.displayPosition = remotePlayer.display_position || '';
                                 await this.rosterRepository.create(rosterData, { transaction });
+
+                                if (!remotePlayer.team_position) {
+                                    logger.error(
+                                        `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
+                                    );
+                                }
                             }
 
                             return false;
@@ -699,7 +711,7 @@ export class LeagueImportController {
         try {
             const tokenResponse = await this.leagueService.fetchYahooTokens(code);
             const { access_token, refresh_token } = tokenResponse.data;
-            
+
             if (userData) {
                 userData.yahooRefreshToken = refresh_token || null;
                 userData.yahooAccessToken = access_token || null;
