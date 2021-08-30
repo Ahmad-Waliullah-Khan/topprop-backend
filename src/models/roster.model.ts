@@ -14,7 +14,6 @@ export class Roster extends Base {
 
     @property({
         type: 'string',
-        required: true,
     })
     displayPosition: string;
 
