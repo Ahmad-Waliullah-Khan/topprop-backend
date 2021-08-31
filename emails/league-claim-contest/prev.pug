@@ -8,8 +8,8 @@ html
         p Opponent: #{creatorUser.fullName}
         p Your Player : #{claimerPlayer.fullName}
         p Opponent Player: #{creatorPlayer.fullName}
-        p Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
-        p Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.claimerPlayerMaxWin)}
+        p Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(c2d(Number(contestData.entryAmount)))}
+        p Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(c2d(Number(contestData.claimerPlayerMaxWin)))}
         p
         br
         p Thanks,

@@ -4,8 +4,8 @@
 | Opponent: #{creatorUser.fullName}
 | Your Player : #{claimerTeam.name}
 | Opponent Player: #{creatorTeam.name}
-| Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(leagueContestData.entryAmount)}
-| Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(leagueContestData.claimerPlayerMaxWin)}
+| Entry : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(c2d(Number(leagueContestData.entryAmount)))}
+| Max Win : #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(c2d(Number(leagueContestData.claimerPlayerMaxWin)))}
 |
 |
 | Thanks,

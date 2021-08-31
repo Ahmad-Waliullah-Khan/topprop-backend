@@ -614,10 +614,11 @@ export class LeagueService {
                                     const rosterData = new Roster();
                                     rosterData.teamId = foundLocalTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
+                                    rosterData.displayPosition = normalisedRemotePlayer.display_position || '';
                                     rosterObjects.push(rosterData);
 
-                                    if (!normalisedRemotePlayer.team_position) {
+                                    if (!normalisedRemotePlayer.display_position) {
+                                        // console.log("🚀 ~ file: league.service.ts ~ line 621 ~ LeagueService ~ sortedRoster.map ~ normalisedRemotePlayer", normalisedRemotePlayer)
                                         logger.error(
                                             chalk.redBright(
                                                 `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
@@ -682,7 +683,7 @@ export class LeagueService {
                                     const rosterData = new Roster();
                                     // rosterData.teamId = createdTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
+                                    rosterData.displayPosition = normalisedRemotePlayer.display_position || '';
                                     newTeam.roster.push(rosterData);
                                     // await this.rosterRepository.create(rosterData, { transaction });
                                 }

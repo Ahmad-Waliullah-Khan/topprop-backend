@@ -51,7 +51,7 @@ import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import Schema from 'validate';
 import logger from '../../utils/logger';
-const YahooFantasy = require('yahoo-fantasy');
+// const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueController {
     constructor(
@@ -804,7 +804,7 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            console.log('🚀 ~ file: league.controller.ts ~ line 807 ~ LeagueController ~ error', error);
             logger.error(JSON.stringify(error));
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
@@ -873,7 +873,6 @@ export class LeagueController {
         const transaction = await this.leagueRepository.beginTransaction(IsolationLevel.READ_COMMITTED);
 
         try {
-            
             const creatorTeamRoster = await this.rosterRepository.find({
                 where: {
                     teamId: creatorTeamId,
@@ -1242,12 +1241,13 @@ export class LeagueController {
             await transaction.commit();
 
             const user = await this.userRepository.findById(userId);
-            const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+            // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
             await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
                 user,
                 creatorTeam,
                 claimerTeam,
                 contestData,
+                c2d: MiscHelpers.c2d,
                 text: {
                     title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
                     subtitle:
@@ -1263,7 +1263,7 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            console.log('🚀 ~ file: league.controller.ts ~ line 1266 ~ LeagueController ~ error', error);
             logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
@@ -1392,7 +1392,7 @@ export class LeagueController {
         const claimerTeam = await this.teamRepository.findById(leagueContestData.claimerTeamId);
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
         const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
-        const league = await this.leagueRepository.findById(leagueContestData.leagueId);
+        // const league = await this.leagueRepository.findById(leagueContestData.leagueId);
         await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
             user,
             creatorUser,
@@ -1400,6 +1400,7 @@ export class LeagueController {
             claimerTeam,
             claimerUser,
             leagueContestData,
+            c2d: MiscHelpers.c2d,
             text: {
                 title: `Congratulations ${
                     user ? user.fullName : ''
@@ -1416,6 +1417,7 @@ export class LeagueController {
             claimerUser,
             leagueContestData,
             moment: moment,
+            c2d: MiscHelpers.c2d,
             text: {
                 title: `${
                     user ? user.fullName : ''

@@ -159,27 +159,6 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
                                   tr
                                     td(align='left' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Bonus Points
-                        td(style='padding:0;Margin:0;width:20px')
-                        td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
-                          table.es-right(cellpadding='0' cellspacing='0' align='right' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:right')
-                            tr
-                              td(align='left' style='padding:0;Margin:0;width:274px')
-                                table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
-                                  tr
-                                    td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{contestData.spreadValue > 0 ? `+${contestData.spreadValue}` : 0}
-                tr
-                  td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-bottom:10px;padding-left:20px;padding-right:20px;background-color:#ffffff')
-                    table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
-                      tr
-                        td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
-                          table.es-left(cellpadding='0' cellspacing='0' align='left' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;float:left')
-                            tr
-                              td(align='left' style='padding:0;Margin:0;width:266px')
-                                table(cellpadding='0' cellspacing='0' width='100%' bgcolor='#ffffff' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#ffffff' role='presentation')
-                                  tr
-                                    td(align='left' style='padding:0;Margin:0')
                                       p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") Entry Amount
                         td(style='padding:0;Margin:0;width:20px')
                         td.esdev-mso-td(valign='top' style='padding:0;Margin:0')
@@ -189,7 +168,7 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(contestData.entryAmount)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(c2d(Number(contestData.entryAmount)))}
                 tr
                   td.esdev-adapt-off(align='left' bgcolor='#ffffff' style='Margin:0;padding-top:10px;padding-left:20px;padding-right:20px;padding-bottom:25px;background-color:#ffffff')
                     table.esdev-mso-table(cellpadding='0' cellspacing='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:560px')
@@ -210,5 +189,5 @@ head
                                 table(cellpadding='0' cellspacing='0' width='100%' role='presentation' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px')
                                   tr
                                     td(align='right' style='padding:0;Margin:0')
-                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(maxWin)}
+                                      p(style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;line-height:24px;color:#131313;font-size:16px") #{new Intl.NumberFormat("en-US", {style: "currency",currency: "USD",minimumFractionDigits: 2,maximumFractionDigits: 2,}).format(c2d(Number(maxWin)))}
         include ../includes/footer.pug

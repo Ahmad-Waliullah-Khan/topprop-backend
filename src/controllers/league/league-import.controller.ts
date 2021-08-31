@@ -341,10 +341,11 @@ export class LeagueImportController {
                                     const rosterData = new Roster();
                                     rosterData.teamId = createdTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
+                                    rosterData.displayPosition = normalisedRemotePlayer.display_position || '';
                                     await this.rosterRepository.create(rosterData, { transaction });
 
-                                    if (!remotePlayer.team_position) {
+                                    if (!remotePlayer.display_position) {
+                                        console.log("🚀 ~ file: league-import.controller.ts ~ line 348 ~ LeagueImportController ~ sortedRoster.map ~ remotePlayer", remotePlayer)
                                         logger.error(
                                             `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
                                         );
@@ -531,6 +532,7 @@ export class LeagueImportController {
                                 await this.rosterRepository.create(rosterData, { transaction });
 
                                 if (!remotePlayer.team_position) {
+                                    console.log("🚀 ~ file: league-import.controller.ts ~ line 535 ~ LeagueImportController ~ roster.roster.map ~ remotePlayer", remotePlayer)
                                     logger.error(
                                         `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
                                     );
