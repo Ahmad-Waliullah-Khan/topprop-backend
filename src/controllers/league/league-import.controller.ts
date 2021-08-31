@@ -1,10 +1,10 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { HttpErrors, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { League, Member, Roster, Team } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {HttpErrors, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {League, Member, Roster, Team} from '@src/models';
 import {
     LeagueRepository,
     MemberRepository,
@@ -12,13 +12,13 @@ import {
     RosterRepository,
     ScoringTypeRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { UserService } from '@src/services';
-import { LeagueService } from '@src/services/league.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {UserService} from '@src/services';
+import {LeagueService} from '@src/services/league.service';
+import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -27,16 +27,16 @@ import {
     ILeagueImportRequestYahoo,
     ILeaguesFetchRequestYahoo,
     ILeagueSyncRequestEspn,
-    ILeagueSyncRequestYahoo,
+    ILeagueSyncRequestYahoo
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
-import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
+import {COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES} from '@src/utils/messages';
+import {FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR} from '@src/utils/validators/league-import.validators';
 // import {Client} from 'espn-fantasy-football-api/node';
-import { isEmpty } from 'lodash';
+import {isEmpty} from 'lodash';
 import Schema from 'validate';
-import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '../../utils/constants/league.constants';
-const { Client } = require('espn-fantasy-football-api/node-dev');
+import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '../../utils/constants/league.constants';
 import logger from '../../utils/logger';
+const { Client } = require('espn-fantasy-football-api/node-dev');
 const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueImportController {
@@ -163,6 +163,10 @@ export class LeagueImportController {
                         const { id } = data;
                         const meta = id.split(':');
                         return meta.length == 4;
+                    })
+                    .filter((data: any) => {
+                        const leagueType = data.metaData.entry.abbrev;
+                        return leagueType === 'FFL';
                     })
                     .map(async (data: any) => {
                         const { id } = data;
@@ -345,7 +349,10 @@ export class LeagueImportController {
                                     await this.rosterRepository.create(rosterData, { transaction });
 
                                     if (!remotePlayer.display_position) {
-                                        console.log("🚀 ~ file: league-import.controller.ts ~ line 348 ~ LeagueImportController ~ sortedRoster.map ~ remotePlayer", remotePlayer)
+                                        console.log(
+                                            '🚀 ~ file: league-import.controller.ts ~ line 348 ~ LeagueImportController ~ sortedRoster.map ~ remotePlayer',
+                                            remotePlayer,
+                                        );
                                         logger.error(
                                             `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
                                         );
@@ -532,7 +539,10 @@ export class LeagueImportController {
                                 await this.rosterRepository.create(rosterData, { transaction });
 
                                 if (!remotePlayer.team_position) {
-                                    console.log("🚀 ~ file: league-import.controller.ts ~ line 535 ~ LeagueImportController ~ roster.roster.map ~ remotePlayer", remotePlayer)
+                                    console.log(
+                                        '🚀 ~ file: league-import.controller.ts ~ line 535 ~ LeagueImportController ~ roster.roster.map ~ remotePlayer',
+                                        remotePlayer,
+                                    );
                                     logger.error(
                                         `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
                                     );

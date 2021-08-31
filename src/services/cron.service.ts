@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {Gain, Player, Timeframe} from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,15 +11,16 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { SportsDataService, UserService } from '@src/services';
+import {SportsDataService, UserService} from '@src/services';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import util from 'util';
-import { LeagueService } from '../services/league.service';
+import {LeagueService} from '../services/league.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -32,10 +33,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES,
+    TIMEFRAMES
 } from '../utils/constants';
-import { MiscHelpers } from '@src/utils/helpers';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -1151,6 +1151,7 @@ export class CronService {
                 const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
                 let receiverUser = favoriteUser;
+                const clientHost = process.env.CLIENT_HOST;
 
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                     contestData,
@@ -1159,19 +1160,12 @@ export class CronService {
                     favoriteTeam,
                     underdogTeam,
                     receiverUser,
+                    clientHost,
                     maxWin: contestData.creatorTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
-                        title: 'League Contest was a push',
-                        subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                            'en-US',
-                            {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            },
-                        ).format(MiscHelpers.c2d(favorite.netEarnings))}`,
+                        title: `You Tied, ${receiverUser ? receiverUser.fullName : ''}!`,
+                        subtitle: ``,
                     },
                 });
                 receiverUser = underdogUser;
@@ -1183,19 +1177,12 @@ export class CronService {
                     favoriteTeam,
                     underdogTeam,
                     receiverUser,
+                    clientHost,
                     maxWin: contestData.claimerTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
-                        title: 'League Contest was a push',
-                        subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                            'en-US',
-                            {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            },
-                        ).format(MiscHelpers.c2d(underdog.netEarnings))}`,
+                        title: `You Tied, ${receiverUser ? receiverUser.fullName : ''}!`,
+                        subtitle: ``,
                     },
                 });
             } else {
@@ -1739,23 +1726,12 @@ export class CronService {
                     favoriteTeam,
                     underdogTeam,
                     receiverUser,
+                    clientHost,
                     maxWin: contestData.creatorTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
-                        title: 'League Contest was a push',
-                        subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                            'en-US',
-                            {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            },
-                        ).format(MiscHelpers.c2d(favorite.netEarnings))}`,
-                    },
-                    link: {
-                        url: `${clientHost}`,
-                        text: `Create New Contest`,
+                        title: `You Tied, ${receiverUser ? receiverUser.fullName : ''}!`,
+                        subtitle: ``,
                     },
                 });
                 receiverUser = underdogUser;
@@ -1767,23 +1743,12 @@ export class CronService {
                     favoriteTeam,
                     underdogTeam,
                     receiverUser,
+                    clientHost,
                     maxWin: contestData.claimerTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
-                        title: 'League Contest was a push',
-                        subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
-                            'en-US',
-                            {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            },
-                        ).format(MiscHelpers.c2d(underdog.netEarnings))}`,
-                    },
-                    link: {
-                        url: `${clientHost}`,
-                        text: `Create New Contest`,
+                        title: `You Tied, ${receiverUser ? receiverUser.fullName : ''}!`,
+                        subtitle: ``,
                     },
                 });
             } else {

@@ -1,6 +1,6 @@
-import { BindingScope, Getter, injectable, service } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { League, Roster, Team } from '@src/models';
+import {BindingScope, Getter, injectable, service} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {League, Roster, Team} from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,18 +9,18 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { EMAIL_TEMPLATES } from '@src/utils/constants';
-import { ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING } from '@src/utils/constants/league.constants';
-import { MiscHelpers } from '@src/utils/helpers';
+import {EMAIL_TEMPLATES} from '@src/utils/constants';
+import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '@src/utils/constants/league.constants';
+import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 import chalk from 'chalk';
 import moment from 'moment';
-import { UserService } from './user.service';
+import logger from '../utils/logger';
+import {UserService} from './user.service';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
-import logger from '../utils/logger';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class LeagueService {
@@ -104,6 +104,10 @@ export class LeagueService {
                 const meta = id.split(':');
                 return meta.length == 4;
             })
+            .filter((data: any) => {
+                const leagueType = data.metaData.entry.abbrev;
+                return leagueType === 'FFL';
+            })
             .map((preference: any) => {
                 const { id } = preference;
                 const meta = id.split(':');
@@ -130,6 +134,10 @@ export class LeagueService {
                 const { id } = data;
                 const meta = id.split(':');
                 return meta.length == 4;
+            })
+            .filter((data: any) => {
+                const leagueType = data.metaData.entry.abbrev;
+                return leagueType === 'FFL';
             })
             .map((preference: any) => {
                 const { id } = preference;
