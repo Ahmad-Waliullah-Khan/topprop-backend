@@ -1,10 +1,10 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, FilterExcludingWhere, IsolationLevel, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member } from '@src/models';
 import {
     BetRepository,
     ContestRosterRepository,
@@ -17,11 +17,11 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {LeagueService} from '@src/services/league.service';
-import {UserService} from '@src/services/user.service';
-import {WalletService} from '@src/services/wallet.service';
+import { LeagueService } from '@src/services/league.service';
+import { UserService } from '@src/services/user.service';
+import { WalletService } from '@src/services/wallet.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -29,10 +29,10 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SCORING_TYPE,
-    SPREAD_TYPE
+    SPREAD_TYPE,
 } from '@src/utils/constants';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -42,16 +42,16 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
-    ILeagueResync
+    ILeagueResync,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
-import {INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
-import {find, isEmpty} from 'lodash';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
+import { INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR } from '@src/utils/validators';
+import { find, isEmpty } from 'lodash';
 import moment from 'moment';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Schema from 'validate';
 import logger from '../../utils/logger';
-const YahooFantasy = require('yahoo-fantasy');
+// const YahooFantasy = require('yahoo-fantasy');
 
 export class LeagueController {
     constructor(
@@ -662,8 +662,8 @@ export class LeagueController {
             // totalClaimerTeamProjFantasy = 215;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
-            const entryAmount = body.entryAmount || 0;
-            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+            const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
+            if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
             const winBonusFlag = false;
 
@@ -804,7 +804,7 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            console.log('🚀 ~ file: league.controller.ts ~ line 807 ~ LeagueController ~ error', error);
             logger.error(JSON.stringify(error));
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
@@ -918,7 +918,7 @@ export class LeagueController {
 
             const creatorTeamPlayerFantasy = completedCreatorPlayers.map(roster => {
                 let creatorTeamFantasyPoints = 0;
-                switch (league.scoringTypeId) {
+                switch (scoringTypeId) {
                     case SCORING_TYPE.HALFPPR:
                         creatorTeamFantasyPoints = roster.player ? Number(roster.player.fantasyPointsHalfPpr) : 0;
                         break;
@@ -997,8 +997,8 @@ export class LeagueController {
             // totalClaimerTeamProjFantasy = 215;
 
             const funds = await this.walletService.userBalance(+currentUser[securityId]);
-            const entryAmount = body.entryAmount || 0;
-            if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+            const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
+            if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
             const winBonusFlag = false;
 
@@ -1233,7 +1233,7 @@ export class LeagueController {
 
             // bet.contenderId = creatorTeamId;
             bet.userId = userId;
-            bet.amount = entryAmount * 100;
+            bet.amount = entryAmount;
             bet.contestId = createdLeagueContest.id;
 
             await this.betRepository.create(bet, { transaction });
@@ -1241,12 +1241,13 @@ export class LeagueController {
             await transaction.commit();
 
             const user = await this.userRepository.findById(userId);
-            const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+            // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
             await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
                 user,
                 creatorTeam,
                 claimerTeam,
                 contestData,
+                c2d: MiscHelpers.c2d,
                 text: {
                     title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
                     subtitle:
@@ -1262,7 +1263,7 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 850 ~ LeagueController ~ error', error);
+            console.log('🚀 ~ file: league.controller.ts ~ line 1266 ~ LeagueController ~ error', error);
             logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
@@ -1342,7 +1343,7 @@ export class LeagueController {
 
         const funds = await this.walletService.userBalance(userId);
         const entryAmount = leagueContestData.entryAmount || 0;
-        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+        if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
         leagueContestData.claimerId = body.claimerId;
         leagueContestData.status = CONTEST_STATUSES.MATCHED;
@@ -1353,9 +1354,8 @@ export class LeagueController {
 
         // bet.contenderId = leagueContestData.claimerTeamId;
         bet.userId = userId;
-        bet.amount = leagueContestData.entryAmount * 100;
+        bet.amount = leagueContestData.entryAmount;
         bet.contestId = leagueContestId;
-
 
         await this.betRepository.create(bet);
 
@@ -1392,7 +1392,7 @@ export class LeagueController {
         const claimerTeam = await this.teamRepository.findById(leagueContestData.claimerTeamId);
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
         const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
-        const league = await this.leagueRepository.findById(leagueContestData.leagueId);
+        // const league = await this.leagueRepository.findById(leagueContestData.leagueId);
         await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
             user,
             creatorUser,
@@ -1400,6 +1400,7 @@ export class LeagueController {
             claimerTeam,
             claimerUser,
             leagueContestData,
+            c2d: MiscHelpers.c2d,
             text: {
                 title: `Congratulations ${
                     user ? user.fullName : ''
@@ -1416,6 +1417,7 @@ export class LeagueController {
             claimerUser,
             leagueContestData,
             moment: moment,
+            c2d: MiscHelpers.c2d,
             text: {
                 title: `${
                     user ? user.fullName : ''

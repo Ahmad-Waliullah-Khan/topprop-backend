@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,15 +11,15 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {SportsDataService, UserService} from '@src/services';
+import { SportsDataService, UserService } from '@src/services';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import util from 'util';
-import {LeagueService} from '../services/league.service';
+import { LeagueService } from '../services/league.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -32,9 +32,10 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES
+    TIMEFRAMES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { MiscHelpers } from '@src/utils/helpers';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -573,7 +574,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'battleground';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
                 // entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
@@ -582,7 +583,7 @@ export class CronService {
 
                 await this.gainRepository.create(entryGain);
 
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
                 // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
@@ -664,7 +665,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'battleground';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = userId;
                 // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
@@ -699,12 +700,13 @@ export class CronService {
                         contestData,
                         netEarnings: favorite.netEarnings,
                         clientHost,
+                        c2d: MiscHelpers.c2d,
                         winAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -749,7 +751,8 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
@@ -854,7 +857,7 @@ export class CronService {
 
             const entryGain = new Gain();
             entryGain.contestType = 'battleground';
-            entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
+            entryGain.amount = Number(unclaimedContest.entryAmount);
             entryGain.userId = unclaimedContest.creatorId;
             // entryGain.contenderId = unclaimedContest.creatorPlayerId;
             entryGain.contestId = unclaimedContest.id;
@@ -1175,7 +1178,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
                 // entryGain.contenderId = underdog.teamId;
                 entryGain.contestId = contest.id;
@@ -1185,7 +1188,7 @@ export class CronService {
                 await this.gainRepository.create(entryGain);
 
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
                 // entryGain.contenderId = favorite.teamId;
                 entryGain.contestId = contest.id;
@@ -1212,6 +1215,7 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: 'League Contest was a push',
                         subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
@@ -1222,7 +1226,7 @@ export class CronService {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             },
-                        ).format(favorite.netEarnings)}`,
+                        ).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                     },
                 });
                 receiverUser = underdogUser;
@@ -1235,6 +1239,7 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     maxWin: contestData.claimerTeamMaxWin,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: 'League Contest was a push',
                         subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
@@ -1245,7 +1250,7 @@ export class CronService {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             },
-                        ).format(underdog.netEarnings)}`,
+                        ).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                     },
                 });
             } else {
@@ -1339,7 +1344,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = userId;
                 // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
@@ -1350,7 +1355,7 @@ export class CronService {
 
                 const winningGain = new Gain();
                 winningGain.contestType = 'League';
-                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
                 // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
@@ -1367,7 +1372,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1380,15 +1385,16 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         maxWin: favorite.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1401,8 +1407,9 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                         maxWin: underdog.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
@@ -1415,7 +1422,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1428,15 +1435,16 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                         maxWin: underdog.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1449,8 +1457,9 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         maxWin: favorite.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
@@ -1465,7 +1474,7 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
+                    await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -1477,15 +1486,16 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         maxWin: favorite.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
 
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
+                    await this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -1497,8 +1507,9 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                         maxWin: underdog.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
                             subtitle: ``,
@@ -1588,7 +1599,7 @@ export class CronService {
 
             const entryGain = new Gain();
             entryGain.contestType = 'League';
-            entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
+            entryGain.amount = Number(unclaimedContest.entryAmount);
             entryGain.userId = unclaimedContest.creatorId;
             // entryGain.contenderId = unclaimedContest.claimerTeamId;
             entryGain.contestId = unclaimedContest.id;
@@ -1613,6 +1624,7 @@ export class CronService {
                 receiverUser,
                 maxWin: contestData.creatorTeamMaxWin,
                 user,
+                c2d: MiscHelpers.c2d,
                 text: {
                     title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                     subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -1834,7 +1846,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
                 // entryGain.contenderId = underdog.teamId;
                 entryGain.contestId = contest.id;
@@ -1843,7 +1855,7 @@ export class CronService {
 
                 await this.gainRepository.create(entryGain);
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
                 // entryGain.contenderId = favorite.teamId;
                 entryGain.contestId = contest.id;
@@ -1869,6 +1881,7 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: 'League Contest was a push',
                         subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
@@ -1879,7 +1892,7 @@ export class CronService {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             },
-                        ).format(favorite.netEarnings)}`,
+                        ).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                     },
                     link: {
                         url: `${clientHost}`,
@@ -1896,6 +1909,7 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     maxWin: contestData.claimerTeamMaxWin,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: 'League Contest was a push',
                         subtitle: `Your league contest was a draw. Your net earnings are ${new Intl.NumberFormat(
@@ -1906,7 +1920,7 @@ export class CronService {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             },
-                        ).format(underdog.netEarnings)}`,
+                        ).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                     },
                     link: {
                         url: `${clientHost}`,
@@ -1943,7 +1957,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = userId;
                 // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
@@ -1971,7 +1985,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -1984,15 +1998,16 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         maxWin: favorite.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -2005,8 +2020,9 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                         maxWin: underdog.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
@@ -2019,7 +2035,7 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -2032,15 +2048,16 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                         maxWin: underdog.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Won, ${winnerUser ? winnerUser.fullName : ''}! 🚀`,
                             subtitle: ``,
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
@@ -2053,8 +2070,9 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         maxWin: favorite.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Lost, ${loserUser ? loserUser.fullName : ''}!`,
                             subtitle: ``,
@@ -2069,7 +2087,7 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
+                    await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -2081,15 +2099,16 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(favorite.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
                         maxWin: favorite.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Tied, ${favoriteUser ? favoriteUser.fullName : ''}!`,
                             subtitle: ``,
                         },
                     });
 
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
+                    await this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_UNDERDOG, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
@@ -2101,8 +2120,9 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(underdog.netEarnings)}`,
+                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
                         maxWin: underdog.teamMaxWin,
+                        c2d: MiscHelpers.c2d,
                         text: {
                             title: `You Tied, ${underdogUser ? underdogUser.fullName : ''}!`,
                             subtitle: ``,
@@ -2161,7 +2181,7 @@ export class CronService {
 
             const entryGain = new Gain();
             entryGain.contestType = 'League';
-            entryGain.amount = Number(unclaimedContest.entryAmount) * 100;
+            entryGain.amount = Number(unclaimedContest.entryAmount);
             entryGain.userId = unclaimedContest.creatorId;
             // entryGain.contenderId = unclaimedContest.claimerTeamId;
             entryGain.contestId = unclaimedContest.id;
@@ -2186,6 +2206,7 @@ export class CronService {
                 receiverUser,
                 maxWin: contestData.creatorTeamMaxWin,
                 user,
+                c2d: MiscHelpers.c2d,
                 text: {
                     title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                     subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -2355,7 +2376,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'battleground';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
                 // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
@@ -2375,15 +2396,15 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'battleground';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
                 // entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
 
                 await this.gainRepository.create(entryGain);
-                
+
                 entryGain.contestType = 'battleground';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
                 // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
@@ -2573,7 +2594,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = unclaimedContest.creatorId;
                 // entryGain.contenderId = unclaimedContest.creatorTeamId;
                 entryGain.contestId = unclaimedContest.id;
@@ -2597,6 +2618,7 @@ export class CronService {
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
                     user,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -2682,7 +2704,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = unclaimedContest.creatorId;
                 // entryGain.contenderId = unclaimedContest.creatorTeamId;
                 entryGain.contestId = unclaimedContest.id;
@@ -2706,6 +2728,7 @@ export class CronService {
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
                     user,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -2730,7 +2753,7 @@ export class CronService {
 
                 const entryGain = new Gain();
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = unclaimedContest.creatorId;
                 // entryGain.contenderId = unclaimedContest.claimerId;
                 entryGain.contestId = unclaimedContest.id;
@@ -2738,7 +2761,7 @@ export class CronService {
                 await this.gainRepository.create(entryGain);
 
                 entryGain.contestType = 'League';
-                entryGain.amount = Number(entryAmount) * 100;
+                entryGain.amount = Number(entryAmount);
                 entryGain.userId = unclaimedContest.claimerId;
                 // entryGain.contenderId = unclaimedContest.creatorId;
                 entryGain.contestId = unclaimedContest.id;
@@ -2763,6 +2786,7 @@ export class CronService {
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
                     user,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -2784,6 +2808,7 @@ export class CronService {
                     receiverUser,
                     maxWin: contestData.claimerTeamMaxWin,
                     user,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,

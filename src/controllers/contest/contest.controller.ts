@@ -94,8 +94,8 @@ export class ContestController {
         if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
 
         const funds = await this.walletService.userBalance(+currentUser[securityId]);
-        const entryAmount = body.entryAmount || 0;
-        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+        const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
+        if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
         const winBonusFlag = false;
         const creatorPlayerId = body.creatorPlayerId || 0;
@@ -172,7 +172,7 @@ export class ContestController {
 
         bet.contenderId = creatorPlayerId;
         bet.userId = userId;
-        bet.amount = entryAmount * 100;
+        bet.amount = entryAmount;
         bet.contestId = createdContest.id;
 
         await this.betRepository.create(bet);
@@ -276,7 +276,7 @@ export class ContestController {
 
         const funds = await this.walletService.userBalance(userId);
         const entryAmount = contestData.entryAmount || 0;
-        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+        if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
         contestData.claimerId = body.claimerId;
         contestData.status = CONTEST_STATUSES.MATCHED;
@@ -287,7 +287,7 @@ export class ContestController {
 
         bet.contenderId = contestData.claimerPlayerId;
         bet.userId = userId;
-        bet.amount = contestData.entryAmount * 100;
+        bet.amount = contestData.entryAmount;
         bet.contestId = contestId;
 
         await this.betRepository.create(bet);

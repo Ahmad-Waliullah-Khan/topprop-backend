@@ -98,16 +98,22 @@ export class LeagueService {
         const response = await this.fetchESPNAccount(espnS2, swid);
         let seasonId;
         let scoringPeriodId;
-        response.data.preferences.map((preference: any) => {
-            const { id } = preference;
-            const meta = id.split(':');
-            const prefleagueId = meta[1];
-            seasonId = meta[3];
-            scoringPeriodId = meta[2];
-            if (prefleagueId === leagueId) {
-                return false;
-            }
-        });
+        response.data.preferences
+            .filter((data: any) => {
+                const { id } = data;
+                const meta = id.split(':');
+                return meta.length == 4;
+            })
+            .map((preference: any) => {
+                const { id } = preference;
+                const meta = id.split(':');
+                const prefleagueId = meta[1];
+                seasonId = meta[3];
+                scoringPeriodId = meta[2];
+                if (prefleagueId === leagueId) {
+                    return false;
+                }
+            });
 
         const league = await myClient.getLeagueInfo({ seasonId });
         return { ...league, seasonId: seasonId };
@@ -119,16 +125,22 @@ export class LeagueService {
         const response = await this.fetchESPNAccount(espnS2, swid);
         let seasonId;
         let scoringPeriodId;
-        response.data.preferences.map((preference: any) => {
-            const { id } = preference;
-            const meta = id.split(':');
-            const prefleagueId = meta[1];
-            seasonId = meta[3];
-            scoringPeriodId = meta[2];
-            if (prefleagueId === leagueId) {
-                return false;
-            }
-        });
+        response.data.preferences
+            .filter((data: any) => {
+                const { id } = data;
+                const meta = id.split(':');
+                return meta.length == 4;
+            })
+            .map((preference: any) => {
+                const { id } = preference;
+                const meta = id.split(':');
+                const prefleagueId = meta[1];
+                seasonId = meta[3];
+                scoringPeriodId = meta[2];
+                if (prefleagueId === leagueId) {
+                    return false;
+                }
+            });
 
         const teams = await myClient.getTeamsAtWeek({ seasonId, scoringPeriodId });
         return teams;
@@ -602,10 +614,11 @@ export class LeagueService {
                                     const rosterData = new Roster();
                                     rosterData.teamId = foundLocalTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
+                                    rosterData.displayPosition = normalisedRemotePlayer.display_position || '';
                                     rosterObjects.push(rosterData);
 
-                                    if (!normalisedRemotePlayer.team_position) {
+                                    if (!normalisedRemotePlayer.display_position) {
+                                        // console.log("🚀 ~ file: league.service.ts ~ line 621 ~ LeagueService ~ sortedRoster.map ~ normalisedRemotePlayer", normalisedRemotePlayer)
                                         logger.error(
                                             chalk.redBright(
                                                 `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
@@ -670,7 +683,7 @@ export class LeagueService {
                                     const rosterData = new Roster();
                                     // rosterData.teamId = createdTeam.id;
                                     rosterData.playerId = foundPlayer.id;
-                                    rosterData.displayPosition = normalisedRemotePlayer.team_position || '';
+                                    rosterData.displayPosition = normalisedRemotePlayer.display_position || '';
                                     newTeam.roster.push(rosterData);
                                     // await this.rosterRepository.create(rosterData, { transaction });
                                 }

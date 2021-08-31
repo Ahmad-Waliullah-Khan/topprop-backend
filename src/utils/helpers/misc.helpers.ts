@@ -66,4 +66,12 @@ export class MiscHelpers {
     static isPropValuesEqual(subject: any, target: any, propNames: any) {
         return propNames.every((propName: any) => subject[propName] === target[propName]);
     }
+
+    static d2c(value: string | number) {
+        return Number(value) * 100;
+    }
+
+    static c2d(value: string | number) {
+        return Number(value) / 100;
+    }
 }
