@@ -1,4 +1,4 @@
-import { ValidatorHelpers } from '../helpers';
+import {ValidatorHelpers} from '../helpers';
 
 export const USER_VALIDATORS = {
     id: {
@@ -13,12 +13,12 @@ export const USER_VALIDATORS = {
         type: String,
         required: true,
         length: { min: 8 },
-        //string must contain 1 number , 1 lowercase and 1 uppercase. Extra symbols allowed too.
-        // match: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$ <>()=,;:%^&*-_\.+]).{8,}$/,
+        //string must be minimum of 8 characters, contain 1 number , 1 lowercase and 1 uppercase. Extra symbols allowed too.
+        match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
         message: {
             required: 'Password is required.',
             length: 'Password must contain at least 8 characters.',
-            // match: 'Password must have at least one uppercase, one lowercase and 1 number.',
+            match: 'Password must be at least 8 characters long, and contain one uppercase, one lowercase and one number and a special character.',
         },
     },
     confirmPassword: {
