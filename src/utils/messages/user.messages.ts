@@ -2,6 +2,8 @@ import {MINIMUM_WITHDRAW_AMOUNT} from '../constants';
 
 export const USER_MESSAGES = {
     INVALID_CREDENTIALS: `The credentials are incorrect. Try again.`,
+    INVALID_CREDENTIALS_TIMEOUT: `The credentials are incorrect.Please try again after`,
+    ACCOUNT_TIMEOUT: `Your account has been temporarily blocked.Please try again after`,
     EMPTY_CREDENTIALS: `Must provide credentials.`,
     USER_NOT_FOUND: `User does not exist.`,
     USER_ALREADY_CONFIRMED: `User already confirmed.`,

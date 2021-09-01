@@ -12,13 +12,20 @@ export const USER_VALIDATORS = {
     password: {
         type: String,
         required: true,
-        length: { min: 8 },
+        length: { min: 12 },
         //string must contain 1 number , 1 lowercase and 1 uppercase. Extra symbols allowed too.
-        match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\~\`\@\#\$\%\^\&\*\(\)\-\=\_\+\[\]\\\{\}\|\;\'\:\"\,\.\/\<\>\?])[A-Za-z\d\~\`\@\#\$\%\^\&\*\(\)\-\=\_\+\[\]\\\{\}\|\;\'\:\"\,\.\/\<\>\?]{12,}$/,
         message: {
             required: 'Password is required.',
-            length: 'Password must contain at least 8 characters.',
-            match: 'Password must contain at least 8 characters, one number, one uppercase alphabet, one lowercase alphabet, and one special character.',
+            length: 'Password must contain at least 12 characters.',
+            match: 'Password must contain at least 12 characters, one number, one uppercase alphabet, one lowercase alphabet, and one special character.',
+        },
+    },
+    simplePassword: {
+        type: String,
+        required: true,
+        message: {
+            required: 'Password is required.',
         },
     },
     confirmPassword: {

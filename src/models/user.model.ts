@@ -149,6 +149,18 @@ export class User extends Entity {
     lastLoginState?: string | null;
 
     @property({
+        type: 'number',
+        default: 0,
+    })
+    invalidLoginCount: number;
+
+    @property({
+        type: 'date',
+        default: null,
+    })
+    lockedTime?: string | null;
+
+    @property({
         type: 'date',
         default: () => new Date(),
     })

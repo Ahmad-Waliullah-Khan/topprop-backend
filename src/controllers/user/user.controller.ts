@@ -205,7 +205,7 @@ export class UserController {
         credentials: LoginCredentials,
     ): Promise<ICommonHttpResponse> {
         const validationSchema = {
-            password: USER_VALIDATORS.password,
+            password: USER_VALIDATORS.simplePassword,
             emailOrUsername: USER_VALIDATORS.emailOrUsername,
         };
 

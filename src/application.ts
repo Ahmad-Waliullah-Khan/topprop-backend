@@ -70,7 +70,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
             );
 
         this.bind('TOKEN_SECRET_SIGN').to(process.env.TOKEN_SECRET_SIGN);
-        this.bind('TOKEN_EXPIRATION_IN').to('15d');
+        this.bind('TOKEN_EXPIRATION_IN').to('30m');
 
         //* Register jwt auth strategy
         registerAuthenticationStrategy(this, JWTAuthenticationStrategy);
