@@ -12,7 +12,7 @@ export const USER_VALIDATORS = {
     password: {
         type: String,
         required: true,
-        length: { min: 8 },
+        length: {min: 8},
         //string must contain 1 number , 1 lowercase and 1 uppercase. Extra symbols allowed too.
         match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
         message: {
@@ -24,7 +24,7 @@ export const USER_VALIDATORS = {
     confirmPassword: {
         type: String,
         required: true,
-        use: { comparePasswords: ValidatorHelpers.comparePasswords },
+        use: {comparePasswords: ValidatorHelpers.comparePasswords},
         message: {
             comparePasswords: 'Confirm Password must match with password.',
             required: 'Confirm Password is required.',
@@ -46,13 +46,13 @@ export const USER_VALIDATORS = {
             required: 'Email or username is required.',
         },
     },
-    username: {
-        type: String,
-        required: true,
-        message: {
-            required: 'Username is required.',
-        },
-    },
+    // username: {
+    //     type: String,
+    //     required: true,
+    //     message: {
+    //         required: 'Username is required.',
+    //     },
+    // },
     fullName: {
         type: String,
         required: true,
@@ -77,15 +77,16 @@ export const USER_VALIDATORS = {
     //             'Address must contain at least: street 1, city, state, country, latitude, longitude and zip code (5 digits).',
     //     },
     // },
-    // username: {
-    //     type: String,
-    //     length: { min: 5, max: 16 },
-    //     match: /^[a-zA-Z0-9]{5,16}$/,
-    //     message: {
-    //         length: 'Username must contain between 5 and 16 characters',
-    //         match: 'Username must contain only letters (a,B, etc.) and numbers (1,16, etc.).',
-    //     },
-    // },
+    username: {
+        type: String,
+        length: {min: 4, max: 20},
+        match: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/,
+        message: {
+            required: 'Username is required.',
+            length: 'Username must contain between 4 and 20 characters',
+            match: 'Username must contain at least one letter (a,B, etc.), one number (1,16, etc.) and one special character (! , @ , # , $ , % , ^ , & , *).',
+        },
+    },
     forgotPasswordToken: {
         type: String,
         required: true,
