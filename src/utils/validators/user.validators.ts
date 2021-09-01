@@ -79,6 +79,7 @@ export const USER_VALIDATORS = {
     // },
     username: {
         type: String,
+        required: true,
         length: {min: 4, max: 20},
         match: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/,
         message: {
