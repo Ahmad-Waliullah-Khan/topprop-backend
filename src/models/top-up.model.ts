@@ -13,7 +13,7 @@ export class TopUp extends Base {
 
     @property({
         type: 'string',
-        required: true,
+        // required: true,
     })
     paymentIntentId: string;
 
