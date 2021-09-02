@@ -6,6 +6,7 @@ export enum EMAIL_TEMPLATES {
     // ADMIN_PAYMENT_FAILED = 'admin-payment-failed',
     ADMIN_IMPORT_PLAYERS_UPDATE = 'admin-import-players-update',
     ADMIN_SYNC_FAILED = 'admin-sync-failed',
+    ADMIN_SYNC_FAILED_PLAYER_NOT_FOUND = 'admin-sync-failed-player-not-found',
     //* END ADMIN EMAIL TEMPLATES
     WELCOME = 'welcome',
     // ACCOUNT_CONFIRMED = 'account-confirmed',
