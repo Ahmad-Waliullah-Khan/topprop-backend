@@ -280,6 +280,8 @@ export class LeagueService {
         const newTeams: any[] = [];
         let league;
 
+        const notFoundPlayers: any[] = [];
+
         try {
             const refreshedYahooTokens = await this.refreshYahooAccessTokens(userData.yahooRefreshToken);
 
@@ -304,8 +306,6 @@ export class LeagueService {
             );
             yf.setUserToken(access_token);
             yf.setRefreshToken(refresh_token);
-
-            const notFoundPlayers: any[] = [];
 
             const localPlayers = await this.playerRepo.find();
             const localTeams = await this.teamRepository.find({
@@ -420,7 +420,7 @@ export class LeagueService {
 
             league = await yf.league.meta(leagueId);
         } catch (error) {
-            this.handleSyncFail(localLeagueId, 'YAHOO');
+            await this.handleSyncFail(localLeagueId, 'YAHOO');
 
             if (error.response) {
                 logger.error(
@@ -497,8 +497,12 @@ export class LeagueService {
             console.log('resyncYahoo: Ln 462 league.service.ts ~ error', error);
             await transaction.rollback();
 
-            this.handleSyncFail(localLeagueId, 'YAHOO');
+            await this.handleSyncFail(localLeagueId, 'YAHOO');
             return false;
+        }
+
+        if (notFoundPlayers.length > 0) {
+            await this.handleSyncFail(localLeagueId, 'YAHOO');
         }
 
         return true;
@@ -544,7 +548,7 @@ export class LeagueService {
                 ),
             );
 
-            this.handleSyncFail(localLeagueId, 'ESPN');
+            await this.handleSyncFail(localLeagueId, 'ESPN');
         }
 
         const leagueInfo = leaguePromise.data;
@@ -759,11 +763,14 @@ export class LeagueService {
             console.log('resyncESPN: Ln 562 league.service.ts ~ error', error);
             await transaction.rollback();
 
-            this.handleSyncFail(localLeagueId, 'ESPN');
+            await this.handleSyncFail(localLeagueId, 'ESPN');
 
             return false;
         }
 
+        if(notFoundPlayers.length > 0) {
+            await this.handleSyncFail(localLeagueId, 'ESPN');
+        }
         return true;
     }
 
