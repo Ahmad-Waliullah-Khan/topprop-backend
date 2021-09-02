@@ -806,7 +806,7 @@ export class LeagueService {
         const localLeague = await this.leagueRepository.findById(Number(leagueId));
 
         const missingPlayerNames = playerList.map((player: any) => {
-            return player?.playerPoolEntry?.player.firstName +" " +player?.playerPoolEntry?.player.lastName;
+            return player?.name?.full;
         });
         const templateData = {
             user: {
@@ -817,15 +817,19 @@ export class LeagueService {
             playerList,
             text: {
                 title: 'Player Not Found.',
-                subtitle: `Some player are not found in TopProp system, for league - ${localLeague.name}
-                Following players are missing from the system: ${missingPlayerNames.toString()}`,
+                subtitle: `Missing players from the TopProp system, for league - ${localLeague.name} are :
+                ${missingPlayerNames.toString()}`,
             },
         };
 
         const adminEmail = process.env.SUPPORT_EMAIL_ADDRESS ? process.env.SUPPORT_EMAIL_ADDRESS : localLeague.user?.email;
 
-        await this.userService.sendEmail(localLeague.userId, EMAIL_TEMPLATES.ADMIN_SYNC_FAILED_PLAYER_NOT_FOUND, templateData, adminEmail);
-
+        await this.userService.sendEmail(
+            localLeague.userId,
+            EMAIL_TEMPLATES.ADMIN_SYNC_FAILED_PLAYER_NOT_FOUND,
+            templateData,
+            adminEmail
+        );
     }
 
     async invalidateLeagueSync(leagueId: number) {}
