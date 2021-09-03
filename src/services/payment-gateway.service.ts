@@ -21,10 +21,10 @@ export class PaymentGatewayService {
         this.dwollaClient = new Dwolla.Client({
             key: process.env.DWOLLA_APP_KEY,
             secret: process.env.DWOLLA_APP_SECRET,
-            environment: isEqual(process.env.NODE_ENV, 'production') ? 'production' : 'sandbox', // defaults to 'production'
+            environment: isEqual(process.env.DWOLLA_ENV, 'production') ? 'production' : 'sandbox', // defaults to 'production'
         });
 
-        this.dwollaApiUrl = isEqual(process.env.NODE_ENV, 'production')
+        this.dwollaApiUrl = isEqual(process.env.DWOLLA_ENV, 'production')
             ? 'https://api.dwolla.com'
             : 'https://api-staging.dwolla.com';
     }
