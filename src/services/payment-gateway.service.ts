@@ -432,11 +432,7 @@ export class PaymentGatewayService {
             await this.dwollaClient.delete(`${this.dwollaApiUrl}/webhook-subscriptions/${element.id}`);
             console.log(`${element.url} - Removed`);
         }
-        const webhookUrl = isEqual(process.env.NODE_ENV, 'production')
-            ? `https://api.topprop.io/api/v1/${API_RESOURCES.PAYMENT_GATEWAY}/webhooks`
-            : isEqual(process.env.NODE, 'development')
-            ? `https://api.staging.topprop.io/api/v1/${API_RESOURCES.PAYMENT_GATEWAY}/webhooks`
-            : `https://18fa-189-217-223-28.ngrok.io/api/v1/${API_RESOURCES.PAYMENT_GATEWAY}/webhooks`; //GENERATED WITH NGROK. CHANGE EVERY TIME NGROK STARTS
+        const webhookUrl = `${process.env.CLIENT_HOST}/api/v1/${API_RESOURCES.PAYMENT_GATEWAY}/webhooks`;
         await this.dwollaClient.post(`${this.dwollaApiUrl}/webhook-subscriptions`, {
             url: webhookUrl,
             secret: process.env.DWOLLA_WEBHOOK_SECRET,
