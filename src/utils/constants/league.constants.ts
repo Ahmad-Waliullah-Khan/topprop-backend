@@ -30,6 +30,9 @@ export const ESPN_POSITION_MAPPING: { [key: number]: string } = {
     23: 'FLEX',
 };
 
+export const ESPN_BLOCKED_LINEUPID_LIST = [20, 21];
+
+export const YAHOO_BLOCKED_POSITION_LIST = ['BN', 'IR'];
 
 export enum SCORING_TYPE {
     HALFPPR = 1,

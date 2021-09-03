@@ -1,6 +1,6 @@
-import {BindingScope, Getter, injectable, service} from '@loopback/core';
-import {IsolationLevel, repository} from '@loopback/repository';
-import {League, Roster, Team} from '@src/models';
+import { BindingScope, Getter, injectable, service } from '@loopback/core';
+import { IsolationLevel, repository } from '@loopback/repository';
+import { League, Roster, Team } from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,16 +9,21 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {EMAIL_TEMPLATES} from '@src/utils/constants';
-import {ESPN_LINEUP_SLOT_MAPPING, ESPN_POSITION_MAPPING} from '@src/utils/constants/league.constants';
-import {MiscHelpers} from '@src/utils/helpers';
+import { EMAIL_TEMPLATES } from '@src/utils/constants';
+import {
+    ESPN_LINEUP_SLOT_MAPPING,
+    ESPN_POSITION_MAPPING,
+    ESPN_BLOCKED_LINEUPID_LIST,
+    YAHOO_BLOCKED_POSITION_LIST,
+} from '@src/utils/constants/league.constants';
+import { MiscHelpers } from '@src/utils/helpers';
 import axios from 'axios';
 import chalk from 'chalk';
 import moment from 'moment';
 import logger from '../utils/logger';
-import {UserService} from './user.service';
+import { UserService } from './user.service';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
 
@@ -341,7 +346,7 @@ export class LeagueService {
 
                         await Promise.all(
                             roster.roster.map(async (remotePlayer: any) => {
-                                if (remotePlayer.selected_position !== 'BN') {
+                                if (!YAHOO_BLOCKED_POSITION_LIST.includes(remotePlayer.selected_position)) {
                                     const foundPlayer = await this.findPlayer(
                                         remotePlayer,
                                         localPlayers,
@@ -388,7 +393,7 @@ export class LeagueService {
 
                         await Promise.all(
                             roster.roster.map(async (remotePlayer: any) => {
-                                if (remotePlayer.selected_position !== 'BN') {
+                                if (!YAHOO_BLOCKED_POSITION_LIST.includes(remotePlayer.selected_position)) {
                                     const foundPlayer = await this.findPlayer(
                                         remotePlayer,
                                         localPlayers,
@@ -594,7 +599,7 @@ export class LeagueService {
 
                     await Promise.all(
                         sortedRoster.map(async (remotePlayer: any) => {
-                            if (remotePlayer.lineupSlotId !== 20) {
+                            if (!ESPN_BLOCKED_LINEUPID_LIST.includes(remotePlayer.lineupSlotId)) {
                                 const normalisedRemotePlayer = {
                                     name: {
                                         first: remotePlayer?.playerPoolEntry?.player.firstName,
@@ -663,7 +668,7 @@ export class LeagueService {
 
                     await Promise.all(
                         sortedRoster.map(async (remotePlayer: any) => {
-                            if (remotePlayer.lineupSlotId !== 20) {
+                            if (!ESPN_BLOCKED_LINEUPID_LIST.includes(remotePlayer.lineupSlotId)) {
                                 const normalisedRemotePlayer = {
                                     name: {
                                         first: remotePlayer?.playerPoolEntry?.player.firstName,
