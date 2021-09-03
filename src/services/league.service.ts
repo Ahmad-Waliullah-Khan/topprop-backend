@@ -285,6 +285,8 @@ export class LeagueService {
         const newTeams: any[] = [];
         let league;
 
+        const notFoundPlayers: any[] = [];
+
         try {
             const refreshedYahooTokens = await this.refreshYahooAccessTokens(userData.yahooRefreshToken);
 
@@ -309,8 +311,6 @@ export class LeagueService {
             );
             yf.setUserToken(access_token);
             yf.setRefreshToken(refresh_token);
-
-            const notFoundPlayers: any[] = [];
 
             const localPlayers = await this.playerRepo.find();
             const localTeams = await this.teamRepository.find({
@@ -425,7 +425,7 @@ export class LeagueService {
 
             league = await yf.league.meta(leagueId);
         } catch (error) {
-            this.handleSyncFail(localLeagueId, 'YAHOO');
+            await this.handleSyncFail(localLeagueId, 'YAHOO');
 
             if (error.response) {
                 logger.error(
@@ -502,8 +502,12 @@ export class LeagueService {
             console.log('resyncYahoo: Ln 462 league.service.ts ~ error', error);
             await transaction.rollback();
 
-            this.handleSyncFail(localLeagueId, 'YAHOO');
+            await this.handleSyncFail(localLeagueId, 'YAHOO');
             return false;
+        }
+
+        if (notFoundPlayers.length > 0) {
+            await this.handleMissingPlayer(localLeagueId, 'YAHOO', notFoundPlayers);
         }
 
         return true;
@@ -549,7 +553,7 @@ export class LeagueService {
                 ),
             );
 
-            this.handleSyncFail(localLeagueId, 'ESPN');
+            await this.handleSyncFail(localLeagueId, 'ESPN');
         }
 
         const leagueInfo = leaguePromise.data;
@@ -764,11 +768,14 @@ export class LeagueService {
             console.log('resyncESPN: Ln 562 league.service.ts ~ error', error);
             await transaction.rollback();
 
-            this.handleSyncFail(localLeagueId, 'ESPN');
+            await this.handleSyncFail(localLeagueId, 'ESPN');
 
             return false;
         }
 
+        if(notFoundPlayers.length > 0) {
+            await this.handleMissingPlayer(localLeagueId, 'ESPN', notFoundPlayers);
+        }
         return true;
     }
 
@@ -793,6 +800,36 @@ export class LeagueService {
 
             await this.userService.sendEmail(localLeague.userId, EMAIL_TEMPLATES.ADMIN_SYNC_FAILED, templateData);
         }
+    }
+
+    async handleMissingPlayer(leagueId: number, sourceName: string, playerList: any,) {
+        const localLeague = await this.leagueRepository.findById(Number(leagueId));
+
+        const missingPlayerNames = playerList.map((player: any) => {
+            return player?.name?.full;
+        });
+        const templateData = {
+            user: {
+                fullName: 'Admin',
+            },
+            leagueId: leagueId,
+            sourceName: sourceName,
+            playerList,
+            text: {
+                title: 'Player Not Found.',
+                subtitle: `Missing players from the TopProp system, for league - ${localLeague.name} are :
+                ${missingPlayerNames.toString()}`,
+            },
+        };
+
+        const adminEmail = process.env.SUPPORT_EMAIL_ADDRESS ? process.env.SUPPORT_EMAIL_ADDRESS : localLeague.user?.email;
+
+        await this.userService.sendEmail(
+            localLeague.userId,
+            EMAIL_TEMPLATES.ADMIN_SYNC_FAILED_PLAYER_NOT_FOUND,
+            templateData,
+            adminEmail
+        );
     }
 
     async invalidateLeagueSync(leagueId: number) {}
