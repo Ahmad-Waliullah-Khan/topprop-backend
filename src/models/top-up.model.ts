@@ -13,7 +13,7 @@ export class TopUp extends Base {
 
     @property({
         type: 'string',
-        // required: true,
+        required: false,
     })
     paymentIntentId: string;
 
@@ -27,7 +27,7 @@ export class TopUp extends Base {
         type: 'string',
         default: null,
     })
-    transferId: string | null;
+    withdrawTransferUrl: string | null;
 
     @property({
         type: 'date',
@@ -66,14 +66,27 @@ export class TopUp extends Base {
     refundId: string | null;
 
     @property({
+        required: false,
+        type: 'string',
+        default: null,
+    })
+    topUpTransferUrl: string | null;
+
+    @property({
         type: 'number',
         required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
     grossAmount: number;
 
     @property({
         type: 'number',
         required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
     netAmount: number;
 

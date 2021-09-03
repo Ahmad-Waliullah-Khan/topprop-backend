@@ -1,39 +1,8 @@
-import { MINIMUM_BET_AMOUNT, MINIMUM_WITHDRAW_AMOUNT } from '../constants';
+import { MINIMUM_BET_AMOUNT } from '../constants';
 import { US_STATES_ABBREVIATIONS } from '../constants/wallet.constants';
 import { ValidatorHelpers } from '../helpers';
 
 export const WALLET_VALIDATORS = {
-    /*************** Stripe validators ******************/
-    // _stripeAccountToken: {
-    //     type: String,
-    //     required: true,
-    //     message: {
-    //         required: 'Stripe Account Token is a required param (_stripeAccountToken).',
-    //     },
-    // },
-    // _stripeCustomerToken: {
-    //     type: String,
-    //     required: true,
-    //     message: {
-    //         required: 'Stripe Customer Token is a required param (_stripeCustomerToken).',
-    //     },
-    // },
-    // payoutType: {
-    //     type: String,
-    //     required: true,
-    //     enum: values(STRIPE_EXTERNAL_ACCOUNT_TYPES),
-    //     message: {
-    //         required: 'Payout type is a required param (payoutType).',
-    //         enum: `Payout type must be one of these options: ${values(STRIPE_EXTERNAL_ACCOUNT_TYPES).join(', ')}.`,
-    //     },
-    // },
-    // payoutToken: {
-    //     type: String,
-    //     required: true,
-    //     message: {
-    //         required: 'Payout Token is a required param (payoutToken).',
-    //     },
-    // },
     payoutMethodToken: {
         type: String,
         required: true,
@@ -63,7 +32,6 @@ export const WALLET_VALIDATORS = {
         message: {
             type: 'Amount must be a number.',
             required: 'Amount is required.',
-            size: `The minimum amount is 10 USD.`,
         },
     },
 
@@ -177,17 +145,38 @@ export const WALLET_VALIDATORS = {
             match: `Id Number must be a number`,
         },
     },
+    sourceFundingSourceId: {
+        type: String,
+        required: true,
+        // match: /^\d+$/,
+        message: {
+            required: `Source Funding Source is required.`,
+            // match: `Id Number must be a number`,
+        },
+    },
 };
 
 export const WITHDRAW_REQUEST_VALIDATORS = {
     amount: {
-        type: Number,
+        type: String,
         required: true,
-        size: { min: MINIMUM_WITHDRAW_AMOUNT },
+        // size: { min: MINIMUM_BET_AMOUNT },
+        use: { isNumber: ValidatorHelpers.isNumber, greaterOrEqualThan: ValidatorHelpers.greaterOrEqualThan(10) },
+
         message: {
-            type: 'Amount must be a number.',
+            type: 'Amount must be a string.',
             required: 'Amount is required.',
-            size: `The minimum amount is 100 USD.`,
+            isNumber: `The minimum amount is 10 USD.`,
+            greaterOrEqualThan: `The minimum amount is 10 USD.`,
+        },
+    },
+    destinationFundingSourceId: {
+        type: String,
+        required: true,
+        // match: /^\d+$/,
+        message: {
+            required: `Destination Funding Source is required.`,
+            // match: `Id Number must be a number`,
         },
     },
 };

@@ -1,5 +1,5 @@
-import {UserProfile} from '@loopback/security';
-import {User} from '@src/models';
+import { UserProfile } from '@loopback/security';
+import { User } from '@src/models';
 
 export interface ICustomUserProfile extends UserProfile {
     // role?: ROLES;

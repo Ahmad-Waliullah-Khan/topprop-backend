@@ -60,6 +60,7 @@ export class UserController {
             password: USER_VALIDATORS.password,
             confirmPassword: USER_VALIDATORS.confirmPassword,
             signUpState: USER_VALIDATORS.state,
+            dateOfBirth: USER_VALIDATORS.dateOfBirth,
         };
         const clientHost = process.env.CLIENT_HOST;
 

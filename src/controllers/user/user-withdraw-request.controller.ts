@@ -1,20 +1,33 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { service } from '@loopback/core';
-import { Filter, repository } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post } from '@loopback/rest';
-import { User, WithdrawRequest } from '@src/models';
-import { UserRepository } from '@src/repositories';
-import { StripeService, WalletService } from '@src/services';
-import { API_ENDPOINTS, MINIMUM_WITHDRAW_AMOUNT, PERMISSIONS } from '@src/utils/constants';
+import { Filter, repository, Where } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
+import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
+import { BetRepository, GainRepository, TopUpRepository, UserRepository } from '@src/repositories';
+import { PaymentGatewayService, TRANSFER_TYPES, UserService } from '@src/services';
+import {
+    API_ENDPOINTS,
+    EMAIL_TEMPLATES,
+    MINIMUM_WITHDRAW_AMOUNT,
+    PERMISSIONS,
+    WITHDRAW_REQUEST_STATUSES,
+} from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
 import { USER_MESSAGES, WALLET_MESSAGES, WITHDRAW_REQUEST_MESSAGES } from '@src/utils/messages';
+import { WITHDRAW_REQUEST_VALIDATORS } from '@src/utils/validators';
+import moment from 'moment';
+import Schema from 'validate';
 export class UserWithdrawRequestController {
     constructor(
         @repository(UserRepository) protected userRepository: UserRepository,
-        @service() private walletService: WalletService,
-        @service() private stripeService: StripeService,
+        @repository(TopUpRepository) protected topUpRepository: TopUpRepository,
+        @repository(GainRepository) protected gainRepository: GainRepository,
+        @repository(BetRepository) protected betRepository: BetRepository,
+        @service() private paymentGatewayService: PaymentGatewayService,
+        @service() private userService: UserService,
     ) {}
 
     @authenticate('jwt')
@@ -47,28 +60,64 @@ export class UserWithdrawRequestController {
     @post(API_ENDPOINTS.USERS.WITHDRAW_REQUESTS.CRUD)
     async createWithdrawRequest(
         @param.path.number('id') id: typeof User.prototype.id,
+        @requestBody() body: { destinationFundingSourceId: string },
     ): Promise<ICommonHttpResponse<WithdrawRequest>> {
+        const validationSchema = {
+            destinationFundingSourceId: WITHDRAW_REQUEST_VALIDATORS.destinationFundingSourceId,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
         if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
 
         const user = await this.userRepository.findById(id);
 
-        if (!user._connectToken) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+        if (!user._customerTokenUrl) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
 
-        const connectAccount = await this.stripeService.stripe.accounts.retrieve(user._connectToken);
+        const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
 
-        if (!connectAccount.external_accounts?.data.length)
-            throw new HttpErrors.BadRequest(WALLET_MESSAGES.NO_PAYOUT_METHODS);
+        if (funds < MINIMUM_WITHDRAW_AMOUNT)
+            throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT(MINIMUM_WITHDRAW_AMOUNT));
 
-        const usersBalance = await this.walletService.userBalance(id);
-        const amountAfterFees = this.stripeService.amountAfterFees(usersBalance);
+        const transferUrl = await this.paymentGatewayService.sendFunds(
+            user._customerTokenUrl,
+            TRANSFER_TYPES.WITHDRAW,
+            funds,
+            body.destinationFundingSourceId,
+        );
+        const withdraw = await this.userRepository.withdrawRequests(id).create({
+            acceptedAt: moment().toDate(),
+            status: WITHDRAW_REQUEST_STATUSES.PENDING,
+            withdrawTransferUrl: transferUrl,
+            netAmount: funds,
+            brutAmount: funds,
+            destinationFundingSourceId: body.destinationFundingSourceId,
+        });
 
-        if (amountAfterFees < MINIMUM_WITHDRAW_AMOUNT)
-            throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT(amountAfterFees));
+        const transferUpdate: Partial<TopUp | Bet | Gain> = {
+            withdrawTransferUrl: transferUrl,
+            transferred: true,
+            transferredAt: moment().toDate(),
+        };
+        const whereUpdate: Where<TopUp | Bet | Gain> = { userId: withdraw.userId, transferred: false, paid: false };
+
+        await this.topUpRepository.updateAll(transferUpdate, whereUpdate);
+        await this.betRepository.updateAll(transferUpdate, whereUpdate);
+        await this.gainRepository.updateAll(transferUpdate, whereUpdate);
+
+        this.userService.sendEmail(user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_ACCEPTED, {
+            user: user,
+            text: {
+                title: 'TopProp - Withdraw Request Accepted',
+                subtitle:
+                    'Your withdraw request was accepted and your funds will be in you bank account very soon, we will keep you in the loop.',
+            },
+        });
 
         return {
-            data: await this.userRepository
-                .withdrawRequests(id)
-                .create({ netAmount: amountAfterFees, brutAmount: usersBalance }),
+            message: 'Withdraw request created',
         };
     }
 

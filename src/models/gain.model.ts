@@ -53,7 +53,7 @@ export class Gain extends Base {
         type: 'string',
         default: null,
     })
-    transferId: string | null;
+    withdrawTransferUrl: string | null;
 
     @property({
         type: 'date',

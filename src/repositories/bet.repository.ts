@@ -13,6 +13,7 @@ export class BetRepository extends DefaultCrudRepository<Bet, typeof Bet.prototy
 
     constructor(
         @inject('datasources.db') dataSource: DbDataSource,
+        // @service() private paymentGatewayService: PaymentGatewayService,
         @repository.getter('UserRepository') protected userRepositoryGetter: Getter<UserRepository>,
         @repository.getter('ContenderRepository') protected contenderRepositoryGetter: Getter<ContenderRepository>,
     ) {
@@ -31,5 +32,19 @@ export class BetRepository extends DefaultCrudRepository<Bet, typeof Bet.prototy
             }
             return;
         });
+        //* CREATE TRANSFER ON DWOLLA (users'  wallet => topprop root)
+        /* this.modelClass.observe('before save', async ctx => {
+            if (ctx.instance && !ctx.hookState.skipBetTransfer && ctx.isNewInstance) {
+                const bet = ctx.instance as Bet;
+                if (bet.amount > 0) {
+                    const userRepo = await this.userRepositoryGetter();
+                    const user = await userRepo.findById(bet.userId);
+                    if (!user._customerTokenUrl) throw new Error(WALLET_MESSAGES.INVALID_WALLET);
+                    await this.paymentGatewayService.sendFunds(user._customerTokenUrl, TRANSFER_TYPES.BET, bet.amount);
+                }
+                ctx.hookState.skipBetTransfer = true;
+            }
+            return;
+        }); */
     }
 }

@@ -14,7 +14,6 @@ export const API_RESOURCES = {
     LEAGUE_DETAILS: 'league-details',
     USERS: 'users',
     PLAYERS: 'players',
-    STRIPE_WEBHOOKS: 'stripe-webhooks',
     TEAMS: 'teams',
     TOP_UPS: 'top-ups',
     WITHDRAW_REQUESTS: 'withdraw-requests',
@@ -22,6 +21,7 @@ export const API_RESOURCES = {
     LEAGUE_IMPORT: 'league-import',
     LEAGUE: 'league',
     LEAGUE_CONTEST: 'league-contest',
+    PAYMENT_GATEWAY: 'payment-gateway',
 };
 
 export const API_ENDPOINTS = {
@@ -128,25 +128,19 @@ export const API_ENDPOINTS = {
         },
         WALLET: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet`,
+            ACCOUNT_VERIFICATION_TOKEN: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/account-verification-token`,
             VERIFICATION_FILE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/verification-file`,
-            PAYMENT_METHODS: {
-                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods`,
-                DEFAULT_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/default`,
-                DETACH_PAYMENT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payment-methods/{paymentMethod}/detach`,
-            },
-            PAYOUT_METHODS: {
-                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payout-methods`,
-                DEFAULT_PAYOUT_METHOD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payout-methods/{payoutMethod}/default`,
-                BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payout-methods/{payoutMethod}`,
+            FUNDING_SOURCES: {
+                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funding-sources`,
+                BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funding-sources/{fundingSourceId}`,
             },
             FUNDS: {
-                ADD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/add`,
-                RETRIEVE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/retrieve`,
-                CALCULATE_NET_AMOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds/calculate-net-amount`,
+                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/funds`,
             },
-            PAYOUTS: {
-                NET_AMOUNT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/payouts/net-amount`,
+            TRANSFERS: {
+                CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/wallet/transfers`,
             },
+            WEBHOOKS: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PAYMENT_GATEWAY}/webhooks`,
         },
         WITHDRAW_REQUESTS: {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.USERS}/{id}/withdraw-requests`,
@@ -163,18 +157,7 @@ export const API_ENDPOINTS = {
         EXPORT: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}/export`,
         GET_REMOTE: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.PLAYERS}/remote`,
     },
-    STRIPE_WEBHOOKS: {
-        PAYMENTS: {
-            REFUNDED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/payments/refunded`,
-        },
-        CONNECT_ACCOUNTS: {
-            VERIFICATION_FILE_UPDATED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/verification-file-updated`,
-            PAYOUTS: {
-                PAID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/payouts/paid`,
-                FAILED: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.STRIPE_WEBHOOKS}/connect-accounts/payouts/failed`,
-            },
-        },
-    },
+
     TEAMS: {
         CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}`,
         BY_ID: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.TEAMS}/{id}`,
@@ -227,6 +210,6 @@ export const API_ENDPOINTS = {
             CRUD: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_CONTEST}`,
             TEAM_ROSTER: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_CONTEST}/team-roster/{id}`,
             CALCULATE_VALUES: `${BASE_API_PATH}/${API_VERSIONS.V1}/${API_RESOURCES.LEAGUE_CONTEST}/calculate/values`,
-        }
+        },
     },
 };

@@ -1,27 +1,26 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
+import { Getter, inject, service } from '@loopback/core';
 import { Filter, repository } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { Contender, Contest } from '@src/models';
-import { ContestRepository } from '@src/repositories';
-import { ContestPayoutService, WalletService } from '@src/services';
+import { ContestRepository, UserRepository } from '@src/repositories';
+import { PaymentGatewayService } from '@src/services';
 import { API_ENDPOINTS, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse, ICustomUserProfile } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES } from '@src/utils/messages';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, WALLET_MESSAGES } from '@src/utils/messages';
 import { CONTENDER_VALIDATORS } from '@src/utils/validators';
-import { CONTEST_TYPES } from '@src/utils/constants';
 import { isEmpty } from 'lodash';
 import Schema from 'validate';
 
 export class ContestContenderController {
     constructor(
         @repository(ContestRepository) protected contestRepository: ContestRepository,
-        @service() private walletService: WalletService,
-        @service() private contestPayoutService: ContestPayoutService,
+        @repository.getter(UserRepository) protected userRepositoryGetter: Getter<UserRepository>,
+        @service() private paymentGatewayService: PaymentGatewayService, // @service() private contestPayoutService: ContestPayoutService,
     ) {}
 
     @authenticate('jwt')
@@ -77,7 +76,10 @@ export class ContestContenderController {
 
         // if (contest.contenders.length >= 2) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
 
-        const funds = await this.walletService.userBalance(body.contenderId);
+        const userRepo = await this.userRepositoryGetter();
+        const user = await userRepo.findById(body.contenderId);
+
+        const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
 
         const validationSchema = {
             // contestId: CONTENDER_VALIDATORS.contestId,

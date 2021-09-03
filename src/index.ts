@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import { isEqual } from 'lodash';
 import 'module-alias/register';
 import { ApplicationConfig, TopPropBackendApplication } from './application';
-import { ContestPayoutService, UserService } from './services';
+import { ContestPayoutService, PaymentGatewayService, UserService } from './services';
 import { CRON_JOBS } from './utils/constants';
 
 export * from './application';
@@ -53,6 +53,16 @@ export async function main(options: ApplicationConfig = {}) {
         if (isEqual(job.name, CRON_JOBS.PLAYER_RESULTS_CRON) && !isEqual(process.env.RUN_PLAYER_RESULTS_CRON, 'true'))
             job.stop();
     }
+
+    const paymentGatewayService = await app.service(PaymentGatewayService).getValue(app);
+    paymentGatewayService
+        .upsertWebhooks()
+        .then(() => {
+            console.log(`dwolla webhooks upserted`);
+        })
+        .catch(err => {
+            console.error(`Error upserting webhooks. `, err);
+        });
 
     return app;
 }

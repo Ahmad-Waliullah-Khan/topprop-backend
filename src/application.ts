@@ -20,17 +20,17 @@ import {
     PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
 import {
+    CloseContestsCron,
+    EspnSyncLeaguesCron,
+    LeagueWinCriteriaCron,
+    PlayerFantasyPointsCron,
     PlayersCron,
     ProjectedFantasyPointsCron,
-    PlayerFantasyPointsCron,
-    WinCriteriaCron,
-    TimeframeCron,
-    CloseContestsCron,
     SpecialTeamsCron,
     SyncGamesCron,
-    EspnSyncLeaguesCron,
+    TimeframeCron,
+    WinCriteriaCron,
     YahooSyncLeaguesCron,
-    LeagueWinCriteriaCron,
 } from './cron-jobs';
 import { ImportSourceRepository, ScoringTypeRepository, SpreadRepository } from './repositories';
 import { ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
@@ -44,20 +44,18 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
     constructor(options: ApplicationConfig = {}) {
         super(options);
 
-        //* Handle raw body data for stripe webhook endpoints
+        //* Handle raw body data for dwolla webhook endpoints
         const requestBodyParserOptions: RequestBodyParserOptions = {
             json: {
                 strict: true,
                 limit: '2mb',
                 verify: function (req: IRawRequest, res, buf) {
                     const url = req.originalUrl;
-                    if (/stripe-webhooks/gi.test(url)) req.rawBody = buf;
+                    if (/payment-gateway\/webhooks/gi.test(url)) req.rawBody = buf;
                 },
             },
         };
         this.bind(RestBindings.REQUEST_BODY_PARSER_OPTIONS).to(requestBodyParserOptions);
-
-        
 
         //Binding DB credentials
         !isEqual(process.env.NODE_ENV, 'test') && ApplicationHelpers.bindDbSourceCredential(this);

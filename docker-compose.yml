@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+    local:
+        image: postgres:13-alpine
+        container_name: topprop_db
+        volumes:
+            - ~/docker/top-prop-db/data:/data/db
+        restart: always
+        networks:
+            - topprop
+        env_file: .env
+        ports:
+            - 5432:5432
+
+networks:
+    topprop:

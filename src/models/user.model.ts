@@ -1,13 +1,13 @@
-import {Entity, hasMany, model, property} from '@loopback/repository';
-import {ROLES} from '@src/utils/constants';
-import {Bet} from './bet.model';
-import {ContactSubmission} from './contact-submission.model';
-import {Contest} from './contest.model';
-import {LeagueContest} from './league-contest.model';
-import {Gain} from './gain.model';
-import {Team} from './team.model';
-import {TopUp} from './top-up.model';
-import {WithdrawRequest} from './withdraw-request.model';
+import { Entity, hasMany, model, property } from '@loopback/repository';
+import { ROLES } from '@src/utils/constants';
+import { Bet } from './bet.model';
+import { ContactSubmission } from './contact-submission.model';
+import { Contest } from './contest.model';
+import { Gain } from './gain.model';
+import { LeagueContest } from './league-contest.model';
+import { Team } from './team.model';
+import { TopUp } from './top-up.model';
+import { WithdrawRequest } from './withdraw-request.model';
 
 @model({
     settings: {
@@ -55,21 +55,19 @@ export class User extends Entity {
         type: 'string',
         default: null,
     })
-    _customerToken: string | null;
+    _customerTokenUrl: string | null;
 
-    @property({
-        type: 'string',
-        default: null,
-    })
-    _connectToken: string | null;
-
+    // @property({
+    //     type: 'string',
+    //     default: null,
+    // })
+    // _connectToken: string | null;
 
     @property({
         type: 'string',
         default: null,
     })
     yahooAccessToken: string | null;
-
 
     @property({
         type: 'string',
@@ -94,6 +92,10 @@ export class User extends Entity {
         default: null,
     })
     accountConfirmedAt?: Date | null;
+    @property({
+        type: 'date',
+    })
+    dateOfBirth: Date;
 
     @property({
         type: 'string',
@@ -196,8 +198,19 @@ export class User extends Entity {
     @hasMany(() => Team)
     teams: Team[];
 
+    //*FOR DWOLLA OR ANY OTHER 3RD PARTY TOOL
+    @property({
+        type: 'string',
+        default: null,
+    })
+    customId?: string | null;
+
     constructor(data?: Partial<User>) {
         super(data);
+    }
+
+    get splittedName() {
+        return this.fullName.split(' ');
     }
 }
 

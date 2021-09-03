@@ -13,9 +13,9 @@ import {
 } from '@src/repositories';
 import { EMAIL_TEMPLATES } from '@src/utils/constants';
 import {
+    ESPN_BLOCKED_LINEUPID_LIST,
     ESPN_LINEUP_SLOT_MAPPING,
     ESPN_POSITION_MAPPING,
-    ESPN_BLOCKED_LINEUPID_LIST,
     YAHOO_BLOCKED_POSITION_LIST,
 } from '@src/utils/constants/league.constants';
 import { MiscHelpers } from '@src/utils/helpers';
@@ -773,7 +773,7 @@ export class LeagueService {
             return false;
         }
 
-        if(notFoundPlayers.length > 0) {
+        if (notFoundPlayers.length > 0) {
             await this.handleMissingPlayer(localLeagueId, 'ESPN', notFoundPlayers);
         }
         return true;
@@ -802,7 +802,7 @@ export class LeagueService {
         }
     }
 
-    async handleMissingPlayer(leagueId: number, sourceName: string, playerList: any,) {
+    async handleMissingPlayer(leagueId: number, sourceName: string, playerList: any) {
         const localLeague = await this.leagueRepository.findById(Number(leagueId));
 
         const missingPlayerNames = playerList.map((player: any) => {
@@ -822,13 +822,15 @@ export class LeagueService {
             },
         };
 
-        const adminEmail = process.env.SUPPORT_EMAIL_ADDRESS ? process.env.SUPPORT_EMAIL_ADDRESS : localLeague.user?.email;
+        const adminEmail = process.env.SUPPORT_EMAIL_ADDRESS
+            ? process.env.SUPPORT_EMAIL_ADDRESS
+            : localLeague.user?.email;
 
         await this.userService.sendEmail(
             localLeague.userId,
             EMAIL_TEMPLATES.ADMIN_SYNC_FAILED_PLAYER_NOT_FOUND,
             templateData,
-            adminEmail
+            adminEmail,
         );
     }
 

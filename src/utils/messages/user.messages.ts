@@ -1,4 +1,4 @@
-import {MINIMUM_WITHDRAW_AMOUNT} from '../constants';
+import { MINIMUM_WITHDRAW_AMOUNT } from '../constants';
 
 export const USER_MESSAGES = {
     INVALID_CREDENTIALS: `The credentials are incorrect. Try again.`,
@@ -20,7 +20,7 @@ export const USER_MESSAGES = {
     CONUTRY_NOT_DETECTED: `Your country could not be detected. We apologise for any inconvenience caused`,
 };
 export const WALLET_MESSAGES = {
-    MISSING_WALLET: `User does not a wallet yet. Add a card first.`,
+    MISSING_WALLET: `User does not a wallet yet.`,
     PAYMENT_METHOD_ALREADY_DEFAULT: `Payment method provided is already the default.`,
     DEFAULT_PAYMENT_METHOD_DETACH_ERROR: `The default payment method cannot be detached. Add a new payment method and select it as default to detach this one.`,
     INVALID_PAYMENT_METHOD: `The payment method provided is is not attached to the user.`,

@@ -12,7 +12,7 @@ import {
     PlayerResultRepository,
     UserRepository,
 } from '@src/repositories';
-import { ContestPayoutService, ContestService, UserService, WalletService } from '@src/services';
+import { ContestPayoutService, ContestService, PaymentGatewayService, UserService } from '@src/services';
 import { API_ENDPOINTS, CONTEST_STATUSES, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
@@ -40,7 +40,7 @@ export class ContestController {
         public playerResultRepository: PlayerResultRepository,
         @repository(UserRepository)
         public userRepository: UserRepository,
-        @service() private walletService: WalletService,
+        @service() private paymentGatewayService: PaymentGatewayService,
         @service() private contestPayoutService: ContestPayoutService,
         @service() private contestService: ContestService,
         @service() private userService: UserService,
@@ -93,7 +93,9 @@ export class ContestController {
         );
         if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
 
-        const funds = await this.walletService.userBalance(+currentUser[securityId]);
+        const user = await this.userRepository.findById(body.creatorId);
+
+        const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
         const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
         if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
@@ -205,7 +207,7 @@ export class ContestController {
         const myContests = await this.contestRepository.find(myContestFilter);
         const contests = await this.contestRepository.find(contestFilter);
 
-        const user = await this.userRepository.findById(userId);
+        // const user = await this.userRepository.findById(userId);
         const creatorPlayer = await this.playerRepository.findById(creatorPlayerId);
         const claimerPlayer = await this.playerRepository.findById(claimerPlayerId);
         this.userService.sendEmail(user, EMAIL_TEMPLATES.CONTEST_CREATED, {
@@ -274,9 +276,11 @@ export class ContestController {
 
         if (contestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
 
-        const funds = await this.walletService.userBalance(userId);
+        const user = await this.userRepository.findById(userId);
+
+        const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
         const entryAmount = contestData.entryAmount || 0;
-        if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+        if (funds < entryAmount * 100) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
         contestData.claimerId = body.claimerId;
         contestData.status = CONTEST_STATUSES.MATCHED;
@@ -320,7 +324,7 @@ export class ContestController {
         const myContests = await this.contestRepository.find(myContestFilter);
         const contests = await this.contestRepository.find(contestFilter);
 
-        const user = await this.userRepository.findById(userId);
+        // const user = await this.userRepository.findById(userId);
         const creatorPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
         const claimerPlayer = await this.playerRepository.findById(contestData.claimerPlayerId);
         const creatorUser = await this.userRepository.findById(contestData.creatorId);

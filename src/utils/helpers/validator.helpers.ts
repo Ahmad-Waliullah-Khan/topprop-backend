@@ -24,34 +24,49 @@ export class ValidatorHelpers {
     //     return validAddress;
     // };
 
-    static isEqualTo = (equalTo: any) => (val: any, schema: any): boolean => isEqual(val, equalTo);
+    static isEqualTo =
+        (equalTo: any) =>
+        (val: any, schema: any): boolean =>
+            isEqual(val, equalTo);
 
     static isNumber = (val: any, schema: any): boolean => !isNaN(val);
 
     static isValidDate = (val: any, schema: any): boolean => moment(val).isValid();
 
-    static isValidAfter = (amount: number, unit: moment.unitOfTime.DurationConstructor) => (
-        val: string,
-        schema: any,
-    ): boolean => moment(val).isAfter(moment().add(amount, unit));
+    static isValidAfter =
+        (amount: number, unit: moment.unitOfTime.DurationConstructor) =>
+        (val: string, schema: any): boolean =>
+            moment(val).isAfter(moment().add(amount, unit));
 
-    static isValidAfterFieldBy = (amount: number, unit: moment.unitOfTime.DurationConstructor, field: string) => (
-        val: string,
-        schema: any,
-    ): boolean => moment(val).isAfter(moment(schema[field]).add(amount, unit));
+    static isValidAfterFieldBy =
+        (amount: number, unit: moment.unitOfTime.DurationConstructor, field: string) =>
+        (val: string, schema: any): boolean =>
+            moment(val).isAfter(moment(schema[field]).add(amount, unit));
 
-    static isValidAfterMoment = (afterMoment: moment.Moment) => (val: string, schema: any): boolean =>
-        moment(val).isAfter(afterMoment);
+    static isValidAfterMoment =
+        (afterMoment: moment.Moment) =>
+        (val: string, schema: any): boolean =>
+            moment(val).isAfter(afterMoment);
 
-    static isValidBeforeMoment = (beforeMoment: moment.Moment) => (val: string, schema: any): boolean =>
-        moment(val).isBefore(beforeMoment);
+    static isValidBeforeMoment =
+        (beforeMoment: moment.Moment) =>
+        (val: string, schema: any): boolean =>
+            moment(val).isBefore(beforeMoment);
 
-    static isBetween = (betweenMoments: [moment.Moment, moment.Moment]) => (val: string, schema: any): boolean =>
-        moment(val).isBetween(betweenMoments[0], betweenMoments[1]);
+    static isBetween =
+        (betweenMoments: [moment.Moment, moment.Moment]) =>
+        (val: string, schema: any): boolean =>
+            moment(val).isBetween(betweenMoments[0], betweenMoments[1]);
 
-    static lowerOrEqualThan = (amount: number) => (val: number, schema: any): boolean => val <= amount;
+    static lowerOrEqualThan =
+        (amount: number) =>
+        (val: number, schema: any): boolean =>
+            val <= amount;
 
-    static greaterOrEqualThan = (amount: number) => (val: number, schema: any): boolean => val >= amount;
+    static greaterOrEqualThan =
+        (amount: number) =>
+        (val: number, schema: any): boolean =>
+            +val >= amount;
 
     // static validDeviceInfo = (val: IDeviceInfo, schema: any): boolean => {
     //     if (isEmpty(val) || !val) return false;

@@ -256,4 +256,8 @@ export class UserService {
         }
         return validCountries.includes(country);
     }
+
+    async findById(id: typeof User.prototype.id): Promise<User | null> {
+        return (await this.userRepositoryGetter()).findById(id);
+    }
 }

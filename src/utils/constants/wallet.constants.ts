@@ -1,5 +1,3 @@
-import Stripe from 'stripe';
-
 export const US_STATES_ABBREVIATIONS = [
     {
         text: 'Alabama',
@@ -251,14 +249,81 @@ export enum WALLET_VERIFICATION_FILE_SIDES {
     BACK = 'back',
 }
 
-export const DEFAULT_CAPABILITIES: Stripe.AccountCreateParams.Capabilities = {
-    transfers: {
-        requested: true,
-    },
-};
-
 export enum WITHDRAW_REQUEST_STATUSES {
     PENDING = 'pending',
     DENIED = 'denied',
-    ACCEPTED = 'accepted',
+    // ACCEPTED = 'accepted',
+    COMPLETED = 'completed',
 }
+
+export enum DWOLLA_WEBHOOK_EVENTS {
+    CUSTOMER_CREATED = 'customer_created',
+    CUSTOMER_VERIFIED = 'customer_verified',
+    CUSTOMER_VERIFICATION_DOCUMENT_NEEDED = 'customer_verification_document_needed', //	Additional documentation is needed to verify a Customer.
+    CUSTOMER_VERIFICATION_DOCUMENT_UPLOADED = 'customer_verification_document_uploaded', //	A verification document was uploaded for a Customer.
+    CUSTOMER_VERIFICATION_DOCUMENT_FAILED = 'customer_verification_document_failed', //	A verification document has been rejected for a Customer.
+    CUSTOMER_VERIFICATION_DOCUMENT_APPROVED = 'customer_verification_document_approved', //	A verification document was approved for a Customer.
+    CUSTOMER_REVERIFICATION_NEEDED = 'customer_reverification_needed', //	Incomplete information was received for a Customer; updated information is needed to verify the Customer.
+    CUSTOMER_FUNDING_SOURCE_VERIFIED = 'customer_funding_source_verified', //	Incomplete information was received for a Customer; updated information is needed to verify the Customer.
+    CUSTOMER_FUNDING_SOURCE_UNVERIFIED = 'customer_funding_source_unverified', //	Incomplete information was received for a Customer; updated information is needed to verify the Customer.
+    CUSTOMER_BANK_TRANSFER_CREATED = 'customer_bank_transfer_created', //	Incomplete information was received for a Customer; updated information is needed to verify the Customer.
+    CUSTOMER_BANK_TRANSFER_COMPLETED = 'customer_bank_transfer_completed', //	Incomplete information was received for a Customer; updated information is needed to verify the Customer.
+    CUSTOMER_BANK_TRANSFER_FAILED = 'customer_bank_transfer_failed', //	Incomplete information was received for a Customer; updated information is needed to verify the Customer.
+}
+// export const DWOLLA_WEBHOOKS: { url: string; secret: string; type: DWOLLA_WEBHOOK_EVENTS }[] = [
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_VERIFIED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFIED,
+//     },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_VERIFICATION_DOCUMENT_NEEDED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_NEEDED,
+//     },
+//     // {
+//     //     url: '',
+//     //     secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_VERIFICATION_DOCUMENT_UPLOADED_SECRET as string,
+//     //     type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_UPLOADED,
+//     // },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_VERIFICATION_DOCUMENT_FAILED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_FAILED,
+//     },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_VERIFICATION_DOCUMENT_APPROVED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_APPROVED,
+//     },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_REVERIFICATION_NEEDED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_REVERIFICATION_NEEDED,
+//     },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_FUNDING_SOURCE_VERIFIED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_FUNDING_SOURCE_VERIFIED,
+//     },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_FUNDING_SOURCE_UNVERIFIED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_FUNDING_SOURCE_UNVERIFIED,
+//     },
+//     // {
+//     //     url: '',
+//     //     secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_BANK_TRANSFER_CREATED_SECRET as string,
+//     //     type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_BANK_TRANSFER_CREATED,
+//     // },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_BANK_TRANSFER_FAILED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_BANK_TRANSFER_FAILED,
+//     },
+//     {
+//         url: '',
+//         secret: process.env.DWOLLA_WEBHOOK_CUSTOMER_BANK_TRANSFER_COMPLETED_SECRET as string,
+//         type: DWOLLA_WEBHOOK_EVENTS.CUSTOMER_BANK_TRANSFER_COMPLETED,
+//     },
+// ];

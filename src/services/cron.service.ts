@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {Gain, Player, Timeframe} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { Gain, Player, Timeframe } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -11,16 +11,17 @@ import {
     RosterRepository,
     TeamRepository,
     TimeframeRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {SportsDataService, UserService} from '@src/services';
-import {MiscHelpers} from '@src/utils/helpers';
+import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import util from 'util';
-import {LeagueService} from '../services/league.service';
+import { LeagueService } from '../services/league.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -33,9 +34,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES
+    TIMEFRAMES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 

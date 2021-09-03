@@ -39,12 +39,18 @@ export class WithdrawRequest extends Base {
     @property({
         type: 'number',
         required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
     netAmount: number;
 
     @property({
         type: 'number',
         required: true,
+        postgresql: {
+            dataType: 'decimal',
+        },
     })
     brutAmount: number;
 
@@ -52,7 +58,13 @@ export class WithdrawRequest extends Base {
         type: 'string',
         default: null,
     })
-    payoutId: string | null;
+    withdrawTransferUrl: string | null;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    destinationFundingSourceId: string | null;
 
     @belongsTo(() => User)
     userId: number;

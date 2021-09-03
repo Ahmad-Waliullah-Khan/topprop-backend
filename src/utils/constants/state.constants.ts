@@ -78,11 +78,11 @@ export const VALID_STATES = [
     'WY',
 ];
 
-export const DEV_VALID_STATES = ['GA', 'UP', 'TN', 'WB', 'AS'];
+export const DEV_VALID_STATES = ['GA', 'UP', 'TN', 'WB', 'AS', 'Méx.'];
 
 // Excluded States:
 // DE, IA, IN, LA, MS, MT, NV, PA, VA, WA.
 
 export const VALID_COUNTRIES = ['US', 'CA'];
 
-export const DEV_VALID_COUNTRIES = ['IN'];
+export const DEV_VALID_COUNTRIES = ['IN', 'MX'];

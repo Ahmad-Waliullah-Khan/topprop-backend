@@ -19,9 +19,8 @@ import {
     TeamRepository,
     UserRepository,
 } from '@src/repositories';
-import { LeagueService } from '@src/services/league.service';
+import { LeagueService, PaymentGatewayService } from '@src/services';
 import { UserService } from '@src/services/user.service';
-import { WalletService } from '@src/services/wallet.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -80,7 +79,7 @@ export class LeagueController {
         @repository(ImportSourceRepository)
         public importSourceRepository: ImportSourceRepository,
         @service() private leagueService: LeagueService,
-        @service() private walletService: WalletService,
+        @service() private paymentGatewayService: PaymentGatewayService,
         @service() private userService: UserService,
     ) {}
 
@@ -660,8 +659,9 @@ export class LeagueController {
             // TODO remove the following lines
             // totalCreatorTeamProjFantasy = 200;
             // totalClaimerTeamProjFantasy = 215;
+            const user = await this.userRepository.findById(userId);
 
-            const funds = await this.walletService.userBalance(+currentUser[securityId]);
+            const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
             const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
             if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
@@ -995,8 +995,9 @@ export class LeagueController {
             // TODO remove the following lines
             // totalCreatorTeamProjFantasy = 200;
             // totalClaimerTeamProjFantasy = 215;
+            const user = await this.userRepository.findById(userId);
 
-            const funds = await this.walletService.userBalance(+currentUser[securityId]);
+            const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
             const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
             if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
@@ -1240,8 +1241,7 @@ export class LeagueController {
 
             await transaction.commit();
 
-            const user = await this.userRepository.findById(userId);
-            // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+            const league = await this.leagueRepository.findById(creatorTeam.leagueId);
             await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
                 user,
                 creatorTeam,
@@ -1341,8 +1341,10 @@ export class LeagueController {
 
         if (leagueContestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
 
-        const funds = await this.walletService.userBalance(userId);
-        const entryAmount = leagueContestData.entryAmount || 0;
+        let user = await this.userRepository.findById(userId);
+
+        const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
+        const entryAmount = +leagueContestData.entryAmount || 0;
         if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
         leagueContestData.claimerId = body.claimerId;
@@ -1387,7 +1389,6 @@ export class LeagueController {
         const myContests = await this.leagueContestRepository.find(myContestFilter);
         const contests = await this.leagueContestRepository.find(contestFilter);
 
-        let user = await this.userRepository.findById(userId);
         const creatorTeam = await this.teamRepository.findById(leagueContestData.creatorTeamId);
         const claimerTeam = await this.teamRepository.findById(leagueContestData.claimerTeamId);
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
