@@ -1,27 +1,27 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { User } from '@src/models';
-import { UserRepository } from '@src/repositories';
-import { JwtService } from '@src/services';
-import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {User} from '@src/models';
+import {UserRepository} from '@src/repositories';
+import {JwtService} from '@src/services';
+import {UserService} from '@src/services/user.service';
+import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     EmailRequest,
     ICommonHttpResponse,
     ICustomUserProfile,
     LoginCredentials,
     ResetPasswordRequest,
-    SignupUserRequest,
+    SignupUserRequest
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
-import { USER_VALIDATORS } from '@src/utils/validators';
-import { isEmpty, isEqual } from 'lodash';
+import {COMMON_MESSAGES, USER_MESSAGES} from '@src/utils/messages';
+import {USER_VALIDATORS} from '@src/utils/validators';
+import {isEmpty, isEqual} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -224,7 +224,7 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        return { data: { token, type: RUN_TYPE } };
+        return { data: { token, type: RUN_TYPE, "DWOLLA_ENV": process.env.DWOLLA_ENV } };
     }
 
     @authenticate('facebookToken')
