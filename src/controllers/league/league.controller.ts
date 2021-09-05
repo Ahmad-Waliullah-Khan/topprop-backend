@@ -422,7 +422,7 @@ export class LeagueController {
 
         const user = await this.userRepository.findById(userId);
 
-        if (user.email !== invite?.email)
+        if (user.email.toLowerCase() !== invite?.email.toLowerCase())
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INCORRECT_USER_FOR_INVITATION);
 
         const member = await this.memberRepository.findOne({
