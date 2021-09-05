@@ -442,10 +442,15 @@ export class LeagueController {
             await this.memberRepository.create(memberData);
 
             if (invite.teamId) {
-                await this.teamRepository.updateById(invite.teamId, {
-                    userId: user.id,
-                    updatedAt: moment().toDate().toString(),
-                });
+
+                const team = await this.teamRepository.findById(invite.teamId);
+
+                if(!team.userId) {
+                    await this.teamRepository.updateById(invite.teamId, {
+                        userId: user.id,
+                        updatedAt: moment().toDate().toString(),
+                    });
+                }
             }
 
             await this.inviteRepository.updateById(invite.id, {
