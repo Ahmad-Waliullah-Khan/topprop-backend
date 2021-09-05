@@ -259,8 +259,8 @@ export class CronService {
                         cronTiming = '0 0,30 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // 0th second of every 5th minute
-                        cronTiming = '0 */5 * * * *';
+                        // 0th second of every 30th minute
+                        cronTiming = '0 */30 * * * *';
                         break;
                 }
                 break;
@@ -275,8 +275,8 @@ export class CronService {
                         cronTiming = '0 0,30 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // 0th second of every 5th minute
-                        cronTiming = '0 */5 * * * *';
+                        // 0th second of every 30th minute
+                        cronTiming = '0 */30 * * * *';
                         break;
                 }
                 break;
@@ -330,6 +330,9 @@ export class CronService {
                 break;
             case CRON_JOBS.YAHOO_SYNC_LEAGUES_CRON:
                 cronMessage = 'Yahoo League';
+                break;
+            case CRON_JOBS.WITHDRAW_FUNDS_CRON:
+                cronMessage = 'Withdraw Cron';
                 break;
         }
 

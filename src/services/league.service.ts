@@ -190,11 +190,11 @@ export class LeagueService {
         let foundLocalPlayer = null;
         if (source === 'yahoo') {
             foundLocalPlayer = localPlayers.find(
-                (localPlayer: any) => remotePlayer.player_id === localPlayer.yahooPlayerId,
+                (localPlayer: any) => Number(remotePlayer.player_id) === localPlayer.yahooPlayerId,
             );
         } else if (source === 'espn') {
             foundLocalPlayer = localPlayers.find(
-                (localPlayer: any) => remotePlayer.player_id === localPlayer.espnPlayerId,
+                (localPlayer: any) => Number(remotePlayer.player_id) === localPlayer.espnPlayerId,
             );
         }
         // When imported player's id from roster does not match in our DB, then try finding corresponding player by name
