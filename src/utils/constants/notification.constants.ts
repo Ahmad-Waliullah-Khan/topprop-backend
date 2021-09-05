@@ -16,6 +16,7 @@ export enum EMAIL_TEMPLATES {
     // PAYOUT_FAILED = 'payout-failed',
     // PAYOUT_PAID = 'payout-paid',
     WITHDRAW_REQUEST_ACCEPTED = 'withdraw-request-accepted',
+    WITHDRAW_REQUEST_CREATED = 'withdraw-request-created',
     // WITHDRAW_REQUEST_DENIED = 'withdraw-request-denied',
 
     CONTEST_CREATED = 'create-contest',

@@ -5,7 +5,7 @@ import { Filter, repository, Where } from '@loopback/repository';
 import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
 import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
 import { BetRepository, GainRepository, TopUpRepository, UserRepository } from '@src/repositories';
-import { PaymentGatewayService, TRANSFER_TYPES, UserService } from '@src/services';
+import { PaymentGatewayService, TRANSFER_TYPES, UserService } from '../../services';
 import {
     API_ENDPOINTS,
     EMAIL_TEMPLATES,
@@ -81,38 +81,20 @@ export class UserWithdrawRequestController {
         if (funds < MINIMUM_WITHDRAW_AMOUNT)
             throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT(MINIMUM_WITHDRAW_AMOUNT));
 
-        const transferUrl = await this.paymentGatewayService.sendFunds(
-            user._customerTokenUrl,
-            TRANSFER_TYPES.WITHDRAW,
-            funds,
-            body.destinationFundingSourceId,
-        );
+        
         const withdraw = await this.userRepository.withdrawRequests(id).create({
-            acceptedAt: moment().toDate(),
             status: WITHDRAW_REQUEST_STATUSES.PENDING,
-            withdrawTransferUrl: transferUrl,
             netAmount: funds,
             brutAmount: funds,
             destinationFundingSourceId: body.destinationFundingSourceId,
         });
 
-        const transferUpdate: Partial<TopUp | Bet | Gain> = {
-            withdrawTransferUrl: transferUrl,
-            transferred: true,
-            transferredAt: moment().toDate(),
-        };
-        const whereUpdate: Where<TopUp | Bet | Gain> = { userId: withdraw.userId, transferred: false, paid: false };
-
-        await this.topUpRepository.updateAll(transferUpdate, whereUpdate);
-        await this.betRepository.updateAll(transferUpdate, whereUpdate);
-        await this.gainRepository.updateAll(transferUpdate, whereUpdate);
-
-        this.userService.sendEmail(user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_ACCEPTED, {
+        await this.userService.sendEmail(user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_CREATED, {
             user: user,
             text: {
-                title: 'TopProp - Withdraw Request Accepted',
+                title: 'Withdraw Request Created',
                 subtitle:
-                    'Your withdraw request was accepted and your funds will be in you bank account very soon, we will keep you in the loop.',
+                    'Your withdraw request was created and is being processed, we will keep you in the loop.',
             },
         });
 

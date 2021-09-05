@@ -1,6 +1,6 @@
 import { BindingScope, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { Gain, Player, Timeframe } from '@src/models';
+import { repository, Where } from '@loopback/repository';
+import { Gain, Player, TopUp, Bet, User, Timeframe } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -12,6 +12,9 @@ import {
     TeamRepository,
     TimeframeRepository,
     UserRepository,
+    WithdrawRequestRepository,
+    BetRepository,
+    TopUpRepository,
 } from '@src/repositories';
 import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
@@ -22,6 +25,8 @@ import util from 'util';
 import { LeagueService } from '../services/league.service';
 import { SportsDataService } from '../services/sports-data.service';
 import { UserService } from '../services/user.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { TRANSFER_TYPES } from '../services';
 import {
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
@@ -35,6 +40,7 @@ import {
     RUN_TYPE,
     SCORING_TYPE,
     TIMEFRAMES,
+    WITHDRAW_REQUEST_STATUSES,
 } from '../utils/constants';
 import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
@@ -46,16 +52,20 @@ export class CronService {
         @service() private sportsDataService: SportsDataService,
         @service() private userService: UserService,
         @service() private leagueService: LeagueService,
+        @service() private paymentGatewayService: PaymentGatewayService,
         @repository('PlayerRepository') private playerRepository: PlayerRepository,
         @repository('TimeframeRepository') private timeframeRepository: TimeframeRepository,
         @repository('ContestRepository') private contestRepository: ContestRepository,
         @repository('GainRepository') private gainRepository: GainRepository,
+        @repository('TopUpRepository') protected topUpRepository: TopUpRepository,
+        @repository('BetRepository') protected betRepository: BetRepository,
         @repository('UserRepository') private userRepository: UserRepository,
         @repository('LeagueContestRepository') private leagueContestRepository: LeagueContestRepository,
         @repository('TeamRepository') private teamRepository: TeamRepository,
         @repository('RosterRepository') private rosterRepository: RosterRepository,
         @repository('ContestRosterRepository') private contestRosterRepository: ContestRosterRepository,
         @repository('LeagueRepository') private leagueRepository: LeagueRepository,
+        @repository('WithdrawRequestRepository') private withdrawRequestRepository: WithdrawRequestRepository,
     ) {}
 
     async fetchDate() {
@@ -263,6 +273,23 @@ export class CronService {
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of every 0th and 30th minute
                         cronTiming = '0 0,30 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 0th second of every 5th minute
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
+
+            case CRON_JOBS.WITHDRAW_FUNDS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 45th second of every 5 minutes
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th second of every 0th and 30th minute
+                        cronTiming = '0 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 5th minute
@@ -2720,5 +2747,65 @@ export class CronService {
                 importSourceId: 2,
             },
         });
+    }
+
+    async withdrawFunds() {
+        const withdrawRequests = await this.withdrawRequestRepository.find({
+            where: {
+                status: WITHDRAW_REQUEST_STATUSES.APPROVED,
+            },
+            include: [
+                {
+                    relation: 'user',
+                },
+            ],
+        });
+
+        try {
+            await Promise.all(
+                withdrawRequests.map(async request => {
+                    const transferUrl = await this.paymentGatewayService.sendFunds(
+                        request.user?._customerTokenUrl || '',
+                        TRANSFER_TYPES.WITHDRAW,
+                        request.netAmount,
+                        request.destinationFundingSourceId || '',
+                    );
+
+                    const withdrawRequestData = {
+                        withdrawTransferUrl: transferUrl,
+                        acceptedAt: moment().toDate(),
+                        status: WITHDRAW_REQUEST_STATUSES.PROCESSING,
+                    };
+
+                    await this.withdrawRequestRepository.updateById(request.id, withdrawRequestData);
+
+                    const transferUpdate: Partial<TopUp | Bet | Gain> = {
+                        withdrawTransferUrl: transferUrl,
+                        transferred: true,
+                        transferredAt: moment().toDate(),
+                    };
+                    const whereUpdate: Where<TopUp | Bet | Gain> = {
+                        userId: request.userId,
+                        transferred: false,
+                        paid: false,
+                    };
+
+                    await this.topUpRepository.updateAll(transferUpdate, whereUpdate);
+                    await this.betRepository.updateAll(transferUpdate, whereUpdate);
+                    await this.gainRepository.updateAll(transferUpdate, whereUpdate);
+
+                    await this.userService.sendEmail(request.user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_ACCEPTED, {
+                        user: request.user,
+                        text: {
+                            title: 'Withdraw Request Accepted',
+                            subtitle:
+                                'Your withdraw request was accepted and your funds will be in you bank account very soon, we will keep you in the loop.',
+                        },
+                    });
+                }),
+            );
+        } catch (err) {
+            logger.error(err);
+        }
     }
 }

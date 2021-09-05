@@ -16,6 +16,8 @@ export enum CRON_JOBS {
     ESPN_SYNC_LEAGUES_CRON = 'espn-sync-leagues-cron',
     YAHOO_SYNC_LEAGUES_CRON = 'yahoo-sync-leagues-cron',
 
+    WITHDRAW_FUNDS_CRON = 'withdraw-funds-cron',
+
     FAKE_RESULTS_CRON = 'fake-results-cron',
     SYNC_TEAMS_CRON = 'sync-teams-cron',
     SYNC_GAMES_CRON = 'sync-games-cron',

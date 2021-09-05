@@ -13,5 +13,6 @@ export * from './league-win-criteria.cron';
 export * from './espn-sync-leagues.cron';
 export * from './yahoo-sync-leagues.cron';
 export * from './timeframe.cron';
+export * from './withdraw-funds.cron';
 export * from './win-criteria.cron';
 

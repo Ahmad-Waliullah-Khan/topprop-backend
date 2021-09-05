@@ -30,6 +30,7 @@ import {
     SyncGamesCron,
     TimeframeCron,
     WinCriteriaCron,
+    WithdrawFundsCron,
     YahooSyncLeaguesCron,
 } from './cron-jobs';
 import { ImportSourceRepository, ScoringTypeRepository, SpreadRepository } from './repositories';
@@ -165,6 +166,9 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const YahooSyncLeaguesCronBinding = createBindingFromClass(YahooSyncLeaguesCron);
         this.add(YahooSyncLeaguesCronBinding);
+
+        const WithdrawFundsCronBinding = createBindingFromClass(WithdrawFundsCron);
+        this.add(WithdrawFundsCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);

@@ -251,9 +251,10 @@ export enum WALLET_VERIFICATION_FILE_SIDES {
 
 export enum WITHDRAW_REQUEST_STATUSES {
     PENDING = 'pending',
-    DENIED = 'denied',
-    // ACCEPTED = 'accepted',
+    APPROVED = 'approved',
+    PROCESSING = 'processing',
     COMPLETED = 'completed',
+    DENIED = 'denied',
 }
 
 export enum DWOLLA_WEBHOOK_EVENTS {
