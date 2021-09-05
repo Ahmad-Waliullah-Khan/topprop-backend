@@ -1,4 +1,5 @@
 import { belongsTo, model, property } from '@loopback/repository';
+import { WithdrawRequest } from './withdraw-request.model';
 import { Base } from './base.model';
 import { User } from './user.model';
 
@@ -93,6 +94,9 @@ export class TopUp extends Base {
     @belongsTo(() => User)
     userId: number;
 
+    @belongsTo(() => WithdrawRequest)
+    withdrawRequestId: number;
+
     constructor(data?: Partial<TopUp>) {
         super(data);
     }
@@ -101,6 +105,7 @@ export class TopUp extends Base {
 export interface TopUpRelations {
     // describe navigational properties here
     user?: User;
+    withdrawRequest?: WithdrawRequest;
 }
 
 export type TopUpWithRelations = TopUp & TopUpRelations;

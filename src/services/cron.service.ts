@@ -285,7 +285,7 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // 45th second of every 5 minutes
-                        cronTiming = '0 0 */1 * * *';
+                        cronTiming = '0 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of every 0th and 30th minute
@@ -2763,10 +2763,11 @@ export class CronService {
                 },
             ],
         });
+        // console.log("🚀 ~ file: cron.service.ts ~ line 2766 ~ CronService ~ withdrawFunds ~ withdrawRequests", withdrawRequests)
 
-        try {
-            await Promise.all(
-                withdrawRequests.map(async request => {
+        await Promise.all(
+            withdrawRequests.map(async request => {
+                try {
                     const transferUrl = await this.paymentGatewayService.sendFunds(
                         request.user?._customerTokenUrl || '',
                         TRANSFER_TYPES.WITHDRAW,
@@ -2784,13 +2785,9 @@ export class CronService {
 
                     const transferUpdate: Partial<TopUp | Bet | Gain> = {
                         withdrawTransferUrl: transferUrl,
-                        transferred: true,
-                        transferredAt: moment().toDate(),
                     };
                     const whereUpdate: Where<TopUp | Bet | Gain> = {
-                        userId: request.userId,
-                        transferred: false,
-                        paid: false,
+                        withdrawRequestId: request.id,
                     };
 
                     await this.topUpRepository.updateAll(transferUpdate, whereUpdate);
@@ -2801,14 +2798,21 @@ export class CronService {
                         user: request.user,
                         text: {
                             title: 'Withdraw Request Accepted',
-                            subtitle:
-                                'Your withdraw request was accepted and your funds will be in you bank account very soon, we will keep you in the loop.',
+                            subtitle: `Your withdraw request of ${new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }).format(
+                                MiscHelpers.c2d(request.netAmount),
+                            )} was accepted and your funds will be in your bank account very soon, we will keep you in the loop.`,
                         },
                     });
-                }),
-            );
-        } catch (err) {
-            logger.error(err);
-        }
+                } catch (err) {
+                    console.log("🚀 ~ file: cron.service.ts ~ line 2812 ~ CronService ~ withdrawFunds ~ err", err)
+                    logger.error(err);
+                }
+            }),
+        );
     }
 }

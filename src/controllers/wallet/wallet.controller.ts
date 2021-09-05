@@ -4,7 +4,7 @@ import { inject, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { del, get, HttpErrors, param, patch, post, Request, requestBody, RestBindings } from '@loopback/rest';
 import { User } from '@src/models';
-import { TopUpRepository, UserRepository } from '@src/repositories';
+import { TopUpRepository, UserRepository, WithdrawRequestRepository } from '@src/repositories';
 import {
     AddFundsPayload,
     DwollaCustomer,
@@ -16,7 +16,7 @@ import {
     UserService,
     WalletTransfer,
 } from '@src/services';
-import { API_ENDPOINTS, FILE_NAMES, PERMISSIONS } from '@src/utils/constants';
+import { API_ENDPOINTS, FILE_NAMES, PERMISSIONS, WITHDRAW_REQUEST_STATUSES } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
@@ -32,6 +32,7 @@ export class WalletController {
         private userRepository: UserRepository,
         @repository(TopUpRepository)
         private topUpRepository: TopUpRepository,
+        @repository('WithdrawRequestRepository') private withdrawRequestRepository: WithdrawRequestRepository,
         @service() protected paymentGatewayService: PaymentGatewayService,
         @service() protected userService: UserService,
         @service() protected multipartyFormService: MultiPartyFormService,
@@ -224,6 +225,23 @@ export class WalletController {
         const user = await this.userRepository.findById(id);
 
         if (!user._customerTokenUrl) throw new HttpErrors.BadRequest(WALLET_MESSAGES.INVALID_WALLET);
+
+        const withdrawRequests = await this.withdrawRequestRepository.find({
+            where: {
+                and: [
+                    { userId: id },
+                    {
+                        or: [
+                            { status: WITHDRAW_REQUEST_STATUSES.PENDING },
+                            { status: WITHDRAW_REQUEST_STATUSES.APPROVED },
+                            { status: WITHDRAW_REQUEST_STATUSES.PROCESSING },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        if(withdrawRequests.length>0) throw new HttpErrors.BadRequest(WALLET_MESSAGES.OPEN_WITHDRAW_REQUEST);
 
         try {
             await this.paymentGatewayService.removeFundingSource(fundingSourceId);

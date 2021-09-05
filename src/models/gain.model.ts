@@ -3,6 +3,7 @@ import { Base } from '.';
 import { Contender } from './contender.model';
 import { User } from './user.model';
 import { Contest } from './contest.model';
+import { WithdrawRequest } from './withdraw-request.model';
 
 @model()
 export class Gain extends Base {
@@ -79,6 +80,9 @@ export class Gain extends Base {
     })
     paidAt?: Date | null;
 
+    @belongsTo(() => WithdrawRequest)
+    withdrawRequestId: number;
+
     constructor(data?: Partial<Gain>) {
         super(data);
     }
@@ -86,6 +90,7 @@ export class Gain extends Base {
 
 export interface GainRelations {
     // describe navigational properties here
+    withdrawRequest?: WithdrawRequest;
 }
 
 export type GainWithRelations = Gain & GainRelations;

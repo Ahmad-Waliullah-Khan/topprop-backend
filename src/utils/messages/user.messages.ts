@@ -33,10 +33,11 @@ export const WALLET_MESSAGES = {
     VERIFICATION_FILE_SIDE_ALREADY_PROVIDED: (side: string) =>
         `The ${side} side verification file provided is already verified`,
     ALREADY_VERIFIED: `The account is already verified.`,
+    OPEN_WITHDRAW_REQUEST: `You have a pending withdraw request. Please wait till the request is processed before deleting funding the source.`,
 };
 export const WITHDRAW_REQUEST_MESSAGES = {
     WITHDRAW_REQUEST_NOT_FOUND: `Withdraw request not found.`,
-    LIMIT_EXCEEDED: `You have already a pending request. Please wait for our response or send us a message via the support page.`,
+    LIMIT_EXCEEDED: `You already have a pending request. Please wait for our response or send us a message via the support page.`,
     INVALID_WITHDRAW_AMOUNT: (currentAmount: number): string =>
         `The minimum amount to request a withdraw is $${(MINIMUM_WITHDRAW_AMOUNT / 100).toFixed(
             2,

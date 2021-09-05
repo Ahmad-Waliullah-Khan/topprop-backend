@@ -16,6 +16,7 @@ import {
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
+import { MiscHelpers } from '@src/utils/helpers';
 import { USER_MESSAGES, WALLET_MESSAGES, WITHDRAW_REQUEST_MESSAGES } from '@src/utils/messages';
 import { WITHDRAW_REQUEST_VALIDATORS } from '@src/utils/validators';
 import moment from 'moment';
@@ -81,7 +82,6 @@ export class UserWithdrawRequestController {
         if (funds < MINIMUM_WITHDRAW_AMOUNT)
             throw new HttpErrors.BadRequest(WITHDRAW_REQUEST_MESSAGES.INVALID_WITHDRAW_AMOUNT(MINIMUM_WITHDRAW_AMOUNT));
 
-        
         const withdraw = await this.userRepository.withdrawRequests(id).create({
             status: WITHDRAW_REQUEST_STATUSES.PENDING,
             netAmount: funds,
@@ -89,12 +89,31 @@ export class UserWithdrawRequestController {
             destinationFundingSourceId: body.destinationFundingSourceId,
         });
 
+        const transferUpdate: Partial<TopUp | Bet | Gain> = {
+            withdrawRequestId: withdraw.id,
+            transferred: true,
+            transferredAt: moment().toDate(),
+        };
+        const whereUpdate: Where<TopUp | Bet | Gain> = {
+            userId: user.id,
+            transferred: false,
+            paid: false,
+        };
+
+        await this.topUpRepository.updateAll(transferUpdate, whereUpdate);
+        await this.betRepository.updateAll(transferUpdate, whereUpdate);
+        await this.gainRepository.updateAll(transferUpdate, whereUpdate);
+
         await this.userService.sendEmail(user as User, EMAIL_TEMPLATES.WITHDRAW_REQUEST_CREATED, {
             user: user,
             text: {
                 title: 'Withdraw Request Created',
-                subtitle:
-                    'Your withdraw request was created and is being processed, we will keep you in the loop.',
+                subtitle: `Your withdraw request of ${new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                }).format(MiscHelpers.c2d(funds))} was created and is being processed, we will keep you in the loop.`,
             },
         });
 

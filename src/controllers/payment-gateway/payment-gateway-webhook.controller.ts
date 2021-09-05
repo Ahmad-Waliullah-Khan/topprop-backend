@@ -58,6 +58,7 @@ export class PaymentGatewayWebhookController {
         @requestBody()
         body: DwollaWebhookEventPayload,
     ): Promise<void> {
+        console.log("🚀 ~ file: payment-gateway-webhook.controller.ts ~ line 61 ~ PaymentGatewayWebhookController ~ body", body.topic)
         //EARLY REPLY
         res.send(200);
 
@@ -265,7 +266,7 @@ export class PaymentGatewayWebhookController {
                     withdrawWhereUpdate = {
                         destinationFundingSourceId: destinationSourceId,
                         withdrawTransferUrl: transferUrl,
-                        status: WITHDRAW_REQUEST_STATUSES.PENDING,
+                        status: WITHDRAW_REQUEST_STATUSES.PROCESSING,
                     };
                 }
                 if (isEqual(body.topic, DWOLLA_WEBHOOK_EVENTS.CUSTOMER_BANK_TRANSFER_FAILED)) {

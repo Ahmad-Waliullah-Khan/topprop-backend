@@ -1,6 +1,7 @@
 import { belongsTo, model, property } from '@loopback/repository';
 import { Base } from '.';
 import { Contender } from './contender.model';
+import { WithdrawRequest } from './withdraw-request.model';
 import { User } from './user.model';
 import { Contest } from './contest.model';
 
@@ -72,6 +73,9 @@ export class Bet extends Base {
         default: () => null,
     })
     paidAt?: Date | null;
+
+    @belongsTo(() => WithdrawRequest)
+    withdrawRequestId: number;
 
     constructor(data?: Partial<Bet>) {
         super(data);
