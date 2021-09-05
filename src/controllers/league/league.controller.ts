@@ -19,8 +19,8 @@ import {
     TeamRepository,
     UserRepository
 } from '@src/repositories';
-import { LeagueService, PaymentGatewayService } from '@src/services';
-import { UserService } from '@src/services/user.service';
+import {LeagueService, PaymentGatewayService} from '@src/services';
+import {UserService} from '@src/services/user.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -239,7 +239,7 @@ export class LeagueController {
             await Promise.all(
                 filteredInvitees.map(async (invitee: any) => {
                     const foundMember = find(league.members, (member: any) => {
-                        return invitee.email === member.user.email;
+                        return invitee.email.toLowerCase() === member.user.email.toLowerCase();
                     });
 
                     if (foundMember) {
