@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 export class EspnSyncLeaguesCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: process.env.CRON_TIME_ESPN_SYNC_LEAGUES ? process.env.CRON_TIME_ESPN_SYNC_LEAGUES : '0 */1 * * * *',
             name: CRON_JOBS.ESPN_SYNC_LEAGUES_CRON,
             start: true,
             onTick: async () => {

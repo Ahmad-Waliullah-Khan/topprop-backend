@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 export class LeagueWinCriteriaCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: process.env.CRON_TIME_LEAGUE_WIN_CRITERIA ? process.env.CRON_TIME_LEAGUE_WIN_CRITERIA : '0 */1 * * * *',
             name: CRON_JOBS.LEAGUE_WIN_CHECK_CRON,
             start: true,
             onTick: async () => {

@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 export class TimeframeCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: process.env.CRON_TIME_TIMEFRAME ? process.env.CRON_TIME_TIMEFRAME : '0 */1 * * * *',
             name: CRON_JOBS.TIMEFRAME_CRON,
             onTick: async () => {
                 try {

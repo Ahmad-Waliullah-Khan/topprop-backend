@@ -11,7 +11,7 @@ import logger from '../utils/logger';
 export class PlayersCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *', // Every 3 minute interval
+            cronTime: process.env.CRON_TIME_PLAYERS ? process.env.CRON_TIME_PLAYERS : '0 */1 * * * *', // Every 3 minute interval
             name: CRON_JOBS.PLAYERS_CRON,
             start: true,
             onTick: async () => {

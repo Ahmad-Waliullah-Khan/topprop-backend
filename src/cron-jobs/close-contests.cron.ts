@@ -11,7 +11,7 @@ import logger from '../utils/logger';
 export class CloseContestsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 1 * * * 3',
+            cronTime: process.env.CRON_TIME_CLOSE_CONTEST ? process.env.CRON_TIME_CLOSE_CONTEST :  '0 1 * * * 3',
             name: CRON_JOBS.CLOSE_CONTEST_CRON,
             start: true,
             onTick: async () => {

@@ -16,7 +16,7 @@ export class SyncGamesCron extends CronJob {
         @service() private sportDataService: SportsDataService,
     ) {
         super({
-            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : '0 30 * * * *',
+            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : (process.env.CRON_TIME_SYNC_GAMES ? process.env.CRON_TIME_SYNC_GAMES : '0 30 * * * *'),
             name: CRON_JOBS.SYNC_GAMES_CRON,
             onTick: async () => {
                 try {

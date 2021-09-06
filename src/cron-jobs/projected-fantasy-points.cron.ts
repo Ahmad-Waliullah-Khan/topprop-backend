@@ -11,7 +11,7 @@ import logger from '../utils/logger';
 export class ProjectedFantasyPointsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: process.env.CRON_TIME_PROJECTED_FANTASY_POINTS ? process.env.CRON_TIME_PROJECTED_FANTASY_POINTS : '0 */1 * * * *',
             name: CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON,
             start: true,
             onTick: async () => {

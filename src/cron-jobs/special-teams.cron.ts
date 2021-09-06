@@ -11,7 +11,7 @@ import logger from '../utils/logger';
 export class SpecialTeamsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *', // Every 3 minute interval
+            cronTime: process.env.CRON_TIME_SPECIAL_TEAMS ? process.env.CRON_TIME_SPECIAL_TEAMS : '0 */1 * * * *', // Every 3 minute interval
             name: CRON_JOBS.SPECIAL_TEAMS_CRON,
             start: true,
             onTick: async () => {

@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 export class YahooSyncLeaguesCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: process.env.CRON_TIME_YAHOO_SYNCH_LEAGUES ? process.env.CRON_TIME_YAHOO_SYNCH_LEAGUES : '0 */1 * * * *',
             name: CRON_JOBS.YAHOO_SYNC_LEAGUES_CRON,
             start: true,
             onTick: async () => {
