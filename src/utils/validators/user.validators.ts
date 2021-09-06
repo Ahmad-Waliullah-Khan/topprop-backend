@@ -15,7 +15,7 @@ export const USER_VALIDATORS = {
         required: true,
         length: { min: 12 },
         //string must contain 1 number , 1 lowercase and 1 uppercase. Extra symbols allowed too.
-        match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\~\`\@\#\$\%\^\&\*\(\)\-\=\_\+\[\]\\\{\}\|\;\'\:\"\,\.\/\<\>\?])[A-Za-z\d\~\`\@\#\$\%\^\&\*\(\)\-\=\_\+\[\]\\\{\}\|\;\'\:\"\,\.\/\<\>\?]{12,}$/,
+        match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\~\`\@\#\$\%\!\!\^\&\*\(\)\-\=\_\+\[\]\\\{\}\|\;\'\:\"\,\.\/\<\>\?])[A-Za-z\d\~\`\@\#\$\%\!\^\&\*\(\)\-\=\_\+\[\]\\\{\}\|\;\'\:\"\,\.\/\<\>\?]{12,}$/,
         message: {
             required: 'Password is required.',
             length: 'Password must contain at least 12 characters.',
