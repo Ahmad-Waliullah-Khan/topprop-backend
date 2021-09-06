@@ -1,20 +1,26 @@
-import { /* inject, */ BindingScope, Getter, injectable } from '@loopback/core';
+import { /* inject, */ BindingScope, Getter, injectable, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
-import { User } from '@src/models';
-import { UserRepository } from '@src/repositories';
-import { API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, IRequestFile } from '@src/utils/constants';
+import { TopUp, User } from '@src/models';
+import { TopUpRepository, UserRepository, WithdrawRequestRepository } from '@src/repositories';
+import { API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import Dwolla from 'dwolla-v2';
 import FormData from 'form-data';
 import { createReadStream } from 'fs-extra';
 import { find, isEqual, startsWith } from 'lodash';
+import { UserService } from './user.service';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class PaymentGatewayService {
     dwollaClient: Dwolla.Client;
     private dwollaApiUrl: string;
-    constructor(@repository.getter(UserRepository) private userRepoGetter: Getter<UserRepository>) {
+    constructor(
+        @repository.getter(UserRepository) private userRepoGetter: Getter<UserRepository>,
+        @repository('TopUpRepository') private topUpRepository: TopUpRepository,
+        @repository('WithdrawRequestRepository') private withdrawRequestRepository: WithdrawRequestRepository,
+        @service() private userService: UserService,
+    ) {
         if (!process.env.DWOLLA_APP_KEY || !process.env.DWOLLA_APP_SECRET)
             throw new Error(`Must provide dwolla env variables`);
 
@@ -389,6 +395,105 @@ export class PaymentGatewayService {
             error.message = ErrorHandler.formatError(error);
             ErrorHandler.httpError(error);
         }
+    }
+
+    async syncMissingTransactions() {
+        const userRepo = await this.userRepoGetter();
+        const users = await userRepo.find();
+        let today = new Date();
+        let yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        await Promise.all(
+            users
+                .filter(user => user._customerTokenUrl)
+                .map(async (user: User) => {
+                    try {
+                        const response = await this.dwollaClient.get(
+                            `${user._customerTokenUrl}/transfers?startDate=${
+                                yesterday.toISOString().split('T')[0]
+                            }&endDate=${today.toISOString().split('T')[0]}`,
+                        );
+
+                        response.body._embedded['transfers']
+                            .filter(
+                                (transfer: DwollaTransfer) =>
+                                    transfer._links &&
+                                    transfer._links.source['resource-type'] !== 'account' &&
+                                    transfer._links.destination['resource-type'] !== 'customer',
+                            )
+                            .map(async (transfer: DwollaTransfer) => {
+                                if (
+                                    transfer._links?.source['resource-type'] === 'customer' &&
+                                    transfer._links?.destination['resource-type'] === 'funding-source'
+                                ) {
+                                    //Withdraw Scenario
+                                    if (transfer._links && transfer.status === 'processed') {
+
+                                        const withdrawRequest = await this.withdrawRequestRepository.findOne({
+                                            where: { withdrawTransferUrl: transfer._links['funding-transfer'].href },
+                                        });
+
+                                        if (withdrawRequest && withdrawRequest.status !== 'completed') {
+                                            withdrawRequest.status = 'completed';
+                                            await this.withdrawRequestRepository.updateById(withdrawRequest.id, withdrawRequest);
+                                        }
+                                    } else if (
+                                        transfer._links &&
+                                        (transfer.status === 'cancelled' || transfer.status === 'failed')
+                                    ) {
+                                        const withdrawRequest = await this.withdrawRequestRepository.findOne({
+                                            where: { withdrawTransferUrl: transfer._links.self.href },
+                                        });
+                                        if (withdrawRequest && withdrawRequest.status !== 'denied') {
+                                            withdrawRequest.status = 'denied';
+                                            await this.withdrawRequestRepository.updateById(withdrawRequest.id, withdrawRequest);
+                                            try {
+                                                if (process.env.SUPPORT_EMAIL_ADDRESS) {
+                                                    this.userService.sendEmail(
+                                                        user,
+                                                        EMAIL_TEMPLATES.FAILED_TRANSACTION,
+                                                        {
+                                                            user,
+                                                            message:
+                                                                'WithdrawRequest with id ' +
+                                                                withdrawRequest.id +
+                                                                ' has following status from Dwolla: ' +
+                                                                withdrawRequest.status +
+                                                                '. Please audit and update ledger accordingly.',
+                                                        },
+                                                        process.env.SUPPORT_EMAIL_ADDRESS,
+                                                    );
+                                                }
+                                            } catch (error) {
+                                                error.message = ErrorHandler.formatError(error);
+                                                ErrorHandler.httpError(error);
+                                            }
+                                        }
+                                    }
+                                } else if (transfer._links && transfer.status === 'processed') {
+                                    //TopUp Scenario
+                                    const transferURL = transfer._links.self.href;
+                                    const topUp = await this.topUpRepository.findOne({
+                                        where: { topUpTransferUrl: transferURL },
+                                    });
+                                    if (!topUp) {
+                                        const amount = transfer.amount.value;
+                                        const newTopUp = new TopUp();
+                                        newTopUp.grossAmount = parseFloat(amount) * 100;
+                                        newTopUp.netAmount = parseFloat(amount) * 100;
+                                        newTopUp.topUpTransferUrl = transferURL;
+                                        newTopUp.userId = user.id;
+                                        await this.topUpRepository.create(newTopUp);
+                                    }
+                                }
+                            });
+                    } catch (error) {
+                        error.message = ErrorHandler.formatError(error);
+                        ErrorHandler.httpError(error);
+                    }
+                }),
+        );
     }
 
     async fetchTransfers(customerUrl: string): Promise<WalletTransfer[]> {

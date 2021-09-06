@@ -297,6 +297,23 @@ export class CronService {
                         break;
                 }
                 break;
+
+            case CRON_JOBS.SYNC_TRANSACTIONS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 0th minute every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 0th minute every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -333,6 +350,9 @@ export class CronService {
                 break;
             case CRON_JOBS.WITHDRAW_FUNDS_CRON:
                 cronMessage = 'Withdraw Cron';
+                break;
+            case CRON_JOBS.SYNC_TRANSACTIONS_CRON:
+                cronMessage = 'Sync Transaction Cron';
                 break;
         }
 
@@ -2809,7 +2829,7 @@ export class CronService {
                         },
                     });
                 } catch (err) {
-                    console.log("🚀 ~ file: cron.service.ts ~ line 2812 ~ CronService ~ withdrawFunds ~ err", err)
+                    console.log('🚀 ~ file: cron.service.ts ~ line 2812 ~ CronService ~ withdrawFunds ~ err', err);
                     logger.error(err);
                 }
             }),

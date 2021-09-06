@@ -28,6 +28,8 @@ export enum EMAIL_TEMPLATES {
     CONTEST_DRAW_UNDERDOG = 'contest-draw-underdog',
     CONTEST_CLOSED = 'contest-close',
 
+    FAILED_TRANSACTION = 'failed-transaction',
+
     USER_EMAIL = 'user-email',
     LEAGUE_INVITE = 'league-invite',
     LEAGUE_IMPORT = 'league-import',
