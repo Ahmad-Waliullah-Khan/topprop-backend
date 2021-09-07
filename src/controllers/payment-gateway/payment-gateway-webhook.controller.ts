@@ -285,6 +285,7 @@ export class PaymentGatewayWebhookController {
                     };
 
                     withdrawUpdateData = { status: WITHDRAW_REQUEST_STATUSES.COMPLETED };
+                    
                     withdrawWhereUpdate = {
                         destinationFundingSourceId: destinationSourceId,
                         withdrawTransferUrl: transferUrl,
@@ -309,11 +310,13 @@ export class PaymentGatewayWebhookController {
                     };
 
                     withdrawUpdateData = { status: WITHDRAW_REQUEST_STATUSES.DENIED };
+                    
                     withdrawWhereUpdate = {
                         destinationFundingSourceId: destinationSourceId,
                         withdrawTransferUrl: transferUrl,
-                        status: WITHDRAW_REQUEST_STATUSES.PENDING,
+                        status: WITHDRAW_REQUEST_STATUSES.PROCESSING,
                     };
+                    
                 }
 
                 if (updateData && whereUpdate && withdrawUpdateData && withdrawWhereUpdate) {

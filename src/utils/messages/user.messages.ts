@@ -33,7 +33,7 @@ export const WALLET_MESSAGES = {
     VERIFICATION_FILE_SIDE_ALREADY_PROVIDED: (side: string) =>
         `The ${side} side verification file provided is already verified`,
     ALREADY_VERIFIED: `The account is already verified.`,
-    OPEN_WITHDRAW_REQUEST: `You have a pending withdraw request. Please wait till the request is processed before deleting funding the source.`,
+    OPEN_WITHDRAW_REQUEST: `You have a pending withdraw request. Please wait till the request is processed before deleting the funding source.`,
 };
 export const WITHDRAW_REQUEST_MESSAGES = {
     WITHDRAW_REQUEST_NOT_FOUND: `Withdraw request not found.`,
