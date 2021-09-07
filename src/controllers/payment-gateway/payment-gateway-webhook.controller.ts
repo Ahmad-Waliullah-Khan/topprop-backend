@@ -6,6 +6,7 @@ import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
 import {
     BetRepository,
     GainRepository,
+    PaymentGatewayEventRepository,
     TopUpRepository,
     UserRepository,
     WithdrawRequestRepository,
@@ -28,6 +29,8 @@ export class PaymentGatewayWebhookController {
         @repository.getter('TopUpRepository') protected topUpRepositoryGetter: Getter<TopUpRepository>,
         @repository.getter('BetRepository') protected betRepositoryGetter: Getter<BetRepository>,
         @repository.getter('GainRepository') protected gainRepositoryGetter: Getter<GainRepository>,
+        @repository.getter('PaymentGatewayEventRepository')
+        protected paymentGatewayEventRepositoryGetter: Getter<PaymentGatewayEventRepository>,
         @service() private userService: UserService,
         @service() private paymentGatewayService: PaymentGatewayService,
     ) {
@@ -58,11 +61,21 @@ export class PaymentGatewayWebhookController {
         @requestBody()
         body: DwollaWebhookEventPayload,
     ): Promise<void> {
-        console.log("🚀 ~ file: payment-gateway-webhook.controller.ts ~ line 61 ~ PaymentGatewayWebhookController ~ body", body.topic)
+        console.log(
+            '🚀 ~ file: payment-gateway-webhook.controller.ts ~ line 61 ~ PaymentGatewayWebhookController ~ body',
+            body.topic,
+        );
         //EARLY REPLY
         res.send(200);
 
         if (this.verifyGatewaySignature(paymentGatewaySignature, this.webhookSecret, req.rawBody)) {
+            const paymentGatewayEventRepository = await this.paymentGatewayEventRepositoryGetter();
+            const eventUrl = body._links.self.href;
+            const eventId = body.id;
+            const eventsCountData = await paymentGatewayEventRepository.count({ eventUrl, eventId });
+            if (eventsCountData.count) return;
+
+            let createEvent = true;
             switch (body.topic) {
                 case DWOLLA_WEBHOOK_EVENTS.CUSTOMER_CREATED: {
                     // const customer = await this.paymentGatewayService.getCustomer(body.)
@@ -141,8 +154,17 @@ export class PaymentGatewayWebhookController {
                 }
 
                 default:
+                    createEvent = false;
                     break;
             }
+
+            //* CREATE EVENT ON DB AFTER EVERYTHING HAS OCCURRED
+            createEvent &&
+                (await paymentGatewayEventRepository.create({
+                    eventUrl,
+                    topic: body.topic,
+                    eventId,
+                }));
         }
     }
 

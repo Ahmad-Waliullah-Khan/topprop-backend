@@ -24,3 +24,4 @@ export * from './top-up.model';
 export * from './user.model';
 export * from './withdraw-request.model';
 
+export * from './payment-gateway-event.model';

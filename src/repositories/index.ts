@@ -23,3 +23,4 @@ export * from './top-up.repository';
 export * from './user.repository';
 export * from './withdraw-request.repository';
 
+export * from './payment-gateway-event.repository';
