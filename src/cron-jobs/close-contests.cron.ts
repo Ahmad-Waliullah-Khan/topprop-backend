@@ -4,6 +4,7 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import {CLOSE_CONTEST_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
 
 
@@ -11,7 +12,7 @@ import logger from '../utils/logger';
 export class CloseContestsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: process.env.CRON_TIME_CLOSE_CONTEST ? process.env.CRON_TIME_CLOSE_CONTEST :  '0 1 * * * 3',
+            cronTime: CLOSE_CONTEST_CRON_TIMING,
             name: CRON_JOBS.CLOSE_CONTEST_CRON,
             start: true,
             onTick: async () => {

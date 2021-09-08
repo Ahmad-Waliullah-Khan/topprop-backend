@@ -6,6 +6,7 @@ import {SportsDataService, TIMEFRAMES} from '@src/services';
 import {CRON_JOBS, GAME_TYPES} from '@src/utils/constants';
 import chalk from 'chalk';
 import {isEqual} from 'lodash';
+import {SYNC_GAMES_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
 
 @cronJob()
@@ -16,7 +17,7 @@ export class SyncGamesCron extends CronJob {
         @service() private sportDataService: SportsDataService,
     ) {
         super({
-            cronTime: isEqual(process.env.NODE_ENV, 'local') ? '0 * * * * *' : (process.env.CRON_TIME_SYNC_GAMES ? process.env.CRON_TIME_SYNC_GAMES : '0 30 * * * *'),
+            cronTime: SYNC_GAMES_CRON_TIMING,
             name: CRON_JOBS.SYNC_GAMES_CRON,
             onTick: async () => {
                 try {

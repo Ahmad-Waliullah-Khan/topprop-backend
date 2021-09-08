@@ -4,14 +4,14 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import {PROJECTED_FANTASY_POINTS_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
-
 
 @cronJob()
 export class ProjectedFantasyPointsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: process.env.CRON_TIME_PROJECTED_FANTASY_POINTS ? process.env.CRON_TIME_PROJECTED_FANTASY_POINTS : '0 */1 * * * *',
+            cronTime: PROJECTED_FANTASY_POINTS_CRON_TIMING,
             name: CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON,
             start: true,
             onTick: async () => {

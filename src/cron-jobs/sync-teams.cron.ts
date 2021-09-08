@@ -5,6 +5,7 @@ import {TeamRepository} from '@src/repositories';
 import {SportsDataService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
+import {SYNC_TEAMS_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
 
 @cronJob()
@@ -14,8 +15,7 @@ export class SyncTeamsCron extends CronJob {
         @service() private sportDataService: SportsDataService,
     ) {
         super({
-            // cronTime: '0 * * * * *', // Every minute
-            cronTime: process.env.CRON_TIME_SYNC_TEAMS ? process.env.CRON_TIME_SYNC_TEAMS : '0 45 * * * *', // Every hour at 45th minute
+            cronTime: SYNC_TEAMS_CRON_TIMING,
             name: CRON_JOBS.SYNC_TEAMS_CRON,
             onTick: async () => {
                 try {

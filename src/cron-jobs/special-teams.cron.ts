@@ -4,6 +4,7 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import {SPECIAL_TEAMS_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
 
 
@@ -11,7 +12,7 @@ import logger from '../utils/logger';
 export class SpecialTeamsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: process.env.CRON_TIME_SPECIAL_TEAMS ? process.env.CRON_TIME_SPECIAL_TEAMS : '0 */1 * * * *', // Every 3 minute interval
+            cronTime: SPECIAL_TEAMS_CRON_TIMING,
             name: CRON_JOBS.SPECIAL_TEAMS_CRON,
             start: true,
             onTick: async () => {
