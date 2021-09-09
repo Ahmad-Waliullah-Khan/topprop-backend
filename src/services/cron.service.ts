@@ -2517,7 +2517,7 @@ export class CronService {
     }
 
     async leagueVoidContests(playerIds: number[]) {
-        logger.debug('League contest voided because players are ruled out', playerIds.toString());
+        logger.debug(`League contest voided because players are ruled out ${playerIds.toString()}`);
         const includes = await this.leagueService.fetchLeagueContestInclude();
 
         const contests = await this.leagueContestRepository.find({
