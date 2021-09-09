@@ -3,12 +3,15 @@ import { repository } from '@loopback/repository';
 import { HttpErrors } from '@loopback/rest';
 import { TopUp, User } from '@src/models';
 import { TopUpRepository, UserRepository, WithdrawRequestRepository } from '@src/repositories';
+import { PaymentGatewayEventRepository } from '@src/repositories/payment-gateway-event.repository';
 import { API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import Dwolla from 'dwolla-v2';
 import FormData from 'form-data';
 import { createReadStream } from 'fs-extra';
 import { find, isEqual, startsWith } from 'lodash';
+import moment from 'moment';
+import logger from '../utils/logger';
 import { UserService } from './user.service';
 
 @injectable({ scope: BindingScope.SINGLETON })
@@ -19,6 +22,8 @@ export class PaymentGatewayService {
         @repository.getter(UserRepository) private userRepoGetter: Getter<UserRepository>,
         @repository('TopUpRepository') private topUpRepository: TopUpRepository,
         @repository('WithdrawRequestRepository') private withdrawRequestRepository: WithdrawRequestRepository,
+        @repository.getter('PaymentGatewayEventRepository')
+        protected paymentGatewayEventRepositoryGetter: Getter<PaymentGatewayEventRepository>,
         @service() private userService: UserService,
     ) {
         if (!process.env.DWOLLA_APP_KEY || !process.env.DWOLLA_APP_SECRET)
@@ -423,20 +428,27 @@ export class PaymentGatewayService {
                                     transfer._links.destination['resource-type'] !== 'customer',
                             )
                             .map(async (transfer: DwollaTransfer) => {
+                                const paymentGatewayEventRepository = await this.paymentGatewayEventRepositoryGetter();
                                 if (
                                     transfer._links?.source['resource-type'] === 'customer' &&
                                     transfer._links?.destination['resource-type'] === 'funding-source'
                                 ) {
                                     //Withdraw Scenario
                                     if (transfer._links && transfer.status === 'processed') {
-
                                         const withdrawRequest = await this.withdrawRequestRepository.findOne({
                                             where: { withdrawTransferUrl: transfer._links['funding-transfer'].href },
                                         });
 
                                         if (withdrawRequest && withdrawRequest.status !== 'completed') {
                                             withdrawRequest.status = 'completed';
-                                            await this.withdrawRequestRepository.updateById(withdrawRequest.id, withdrawRequest);
+                                            await this.withdrawRequestRepository.updateById(
+                                                withdrawRequest.id,
+                                                withdrawRequest,
+                                            );
+                                            logger.info(
+                                                `A withdraw transaction with transfer id:  ${withdrawRequest.id} was processed from Dwolla but not marked completed. So, marked it completed via sync transaction cron. ` +
+                                                    moment().format('DD-MM-YYYY hh:mm:ss a'),
+                                            );
                                         }
                                     } else if (
                                         transfer._links &&
@@ -447,7 +459,14 @@ export class PaymentGatewayService {
                                         });
                                         if (withdrawRequest && withdrawRequest.status !== 'denied') {
                                             withdrawRequest.status = 'denied';
-                                            await this.withdrawRequestRepository.updateById(withdrawRequest.id, withdrawRequest);
+                                            await this.withdrawRequestRepository.updateById(
+                                                withdrawRequest.id,
+                                                withdrawRequest,
+                                            );
+                                            logger.info(
+                                                `A withdraw transaction with transfer id:  ${withdrawRequest.id} was cancelled or failed from Dwolla but not marked denied. So, marked it denied via sync transaction cron. ` +
+                                                    moment().format('DD-MM-YYYY hh:mm:ss a'),
+                                            );
                                             try {
                                                 if (process.env.SUPPORT_EMAIL_ADDRESS) {
                                                     this.userService.sendEmail(
@@ -471,20 +490,35 @@ export class PaymentGatewayService {
                                             }
                                         }
                                     }
-                                } else if (transfer._links && transfer.status === 'processed') {
+                                } else if (transfer.id && transfer._links && transfer.status === 'processed') {
                                     //TopUp Scenario
                                     const transferURL = transfer._links.self.href;
                                     const topUp = await this.topUpRepository.findOne({
                                         where: { topUpTransferUrl: transferURL },
                                     });
                                     if (!topUp) {
+                                        const eventId = transfer.id;
                                         const amount = transfer.amount.value;
+                                        logger.info(
+                                            `An add funds transaction with transfer id:  ${eventId} of amount $ ${amount} was processed from Dwolla but still not added to user: ${user.id} wallet. So, adding it to user's TP wallet via sync transaction cron. ` +
+                                                moment().format('DD-MM-YYYY hh:mm:ss a'),
+                                        );
                                         const newTopUp = new TopUp();
                                         newTopUp.grossAmount = parseFloat(amount) * 100;
                                         newTopUp.netAmount = parseFloat(amount) * 100;
                                         newTopUp.topUpTransferUrl = transferURL;
                                         newTopUp.userId = user.id;
+                                        const eventUrl = transferURL;
+                                        await paymentGatewayEventRepository.create({
+                                            eventUrl,
+                                            topic: 'customer_bank_transfer_completed',
+                                            eventId,
+                                        });
                                         await this.topUpRepository.create(newTopUp);
+                                        logger.info(
+                                            `Add funds Transfer id:  ${eventId} of amount $ ${amount} added to user: ${user.id} wallet. ` +
+                                                moment().format('DD-MM-YYYY hh:mm:ss a'),
+                                        );
                                     }
                                 }
                             });
