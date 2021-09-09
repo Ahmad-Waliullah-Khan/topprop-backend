@@ -1,6 +1,6 @@
 import { BindingScope, injectable, service } from '@loopback/core';
 import { repository, Where } from '@loopback/repository';
-import { Gain, Player, TopUp, Bet, User, Timeframe } from '@src/models';
+import { Gain, Player, TopUp, Bet, User, Timeframe, LeagueContest, LeagueContestRelations } from '@src/models';
 import {
     ContestRepository,
     ContestRosterRepository,
@@ -2528,38 +2528,36 @@ export class CronService {
             include: includes.include,
         });
 
-        const filteredContests = await Promise.all(
-            contests.filter(async contest => {
-                const { creatorContestTeam, claimerContestTeam, league } = contest;
+        const filteredContests: (LeagueContest & LeagueContestRelations)[] = [];
 
-                this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
-                this.savePlayerEarnedFantasyPoints(claimerContestTeam, league);
+        await Promise.all(contests.map(async contest => {
+            const { creatorContestTeam, claimerContestTeam, league } = contest;
 
-                const creatorRoster = creatorContestTeam?.contestRosters || [];
-                const claimerRoster = claimerContestTeam?.contestRosters || [];
-                let voidContest = false;
-                await Promise.all(
-                    creatorRoster.map(async rosterEntry => {
-                        //@ts-ignore
-                        const currentPlayer = rosterEntry?.player;
-                        if (playerIds.includes(currentPlayer.id)) {
-                            voidContest = true;
-                        }
-                    }),
-                );
+            await this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
+            await this.savePlayerEarnedFantasyPoints(claimerContestTeam, league);
 
-                await Promise.all(
-                    claimerRoster.map(async rosterEntry => {
-                        //@ts-ignore
-                        const currentPlayer = rosterEntry?.player;
-                        if (playerIds.includes(currentPlayer.id)) {
-                            voidContest = true;
-                        }
-                    }),
-                );
-                return voidContest;
-            }),
-        );
+            const creatorRoster = creatorContestTeam?.contestRosters || [];
+            const claimerRoster = claimerContestTeam?.contestRosters || [];
+            let voidContest = false;
+            creatorRoster.forEach(rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                if (playerIds.includes(currentPlayer.id)) {
+                    voidContest = true;
+                }
+            })
+        
+            claimerRoster.forEach(rosterEntry => {
+                //@ts-ignore
+                const currentPlayer = rosterEntry?.player;
+                if (playerIds.includes(currentPlayer.id)) {
+                    voidContest = true;
+                }
+            })
+            if(voidContest) {
+                filteredContests.push(contest)
+            }
+        }));
 
         filteredContests.map(async unclaimedContest => {
             const entryAmount = Number(unclaimedContest.entryAmount);
@@ -2695,7 +2693,7 @@ export class CronService {
                 });
             }
         });
-        logger.debug('League contests voided', JSON.stringify(filteredContests));
+        logger.debug(`League contests voided ${JSON.stringify(filteredContests)}`);
         return filteredContests;
     }
 
