@@ -51,7 +51,7 @@ switch (cronEnv) {
       CRON_TIMING_SYNC_GAMES_CRON = '0 30 * * * *';
     break;
   case "production":
-      CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 2';
+      CRON_TIMING_PLAYERS_CRON = '0 */1 * * * *';
       CRON_TIMING_SPECIAL_TEAMS_CRON = '0 0 10 * * 2';
       CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 0 */1 */1 * *';
       CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '0 */5 * * * *';
