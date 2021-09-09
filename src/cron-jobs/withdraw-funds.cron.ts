@@ -1,17 +1,17 @@
 import {service} from '@loopback/core';
 import {CronJob, cronJob} from '@loopback/cron';
-import {CronService} from '../services';
-import {CRON_JOBS} from '../utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import {CronService} from '../services';
+import {CRON_JOBS} from '../utils/constants';
+import {WITHDRAW_FUNDS_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
-
 
 @cronJob()
 export class WithdrawFundsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *', // Every 3 minute interval
+            cronTime: WITHDRAW_FUNDS_CRON_TIMING,
             name: CRON_JOBS.WITHDRAW_FUNDS_CRON,
             start: true,
             onTick: async () => {

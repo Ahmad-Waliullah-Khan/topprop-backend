@@ -5,14 +5,14 @@ import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
 import moment from 'moment';
+import {YAHOO_SYNC_LEAGUES_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
-
 
 @cronJob()
 export class YahooSyncLeaguesCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: YAHOO_SYNC_LEAGUES_CRON_TIMING,
             name: CRON_JOBS.YAHOO_SYNC_LEAGUES_CRON,
             start: true,
             onTick: async () => {

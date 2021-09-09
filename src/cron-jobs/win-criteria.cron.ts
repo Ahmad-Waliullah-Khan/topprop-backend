@@ -4,15 +4,15 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import {WIN_CHECK_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
-
 
 
 @cronJob()
 export class WinCriteriaCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: WIN_CHECK_CRON_TIMING,
             name: CRON_JOBS.WIN_CHECK_CRON,
             start: true,
             onTick: async () => {

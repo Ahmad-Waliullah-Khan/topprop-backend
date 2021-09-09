@@ -4,6 +4,7 @@ import {CronService} from '@src/services';
 import {CRON_JOBS} from '@src/utils/constants';
 import chalk from 'chalk';
 import cron from 'cron';
+import {PLAYER_FANTASY_POINTS_CRON_TIMING} from '../utils/cron-timings';
 import logger from '../utils/logger';
 
 
@@ -11,7 +12,7 @@ import logger from '../utils/logger';
 export class PlayerFantasyPointsCron extends CronJob {
     constructor(@service() private cronService: CronService) {
         super({
-            cronTime: '0 */1 * * * *',
+            cronTime: PLAYER_FANTASY_POINTS_CRON_TIMING,
             name: CRON_JOBS.PLAYER_FANTASY_POINTS_CRON,
             start: true,
             onTick: async () => {
