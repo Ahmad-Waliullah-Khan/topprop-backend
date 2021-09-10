@@ -1250,7 +1250,7 @@ export class LeagueController {
 
             await transaction.commit();
 
-            const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+            // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
             await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
                 user,
                 creatorTeam,
