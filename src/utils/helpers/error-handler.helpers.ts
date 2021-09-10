@@ -18,6 +18,8 @@ export class ErrorHandler {
         if (isArray(err)) formattedError = err.map(err => err.message || err).join(' ');
 
         //* DWOLLA ERROR FORMATTER
+        if (err && err.body && err.body.message) formattedError = err.body.message;
+
         if (err && err.body && err.body._embedded && err.body._embedded.errors)
             formattedError = err.body._embedded.errors.map((err: any) => err.message).join(' ');
 

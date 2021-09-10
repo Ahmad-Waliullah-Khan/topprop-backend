@@ -205,6 +205,18 @@ export class User extends Entity {
     })
     customId?: string | null;
 
+    @property({
+        type: 'boolean',
+        default: false,
+    })
+    verificationFileUploaded?: boolean;
+
+    @property({
+        type: 'string',
+        default: null,
+    })
+    verificationFileName?: string | null;
+
     constructor(data?: Partial<User>) {
         super(data);
     }

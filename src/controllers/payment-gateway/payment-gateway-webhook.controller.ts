@@ -113,7 +113,7 @@ export class PaymentGatewayWebhookController {
                 case DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_FAILED: {
                     const details = `Your account could not be verified using your ID, please reach to us directly as soon as possible to solve this.`;
 
-                    await this.handleCustomerVerificationUpdate(body.resourceId, details);
+                    await this.handleCustomerVerificationUpdate(body.resourceId, details, true);
 
                     break;
                 }
@@ -178,9 +178,9 @@ export class PaymentGatewayWebhookController {
         });
     }
 
-    private async handleCustomerVerificationUpdate(customerId: string, details: string) {
+    private async handleCustomerVerificationUpdate(customerId: string, details: string, idVerificationFailed = false) {
         const user = await this.fetchUserFromCustomer(customerId);
-        user &&
+        if (user) {
             this.userService.sendEmail(user, EMAIL_TEMPLATES.VERIFICATION_UPDATED, {
                 user,
                 text: {
@@ -188,6 +188,11 @@ export class PaymentGatewayWebhookController {
                     subtitle: details,
                 },
             });
+            if (idVerificationFailed) {
+                const userRepo = await this.userRepositoryGetter();
+                await userRepo.updateById(user.id, { verificationFileName: null, verificationFileUploaded: false });
+            }
+        }
     }
 
     private async handleFundingSourceVerificationUpdate(customerId: string, details: string) {
@@ -285,7 +290,7 @@ export class PaymentGatewayWebhookController {
                     };
 
                     withdrawUpdateData = { status: WITHDRAW_REQUEST_STATUSES.COMPLETED };
-                    
+
                     withdrawWhereUpdate = {
                         destinationFundingSourceId: destinationSourceId,
                         withdrawTransferUrl: transferUrl,
@@ -310,13 +315,12 @@ export class PaymentGatewayWebhookController {
                     };
 
                     withdrawUpdateData = { status: WITHDRAW_REQUEST_STATUSES.DENIED };
-                    
+
                     withdrawWhereUpdate = {
                         destinationFundingSourceId: destinationSourceId,
                         withdrawTransferUrl: transferUrl,
                         status: WITHDRAW_REQUEST_STATUSES.PROCESSING,
                     };
-                    
                 }
 
                 if (updateData && whereUpdate && withdrawUpdateData && withdrawWhereUpdate) {

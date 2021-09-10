@@ -241,7 +241,7 @@ export class WalletController {
             },
         });
 
-        if(withdrawRequests.length>0) throw new HttpErrors.BadRequest(WALLET_MESSAGES.OPEN_WITHDRAW_REQUEST);
+        if (withdrawRequests.length > 0) throw new HttpErrors.BadRequest(WALLET_MESSAGES.OPEN_WITHDRAW_REQUEST);
 
         try {
             await this.paymentGatewayService.removeFundingSource(fundingSourceId);
@@ -287,6 +287,11 @@ export class WalletController {
             }
             await this.paymentGatewayService.uploadVerificationDocument(user._customerTokenUrl, verificationFile);
 
+            //* UPDATE USER INFORMATION ABOUT THE VERIFICATION FILE
+            await this.userRepository.updateById(id, {
+                verificationFileUploaded: true,
+                verificationFileName: verificationFile.originalFilename,
+            });
             this.multipartyFormService.removeFiles(files);
 
             return {
