@@ -33,9 +33,10 @@ import {
     WithdrawFundsCron,
     YahooSyncLeaguesCron,
     syncTransactionsCron,
+    OngoingMatchesCron,
 } from './cron-jobs';
-import { ImportSourceRepository, ScoringTypeRepository, SpreadRepository } from './repositories';
-import { ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
+import { ImportSourceRepository, ScoringTypeRepository, SpreadRepository, ConfigRepository } from './repositories';
+import { ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder, ConfigSeeder } from './seeders';
 import { MySequence } from './sequence';
 import { ApplicationHelpers } from './utils/helpers';
 import { IRawRequest } from './utils/interfaces';
@@ -173,6 +174,9 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const SyncTransactionsCronBinding = createBindingFromClass(syncTransactionsCron);
         this.add(SyncTransactionsCronBinding);
+        
+        const OngoingMatchesCronBinding = createBindingFromClass(OngoingMatchesCron);
+        this.add(OngoingMatchesCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);
@@ -190,6 +194,10 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         const spreadRepo = await this.getRepository(SpreadRepository);
         spreadRepo.deleteAll();
         await spreadRepo.createAll(SpreadSeeder);
+
+        const configRepo = await this.getRepository(ConfigRepository);
+        configRepo.deleteAll();
+        await configRepo.createAll(ConfigSeeder);
 
         const scoringTypeRepo = await this.getRepository(ScoringTypeRepository);
         await scoringTypeRepo.deleteAll();

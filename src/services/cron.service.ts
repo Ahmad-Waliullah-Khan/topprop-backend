@@ -15,12 +15,14 @@ import {
     WithdrawRequestRepository,
     BetRepository,
     TopUpRepository,
+    ConfigRepository,
 } from '@src/repositories';
 import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
+import momenttz from 'moment-timezone';
 import util from 'util';
 import { LeagueService } from '../services/league.service';
 import { SportsDataService } from '../services/sports-data.service';
@@ -41,6 +43,8 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     WITHDRAW_REQUEST_STATUSES,
+    BLOCKED_TIME_SLOTS,
+    TIMEZONE,
 } from '../utils/constants';
 import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
@@ -66,6 +70,7 @@ export class CronService {
         @repository('ContestRosterRepository') private contestRosterRepository: ContestRosterRepository,
         @repository('LeagueRepository') private leagueRepository: LeagueRepository,
         @repository('WithdrawRequestRepository') private withdrawRequestRepository: WithdrawRequestRepository,
+        @repository('ConfigRepository') private configRepository: ConfigRepository,
     ) {}
 
     async fetchDate() {
@@ -314,6 +319,23 @@ export class CronService {
                         break;
                 }
                 break;
+
+            case CRON_JOBS.ONGOING_MATCHES_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every 5 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 2 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -353,6 +375,9 @@ export class CronService {
                 break;
             case CRON_JOBS.SYNC_TRANSACTIONS_CRON:
                 cronMessage = 'Sync Transaction Cron';
+                break;
+            case CRON_JOBS.ONGOING_MATCHES_CRON:
+                cronMessage = 'Ongoing Matches Check Cron';
                 break;
         }
 
@@ -2530,34 +2555,36 @@ export class CronService {
 
         const filteredContests: (LeagueContest & LeagueContestRelations)[] = [];
 
-        await Promise.all(contests.map(async contest => {
-            const { creatorContestTeam, claimerContestTeam, league } = contest;
+        await Promise.all(
+            contests.map(async contest => {
+                const { creatorContestTeam, claimerContestTeam, league } = contest;
 
-            await this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
-            await this.savePlayerEarnedFantasyPoints(claimerContestTeam, league);
+                await this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
+                await this.savePlayerEarnedFantasyPoints(claimerContestTeam, league);
 
-            const creatorRoster = creatorContestTeam?.contestRosters || [];
-            const claimerRoster = claimerContestTeam?.contestRosters || [];
-            let voidContest = false;
-            creatorRoster.forEach(rosterEntry => {
-                //@ts-ignore
-                const currentPlayer = rosterEntry?.player;
-                if (playerIds.includes(currentPlayer.id)) {
-                    voidContest = true;
+                const creatorRoster = creatorContestTeam?.contestRosters || [];
+                const claimerRoster = claimerContestTeam?.contestRosters || [];
+                let voidContest = false;
+                creatorRoster.forEach(rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    if (playerIds.includes(currentPlayer.id)) {
+                        voidContest = true;
+                    }
+                });
+
+                claimerRoster.forEach(rosterEntry => {
+                    //@ts-ignore
+                    const currentPlayer = rosterEntry?.player;
+                    if (playerIds.includes(currentPlayer.id)) {
+                        voidContest = true;
+                    }
+                });
+                if (voidContest) {
+                    filteredContests.push(contest);
                 }
-            })
-        
-            claimerRoster.forEach(rosterEntry => {
-                //@ts-ignore
-                const currentPlayer = rosterEntry?.player;
-                if (playerIds.includes(currentPlayer.id)) {
-                    voidContest = true;
-                }
-            })
-            if(voidContest) {
-                filteredContests.push(contest)
-            }
-        }));
+            }),
+        );
 
         filteredContests.map(async unclaimedContest => {
             const entryAmount = Number(unclaimedContest.entryAmount);
@@ -2832,5 +2859,107 @@ export class CronService {
                 }
             }),
         );
+    }
+
+    async ongoingMatchesCheck() {
+        const currentTime = moment().tz(TIMEZONE);
+
+        // const currentTime = moment.tz('2021-09-06 01:00', TIMEZONE);
+
+        let isInBlockedSlot = false;
+        BLOCKED_TIME_SLOTS.forEach(slot => {
+            const startObject = { hour: slot.startHour, minute: slot.startMinute };
+            const startDatetime = momenttz.tz(startObject, TIMEZONE).day(slot.startDay).subtract(1, 'minute');
+
+            const endObject = { hour: slot.endHour, minute: slot.endMinute };
+            const endDatetime = momenttz.tz(endObject, TIMEZONE).day(slot.endDay).add(1, 'minute');
+
+            if (currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
+                isInBlockedSlot = true;
+            }
+        });
+
+        if (!isInBlockedSlot) {
+            const config = await this.configRepository.findOne({ order: ['id DESC'] });
+            if (config) {
+                config.contestCreationEnabled = true;
+                await this.configRepository.save(config);
+            }
+        } else {
+            const config = await this.configRepository.findOne({ order: ['id DESC'] });
+            if (config) {
+                config.contestCreationEnabled = false;
+                await this.configRepository.save(config);
+
+                // Close Unclaimed Contests
+
+                const includes = await this.leagueService.fetchLeagueContestInclude();
+
+                const contestsUnclaimed = await this.leagueContestRepository.find({
+                    where: {
+                        or: [{ status: CONTEST_STATUSES.OPEN }],
+                        ended: false,
+                    },
+                    include: includes.include,
+                });
+
+                contestsUnclaimed.map(async unclaimedContest => {
+                    const entryAmount = Number(unclaimedContest.entryAmount);
+
+                    const { creatorContestTeam, league } = unclaimedContest;
+
+                    this.savePlayerEarnedFantasyPoints(creatorContestTeam, league);
+
+                    // Unmatched
+                    const constestData = {
+                        topPropProfit: 0,
+                        status: CONTEST_STATUSES.CLOSED,
+                        ended: true,
+                        endedAt: moment(),
+                        winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+                        creatorWinAmount: 0,
+                        claimerWinAmount: 0,
+                    };
+                    await this.leagueContestRepository.updateById(unclaimedContest.id, constestData);
+
+                    const entryGain = new Gain();
+                    entryGain.contestType = 'League';
+                    entryGain.amount = Number(entryAmount);
+                    entryGain.userId = unclaimedContest.creatorId;
+                    // entryGain.contenderId = unclaimedContest.creatorTeamId;
+                    entryGain.contestId = unclaimedContest.id;
+                    await this.gainRepository.create(entryGain);
+
+                    //Send Contest Closed mail
+                    const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+                    const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+                    const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+                    const claimerUser = '';
+                    const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+                    const receiverUser = creatorUser;
+                    const user = creatorUser;
+                    const clientHost = process.env.CLIENT_HOST;
+                    await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+                        contestData,
+                        creatorUser,
+                        claimerUser,
+                        creatorTeam,
+                        claimerTeam,
+                        receiverUser,
+                        maxWin: contestData.creatorTeamMaxWin,
+                        user,
+                        c2d: MiscHelpers.c2d,
+                        text: {
+                            title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                            subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                        },
+                        link: {
+                            url: `${clientHost}`,
+                            text: `Create New Contest`,
+                        },
+                    });
+                });
+            }
+        }
     }
 }

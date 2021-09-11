@@ -3,7 +3,8 @@ import { repository } from '@loopback/repository';
 import { SpreadRepository, PlayerRepository, ContestRepository } from '@src/repositories';
 import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
-import { CONTEST_STATUSES } from '@src/utils/constants';
+import moment from 'moment';
+import { CONTEST_STATUSES, BLOCKED_TIME_SLOTS } from '@src/utils/constants';
 
 import { Contest } from '@src/models';
 
@@ -55,9 +56,9 @@ export class ContestService {
                 spreadType: 'lobby',
             },
         });
-        
+
         if (winBonus) {
-            cover = (entry * 0.85) * (spreadData ? spreadData.spreadPay : 0);
+            cover = entry * 0.85 * (spreadData ? spreadData.spreadPay : 0);
         } else {
             cover = entry * (spreadData ? spreadData.spreadPay : 0);
         }
@@ -97,5 +98,9 @@ export class ContestService {
         }
 
         return true;
+    }
+
+    async checkIfValidTimeslot() {
+        const currentTime = moment();
     }
 }

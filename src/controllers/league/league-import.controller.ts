@@ -354,10 +354,6 @@ export class LeagueImportController {
                                     await this.rosterRepository.create(rosterData, { transaction });
 
                                     if (!remotePlayer.display_position) {
-                                        console.log(
-                                            '🚀 ~ file: league-import.controller.ts ~ line 348 ~ LeagueImportController ~ sortedRoster.map ~ remotePlayer',
-                                            remotePlayer,
-                                        );
                                         logger.error(
                                             `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
                                         );

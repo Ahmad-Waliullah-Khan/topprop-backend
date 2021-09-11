@@ -1,10 +1,10 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, FilterExcludingWhere, IsolationLevel, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member } from '@src/models';
 import {
     BetRepository,
     ContestRosterRepository,
@@ -17,10 +17,11 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    UserRepository
+    UserRepository,
+    ConfigRepository,
 } from '@src/repositories';
-import {LeagueService, PaymentGatewayService} from '@src/services';
-import {UserService} from '@src/services/user.service';
+import { LeagueService, PaymentGatewayService, ContestService } from '@src/services';
+import { UserService } from '@src/services/user.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -28,10 +29,10 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SCORING_TYPE,
-    SPREAD_TYPE
+    SPREAD_TYPE,
 } from '@src/utils/constants';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -41,13 +42,13 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
-    ILeagueResync
+    ILeagueResync,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
-import {INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
-import {find, isEmpty} from 'lodash';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
+import { INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR } from '@src/utils/validators';
+import { find, isEmpty } from 'lodash';
 import moment from 'moment';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Schema from 'validate';
 import logger from '../../utils/logger';
 // const YahooFantasy = require('yahoo-fantasy');
@@ -78,9 +79,12 @@ export class LeagueController {
         public contestTeamRepository: ContestTeamRepository,
         @repository(ImportSourceRepository)
         public importSourceRepository: ImportSourceRepository,
+        @repository(ConfigRepository)
+        public configRepository: ConfigRepository,
         @service() private leagueService: LeagueService,
         @service() private paymentGatewayService: PaymentGatewayService,
         @service() private userService: UserService,
+        @service() private contestService: ContestService,
     ) {}
 
     @authenticate('jwt')
@@ -232,8 +236,7 @@ export class LeagueController {
         // const filteredInvitees = MiscHelpers.getUniqueItemsByProperties(invitees, 'email');
 
         const uniqueKey = 'email';
-        const filteredInvitees = [...new Map(invitees.map(item =>
-        [item[uniqueKey], item])).values()];
+        const filteredInvitees = [...new Map(invitees.map(item => [item[uniqueKey], item])).values()];
 
         try {
             await Promise.all(
@@ -442,10 +445,9 @@ export class LeagueController {
             await this.memberRepository.create(memberData);
 
             if (invite.teamId) {
-
                 const team = await this.teamRepository.findById(invite.teamId);
 
-                if(!team.userId) {
+                if (!team.userId) {
                     await this.teamRepository.updateById(invite.teamId, {
                         userId: user.id,
                         updatedAt: moment().toDate().toString(),
@@ -520,6 +522,10 @@ export class LeagueController {
         const validation = new Schema(validationSchema, { strip: true });
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const config = await this.configRepository.findOne({ order: ['id DESC'] });
+        
+        if (!config?.contestCreationEnabled) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.MATCH_ONGOING);
 
         const creatorTeamId = body.creatorTeamId || 0;
         const claimerTeamId = body.claimerTeamId || 0;
@@ -671,7 +677,7 @@ export class LeagueController {
             const user = await this.userRepository.findById(userId);
 
             const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
-            const entryAmount = body.entryAmount ? body.entryAmount * 100 : 0;
+            const entryAmount = body.entryAmount ? (body.entryAmount || 0) * 100 : 0;
             if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
 
             const winBonusFlag = false;

@@ -25,3 +25,4 @@ export * from './user.model';
 export * from './withdraw-request.model';
 
 export * from './payment-gateway-event.model';
+export * from './config.model';
