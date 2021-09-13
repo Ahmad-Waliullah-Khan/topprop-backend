@@ -648,7 +648,7 @@ export class LeagueController {
                     : 0);
 
             let totalClaimerTeamProjFantasy =
-                creatorTeamPlayerProjFantasy.length > 0
+                claimerTeamPlayerProjFantasy.length > 0
                     ? claimerTeamPlayerProjFantasy.reduce((accumulator, currentValue) => {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
@@ -981,7 +981,7 @@ export class LeagueController {
                     : 0);
 
             let totalClaimerTeamProjFantasy =
-                creatorTeamPlayerProjFantasy.length > 0
+                claimerTeamPlayerProjFantasy.length > 0
                     ? claimerTeamPlayerProjFantasy.reduce((accumulator, currentValue) => {
                           const total = Number(accumulator);
                           const value = Number(currentValue);
