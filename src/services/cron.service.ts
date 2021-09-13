@@ -1124,8 +1124,8 @@ export class CronService {
             }
 
             // TEST BENCH START
-            favorite.fantasyPoints = 600;
-            underdog.fantasyPoints = 200;
+            // favorite.fantasyPoints = 600;
+            // underdog.fantasyPoints = 200;
             // TEST BENCH END
 
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
