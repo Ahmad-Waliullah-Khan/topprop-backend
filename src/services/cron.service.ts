@@ -580,8 +580,8 @@ export class CronService {
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
             underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
 
-            favorite.coversSpread = favorite.fantasyPoints - underdog.playerSpread > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + underdog.playerSpread > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.playerSpread) > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.playerSpread) > favorite.fantasyPoints;
 
             favorite.winBonus = favorite.playerWinBonus > 0;
             underdog.winBonus = underdog.fantasyPoints > 0;
@@ -592,33 +592,25 @@ export class CronService {
                 underdog.netEarnings = -entryAmount;
                 topPropProfit = entryAmount - favorite.playerMaxWin;
                 winner = 'favorite';
-            }
-
-            if (underdog.gameWin && underdog.coversSpread) {
+            } else if (underdog.gameWin && underdog.coversSpread) {
                 // Row 3 & 4 of wiki combination table
                 favorite.netEarnings = -entryAmount;
                 underdog.netEarnings = underdog.playerMaxWin;
                 topPropProfit = entryAmount - underdog.playerMaxWin;
                 winner = 'underdog';
-            }
-
-            if (favorite.gameWin && !favorite.coversSpread) {
+            } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
                 favorite.netEarnings = -entryAmount + Number(favorite.playerWinBonus) + mlValue;
                 underdog.netEarnings = favorite.playerCover - mlValue;
                 topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
                 winner = 'underdog';
-            }
-
-            if (!favorite.coversSpread && !underdog.coversSpread) {
+            } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
                 topPropProfit = 0;
                 winner = 'push';
-            }
-
-            if (!favorite.gameWin && !underdog.gameWin) {
+            } else if (!favorite.gameWin && !underdog.gameWin) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
@@ -1124,15 +1116,16 @@ export class CronService {
             }
 
             // TEST BENCH START
-            // favorite.fantasyPoints = 6;
-            // underdog.fantasyPoints = 2;
+            // favorite.fantasyPoints = 132.5;
+            // underdog.fantasyPoints = 130.8;
             // TEST BENCH END
 
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
             underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
 
-            favorite.coversSpread = favorite.fantasyPoints - underdog.teamSpread > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + underdog.teamSpread > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.teamSpread) > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.teamSpread) > favorite.fantasyPoints;
+
 
             favorite.winBonus = false;
             underdog.winBonus = false;
@@ -1143,33 +1136,25 @@ export class CronService {
                 underdog.netEarnings = -entryAmount;
                 topPropProfit = entryAmount - favorite.teamMaxWin;
                 winner = 'favorite';
-            }
-
-            if (underdog.gameWin && underdog.coversSpread) {
+            } else if (underdog.gameWin && underdog.coversSpread) {
                 // Row 3 & 4 of wiki combination table
                 favorite.netEarnings = -entryAmount;
                 underdog.netEarnings = underdog.teamMaxWin;
                 topPropProfit = entryAmount - underdog.teamMaxWin;
                 winner = 'underdog';
-            }
-
-            if (favorite.gameWin && !favorite.coversSpread) {
+            } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
                 favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
                 underdog.netEarnings = favorite.teamCover - mlValue;
                 topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
                 winner = 'underdog';
-            }
-
-            if (!favorite.coversSpread && !underdog.coversSpread) {
+            } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
                 topPropProfit = 0;
                 winner = 'push';
-            }
-
-            if (!favorite.gameWin && !underdog.gameWin) {
+            } else if (!favorite.gameWin && !underdog.gameWin) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
@@ -1316,6 +1301,8 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(favorite.teamId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
+                    const winnerTeamFantasyPoints = favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? contestData.creatorTeamFantasyPoints : contestData.claimerTeamFantasyPoints;
+                    const loserTeamFantasyPoints = underdog.type === CONTEST_STAKEHOLDERS.CLAIMER ? contestData.claimerTeamFantasyPoints : contestData.creatorTeamFantasyPoints;
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
@@ -1323,6 +1310,8 @@ export class CronService {
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: favorite.netEarnings,
                         clientHost,
                         winAmount: `${new Intl.NumberFormat('en-US', {
@@ -1339,12 +1328,16 @@ export class CronService {
                         },
                     });
 
+                    const underdogNetEarnings = underdog.netEarnings == -0 ? 0 : underdog.netEarnings
+
                     await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: underdog.netEarnings,
                         clientHost,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
@@ -1352,7 +1345,7 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(MiscHelpers.c2d(underdog.netEarnings))}`,
+                        }).format(MiscHelpers.c2d(underdogNetEarnings))}`,
                         maxWin: underdog.teamMaxWin,
                         c2d: MiscHelpers.c2d,
                         text: {
@@ -1366,6 +1359,8 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(underdog.teamId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
+                    const winnerTeamFantasyPoints = underdog.type === CONTEST_STAKEHOLDERS.CREATOR ? contestData.creatorTeamFantasyPoints : contestData.claimerTeamFantasyPoints;
+                    const loserTeamFantasyPoints = favorite.type === CONTEST_STAKEHOLDERS.CLAIMER ? contestData.claimerTeamFantasyPoints : contestData.creatorTeamFantasyPoints;
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
@@ -1373,6 +1368,8 @@ export class CronService {
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: underdog.netEarnings,
                         clientHost,
                         winAmount: `${new Intl.NumberFormat('en-US', {
@@ -1389,12 +1386,16 @@ export class CronService {
                         },
                     });
 
+                    const favoriteNetEarnings = favorite.netEarnings == -0 ? 0 : favorite.netEarnings
+
                     await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: favorite.netEarnings,
                         clientHost,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
@@ -1402,7 +1403,7 @@ export class CronService {
                             currency: 'USD',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
-                        }).format(MiscHelpers.c2d(favorite.netEarnings))}`,
+                        }).format(MiscHelpers.c2d(favoriteNetEarnings))}`,
                         maxWin: favorite.teamMaxWin,
                         c2d: MiscHelpers.c2d,
                         text: {
@@ -1419,12 +1420,17 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
+                    const favoriteTeamFantasyPoints = underdog.type === CONTEST_STAKEHOLDERS.CREATOR ? contestData.creatorTeamFantasyPoints : contestData.claimerTeamFantasyPoints;
+                    const underdogTeamFantasyPoints = favorite.type === CONTEST_STAKEHOLDERS.CLAIMER ? contestData.claimerTeamFantasyPoints : contestData.creatorTeamFantasyPoints;
+
                     await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
                         underdogTeam,
                         contestData,
+                        favoriteTeamFantasyPoints,
+                        underdogTeamFantasyPoints,
                         clientHost,
                         netEarning: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
@@ -1446,6 +1452,8 @@ export class CronService {
                         favoriteTeam,
                         underdogTeam,
                         contestData,
+                        favoriteTeamFantasyPoints,
+                        underdogTeamFantasyPoints,
                         clientHost,
                         netEarning: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
@@ -1527,7 +1535,7 @@ export class CronService {
     }
 
     async leagueCoercedWinCheck(contestIds: number[]) {
-        logger.debug('League contest graded because players have isOver false', contestIds.toString());
+        logger.debug(`League contest graded because players have isOver false ${contestIds.toString()}`);
 
         const includes = await this.leagueService.fetchLeagueContestInclude();
 
@@ -1672,8 +1680,8 @@ export class CronService {
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
             underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
 
-            favorite.coversSpread = favorite.fantasyPoints - underdog.teamSpread > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + underdog.teamSpread > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.teamSpread) > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.teamSpread) > favorite.fantasyPoints;
 
             favorite.winBonus = false;
             underdog.winBonus = false;
@@ -1684,33 +1692,25 @@ export class CronService {
                 underdog.netEarnings = -entryAmount;
                 topPropProfit = entryAmount - favorite.teamMaxWin;
                 winner = 'favorite';
-            }
-
-            if (underdog.gameWin && underdog.coversSpread) {
+            } else if (underdog.gameWin && underdog.coversSpread) {
                 // Row 3 & 4 of wiki combination table
                 favorite.netEarnings = -entryAmount;
                 underdog.netEarnings = underdog.teamMaxWin;
                 topPropProfit = entryAmount - underdog.teamMaxWin;
                 winner = 'underdog';
-            }
-
-            if (favorite.gameWin && !favorite.coversSpread) {
+            } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
                 favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
                 underdog.netEarnings = favorite.teamCover - mlValue;
                 topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
                 winner = 'underdog';
-            }
-
-            if (!favorite.coversSpread && !underdog.coversSpread) {
+            } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
                 topPropProfit = 0;
                 winner = 'push';
-            }
-
-            if (!favorite.gameWin && !underdog.gameWin) {
+            } else if (!favorite.gameWin && !underdog.gameWin) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;

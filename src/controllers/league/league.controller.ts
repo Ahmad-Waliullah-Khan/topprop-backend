@@ -1248,6 +1248,23 @@ export class LeagueController {
 
             await transaction.commit();
 
+<<<<<<< HEAD
+=======
+            // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
+            // await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
+            //     user,
+            //     creatorTeam,
+            //     claimerTeam,
+            //     contestData,
+            //     c2d: MiscHelpers.c2d,
+            //     text: {
+            //         title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
+            //         subtitle:
+            //             'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
+            //     },
+            // });
+
+>>>>>>> 9bb7dc2cc3fe4685303da5b30a084677b26dde99
             return {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
                 data: {
