@@ -1249,18 +1249,18 @@ export class LeagueController {
             await transaction.commit();
 
             // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
-            await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
-                user,
-                creatorTeam,
-                claimerTeam,
-                contestData,
-                c2d: MiscHelpers.c2d,
-                text: {
-                    title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
-                    subtitle:
-                        'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
-                },
-            });
+            // await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
+            //     user,
+            //     creatorTeam,
+            //     claimerTeam,
+            //     contestData,
+            //     c2d: MiscHelpers.c2d,
+            //     text: {
+            //         title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
+            //         subtitle:
+            //             'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
+            //     },
+            // });
 
             return {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
@@ -1348,7 +1348,7 @@ export class LeagueController {
 
         if (leagueContestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
 
-        let user = await this.userRepository.findById(userId);
+        const user = await this.userRepository.findById(userId);
 
         const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
         const entryAmount = +leagueContestData.entryAmount || 0;
@@ -1416,23 +1416,23 @@ export class LeagueController {
                 subtitle: 'Good luck!',
             },
         });
-        user = creatorUser;
-        await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
-            creatorUser,
-            user,
-            claimerTeam,
-            creatorTeam,
-            claimerUser,
-            leagueContestData,
-            moment: moment,
-            c2d: MiscHelpers.c2d,
-            text: {
-                title: `${
-                    user ? user.fullName : ''
-                }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
-                subtitle: 'Good luck!',
-            },
-        });
+        // user = creatorUser;
+        // await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
+        //     creatorUser,
+        //     user,
+        //     claimerTeam,
+        //     creatorTeam,
+        //     claimerUser,
+        //     leagueContestData,
+        //     moment: moment,
+        //     c2d: MiscHelpers.c2d,
+        //     text: {
+        //         title: `${
+        //             user ? user.fullName : ''
+        //         }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
+        //         subtitle: 'Good luck!',
+        //     },
+        // });
 
         return {
             message: CONTEST_MESSAGES.CLAIM_SUCCESS,

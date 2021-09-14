@@ -934,30 +934,30 @@ export class CronService {
             await this.gainRepository.create(entryGain);
 
             //Send Contest Closed mail
-            const contestData = await this.contestRepository.findById(unclaimedContest.id);
-            const winnerUser = await this.userRepository.findById(unclaimedContest.creatorId);
-            const winnerPlayer = await this.playerRepository.findById(unclaimedContest.creatorPlayerId);
-            const loserUser = '';
-            const loserPlayer = await this.playerRepository.findById(unclaimedContest.claimerPlayerId);
-            const receiverUser = winnerUser;
-            const clientHost = process.env.CLIENT_HOST;
+            // const contestData = await this.contestRepository.findById(unclaimedContest.id);
+            // const winnerUser = await this.userRepository.findById(unclaimedContest.creatorId);
+            // const winnerPlayer = await this.playerRepository.findById(unclaimedContest.creatorPlayerId);
+            // const loserUser = '';
+            // const loserPlayer = await this.playerRepository.findById(unclaimedContest.claimerPlayerId);
+            // const receiverUser = winnerUser;
+            // const clientHost = process.env.CLIENT_HOST;
 
-            await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
-                contestData,
-                winnerUser,
-                loserUser,
-                winnerPlayer,
-                loserPlayer,
-                receiverUser,
-                text: {
-                    title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
-                    subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
-                },
-                link: {
-                    url: `${clientHost}`,
-                    text: `Create New Contest`,
-                },
-            });
+            // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+            //     contestData,
+            //     winnerUser,
+            //     loserUser,
+            //     winnerPlayer,
+            //     loserPlayer,
+            //     receiverUser,
+            //     text: {
+            //         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+            //         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+            //     },
+            //     link: {
+            //         url: `${clientHost}`,
+            //         text: `Create New Contest`,
+            //     },
+            // });
         });
 
         return filteredUnclaimedContests ? filteredUnclaimedContests : filteredContests;
@@ -1522,33 +1522,33 @@ export class CronService {
             await this.gainRepository.create(entryGain);
 
             //Send Contest Closed mail
-            const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
-            const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
-            const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
-            const claimerUser = '';
-            const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
-            const receiverUser = creatorUser;
-            const user = creatorUser;
-            const clientHost = process.env.CLIENT_HOST;
-            await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
-                contestData,
-                creatorUser,
-                claimerUser,
-                creatorTeam,
-                claimerTeam,
-                receiverUser,
-                maxWin: contestData.creatorTeamMaxWin,
-                user,
-                c2d: MiscHelpers.c2d,
-                text: {
-                    title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
-                    subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
-                },
-                link: {
-                    url: `${clientHost}`,
-                    text: `Create New Contest`,
-                },
-            });
+            // const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+            // const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+            // const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+            // const claimerUser = '';
+            // const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+            // const receiverUser = creatorUser;
+            // const user = creatorUser;
+            // const clientHost = process.env.CLIENT_HOST;
+            // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+            //     contestData,
+            //     creatorUser,
+            //     claimerUser,
+            //     creatorTeam,
+            //     claimerTeam,
+            //     receiverUser,
+            //     maxWin: contestData.creatorTeamMaxWin,
+            //     user,
+            //     c2d: MiscHelpers.c2d,
+            //     text: {
+            //         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+            //         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+            //     },
+            //     link: {
+            //         url: `${clientHost}`,
+            //         text: `Create New Contest`,
+            //     },
+            // });
         });
 
         return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : filteredContests;
@@ -2082,33 +2082,33 @@ export class CronService {
             await this.gainRepository.create(entryGain);
 
             //Send Contest Closed mail
-            const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
-            const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
-            const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
-            const claimerUser = '';
-            const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
-            const receiverUser = creatorUser;
-            const user = creatorUser;
-            const clientHost = process.env.CLIENT_HOST;
-            await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
-                contestData,
-                creatorUser,
-                claimerUser,
-                creatorTeam,
-                claimerTeam,
-                receiverUser,
-                maxWin: contestData.creatorTeamMaxWin,
-                user,
-                c2d: MiscHelpers.c2d,
-                text: {
-                    title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
-                    subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
-                },
-                link: {
-                    url: `${clientHost}`,
-                    text: `Create New Contest`,
-                },
-            });
+            // const contestData = await this.leagueContestRepository.findById(unclaimedContest.id);
+            // const creatorUser = await this.userRepository.findById(unclaimedContest.creatorId);
+            // const creatorTeam = await this.teamRepository.findById(unclaimedContest.creatorTeamId);
+            // const claimerUser = '';
+            // const claimerTeam = await this.teamRepository.findById(unclaimedContest.claimerTeamId);
+            // const receiverUser = creatorUser;
+            // const user = creatorUser;
+            // const clientHost = process.env.CLIENT_HOST;
+            // await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
+            //     contestData,
+            //     creatorUser,
+            //     claimerUser,
+            //     creatorTeam,
+            //     claimerTeam,
+            //     receiverUser,
+            //     maxWin: contestData.creatorTeamMaxWin,
+            //     user,
+            //     c2d: MiscHelpers.c2d,
+            //     text: {
+            //         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+            //         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+            //     },
+            //     link: {
+            //         url: `${clientHost}`,
+            //         text: `Create New Contest`,
+            //     },
+            // });
         });
 
         return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : [];
