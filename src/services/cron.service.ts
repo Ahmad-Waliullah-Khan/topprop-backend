@@ -1,8 +1,8 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Gain, Player, TopUp, Bet, User, Timeframe, LeagueContest, LeagueContestRelations } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
-    ContestRepository,
+    BetRepository, ConfigRepository, ContestRepository,
     ContestRosterRepository,
     GainRepository,
     LeagueContestRepository,
@@ -10,27 +10,23 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    TimeframeRepository,
-    UserRepository,
-    WithdrawRequestRepository,
-    BetRepository,
-    TopUpRepository,
-    ConfigRepository,
+    TimeframeRepository, TopUpRepository, UserRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { LeagueService } from '../services/league.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { TRANSFER_TYPES } from '../services';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
-    CONTEST_STAKEHOLDERS,
+    BLOCKED_TIME_SLOTS, CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
     CRON_JOBS,
     CRON_RUN_TYPES,
@@ -41,12 +37,9 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES,
-    WITHDRAW_REQUEST_STATUSES,
-    BLOCKED_TIME_SLOTS,
-    TIMEZONE,
+    TIMEFRAMES, TIMEZONE, WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -320,7 +313,7 @@ export class CronService {
                 }
                 break;
 
-            case CRON_JOBS.ONGOING_MATCHES_CRON:
+            case CRON_JOBS.ONGOING_GAMES_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // Every 5 minutes
@@ -376,7 +369,7 @@ export class CronService {
             case CRON_JOBS.SYNC_TRANSACTIONS_CRON:
                 cronMessage = 'Sync Transaction Cron';
                 break;
-            case CRON_JOBS.ONGOING_MATCHES_CRON:
+            case CRON_JOBS.ONGOING_GAMES_CRON:
                 cronMessage = 'Ongoing Matches Check Cron';
                 break;
         }
@@ -2861,7 +2854,7 @@ export class CronService {
         );
     }
 
-    async ongoingMatchesCheck() {
+    async ongoingGamesCheck() {
         const currentTime = moment().tz(TIMEZONE);
 
         // const currentTime = moment.tz('2021-09-06 01:00', TIMEZONE);
