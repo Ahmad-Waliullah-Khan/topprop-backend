@@ -1248,20 +1248,6 @@ export class LeagueController {
 
             await transaction.commit();
 
-            // const league = await this.leagueRepository.findById(creatorTeam.leagueId);
-            // await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CREATED, {
-            //     user,
-            //     creatorTeam,
-            //     claimerTeam,
-            //     contestData,
-            //     c2d: MiscHelpers.c2d,
-            //     text: {
-            //         title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp. `,
-            //         subtitle:
-            //             'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
-            //     },
-            // });
-
             return {
                 message: LEAGUE_MESSAGES.CREATE_LEAGUE_CONTEST_SUCCESS,
                 data: {
@@ -1401,38 +1387,23 @@ export class LeagueController {
         const creatorUser = await this.userRepository.findById(leagueContestData.creatorId);
         const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
         // const league = await this.leagueRepository.findById(leagueContestData.leagueId);
-        await this.userService.sendEmail(user, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED, {
-            user,
+
+        await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
-            creatorTeam,
+            user,
             claimerTeam,
+            creatorTeam,
             claimerUser,
             leagueContestData,
+            moment: moment,
             c2d: MiscHelpers.c2d,
             text: {
-                title: `Congratulations ${
-                    user ? user.fullName : ''
-                }, you have matched a contest on TopProp and are cleared for takeoff!`,
+                title: `${
+                    creatorUser ? creatorUser.fullName : ''
+                }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
                 subtitle: 'Good luck!',
             },
         });
-        // user = creatorUser;
-        // await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
-        //     creatorUser,
-        //     user,
-        //     claimerTeam,
-        //     creatorTeam,
-        //     claimerUser,
-        //     leagueContestData,
-        //     moment: moment,
-        //     c2d: MiscHelpers.c2d,
-        //     text: {
-        //         title: `${
-        //             user ? user.fullName : ''
-        //         }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
-        //         subtitle: 'Good luck!',
-        //     },
-        // });
 
         return {
             message: CONTEST_MESSAGES.CLAIM_SUCCESS,
