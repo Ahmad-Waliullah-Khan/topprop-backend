@@ -313,7 +313,7 @@ export class CronService {
                 }
                 break;
 
-            case CRON_JOBS.ONGOING_MATCHES_CRON:
+            case CRON_JOBS.ONGOING_GAMES_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // Every 5 minutes
@@ -369,7 +369,7 @@ export class CronService {
             case CRON_JOBS.SYNC_TRANSACTIONS_CRON:
                 cronMessage = 'Sync Transaction Cron';
                 break;
-            case CRON_JOBS.ONGOING_MATCHES_CRON:
+            case CRON_JOBS.ONGOING_GAMES_CRON:
                 cronMessage = 'Ongoing Matches Check Cron';
                 break;
         }
@@ -2854,7 +2854,7 @@ export class CronService {
         );
     }
 
-    async ongoingMatchesCheck() {
+    async ongoingGamesCheck() {
         const currentTime = moment().tz(TIMEZONE);
 
         // const currentTime = moment.tz('2021-09-06 01:00', TIMEZONE);

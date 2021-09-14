@@ -523,7 +523,7 @@ export class LeagueController {
 
         const config = await this.configRepository.findOne({ order: ['id DESC'] });
 
-        if (!config?.contestCreationEnabled) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.MATCH_ONGOING);
+        if (!config?.contestCreationEnabled) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.GAME_ONGOING);
 
         const creatorTeamId = body.creatorTeamId || 0;
         const claimerTeamId = body.claimerTeamId || 0;
