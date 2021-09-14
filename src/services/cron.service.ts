@@ -580,8 +580,8 @@ export class CronService {
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
             underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
 
-            favorite.coversSpread = favorite.fantasyPoints - underdog.playerSpread > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + underdog.playerSpread > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.playerSpread) > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.playerSpread) > favorite.fantasyPoints;
 
             favorite.winBonus = favorite.playerWinBonus > 0;
             underdog.winBonus = underdog.fantasyPoints > 0;
@@ -592,33 +592,25 @@ export class CronService {
                 underdog.netEarnings = -entryAmount;
                 topPropProfit = entryAmount - favorite.playerMaxWin;
                 winner = 'favorite';
-            }
-
-            if (underdog.gameWin && underdog.coversSpread) {
+            } else if (underdog.gameWin && underdog.coversSpread) {
                 // Row 3 & 4 of wiki combination table
                 favorite.netEarnings = -entryAmount;
                 underdog.netEarnings = underdog.playerMaxWin;
                 topPropProfit = entryAmount - underdog.playerMaxWin;
                 winner = 'underdog';
-            }
-
-            if (favorite.gameWin && !favorite.coversSpread) {
+            } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
                 favorite.netEarnings = -entryAmount + Number(favorite.playerWinBonus) + mlValue;
                 underdog.netEarnings = favorite.playerCover - mlValue;
                 topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
                 winner = 'underdog';
-            }
-
-            if (!favorite.coversSpread && !underdog.coversSpread) {
+            } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
                 topPropProfit = 0;
                 winner = 'push';
-            }
-
-            if (!favorite.gameWin && !underdog.gameWin) {
+            } else if (!favorite.gameWin && !underdog.gameWin) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
@@ -1124,15 +1116,16 @@ export class CronService {
             }
 
             // TEST BENCH START
-            // favorite.fantasyPoints = 600;
-            // underdog.fantasyPoints = 200;
+            // favorite.fantasyPoints = 132.5;
+            // underdog.fantasyPoints = 130.8;
             // TEST BENCH END
 
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
             underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
 
-            favorite.coversSpread = favorite.fantasyPoints - underdog.teamSpread > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + underdog.teamSpread > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.teamSpread) > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.teamSpread) > favorite.fantasyPoints;
+
 
             favorite.winBonus = false;
             underdog.winBonus = false;
@@ -1143,33 +1136,25 @@ export class CronService {
                 underdog.netEarnings = -entryAmount;
                 topPropProfit = entryAmount - favorite.teamMaxWin;
                 winner = 'favorite';
-            }
-
-            if (underdog.gameWin && underdog.coversSpread) {
+            } else if (underdog.gameWin && underdog.coversSpread) {
                 // Row 3 & 4 of wiki combination table
                 favorite.netEarnings = -entryAmount;
                 underdog.netEarnings = underdog.teamMaxWin;
                 topPropProfit = entryAmount - underdog.teamMaxWin;
                 winner = 'underdog';
-            }
-
-            if (favorite.gameWin && !favorite.coversSpread) {
+            } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
                 favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
                 underdog.netEarnings = favorite.teamCover - mlValue;
                 topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
                 winner = 'underdog';
-            }
-
-            if (!favorite.coversSpread && !underdog.coversSpread) {
+            } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
                 topPropProfit = 0;
                 winner = 'push';
-            }
-
-            if (!favorite.gameWin && !underdog.gameWin) {
+            } else if (!favorite.gameWin && !underdog.gameWin) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
@@ -1578,7 +1563,7 @@ export class CronService {
     }
 
     async leagueCoercedWinCheck(contestIds: number[]) {
-        logger.debug('League contest graded because players have isOver false', contestIds.toString());
+        logger.debug(`League contest graded because players have isOver false ${contestIds.toString()}`);
 
         const includes = await this.leagueService.fetchLeagueContestInclude();
 
@@ -1723,8 +1708,8 @@ export class CronService {
             favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
             underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
 
-            favorite.coversSpread = favorite.fantasyPoints - underdog.teamSpread > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + underdog.teamSpread > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.teamSpread) > underdog.fantasyPoints;
+            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.teamSpread) > favorite.fantasyPoints;
 
             favorite.winBonus = false;
             underdog.winBonus = false;
@@ -1735,33 +1720,25 @@ export class CronService {
                 underdog.netEarnings = -entryAmount;
                 topPropProfit = entryAmount - favorite.teamMaxWin;
                 winner = 'favorite';
-            }
-
-            if (underdog.gameWin && underdog.coversSpread) {
+            } else if (underdog.gameWin && underdog.coversSpread) {
                 // Row 3 & 4 of wiki combination table
                 favorite.netEarnings = -entryAmount;
                 underdog.netEarnings = underdog.teamMaxWin;
                 topPropProfit = entryAmount - underdog.teamMaxWin;
                 winner = 'underdog';
-            }
-
-            if (favorite.gameWin && !favorite.coversSpread) {
+            } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
                 favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
                 underdog.netEarnings = favorite.teamCover - mlValue;
                 topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
                 winner = 'underdog';
-            }
-
-            if (!favorite.coversSpread && !underdog.coversSpread) {
+            } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
                 topPropProfit = 0;
                 winner = 'push';
-            }
-
-            if (!favorite.gameWin && !underdog.gameWin) {
+            } else if (!favorite.gameWin && !underdog.gameWin) {
                 // Draw
                 favorite.netEarnings = entryAmount;
                 underdog.netEarnings = entryAmount;
