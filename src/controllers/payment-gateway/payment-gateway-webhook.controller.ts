@@ -254,13 +254,18 @@ export class PaymentGatewayWebhookController {
 
                 if (isEqual(body.topic, DWOLLA_WEBHOOK_EVENTS.CUSTOMER_BANK_TRANSFER_COMPLETED)) {
                     subtitle = `Your transfer for $${transfer?.amount.value} to your wallet has been completed. The next step for you is to start playing.`;
-                    await topUpRepo.create({
-                        topUpTransferUrl: transferUrl,
-                        grossAmount: +transfer.amount.value * 100,
-                        //* TOP PROP WILL TAKE OVER THE STRIPE FEE
-                        netAmount: +transfer.amount.value * 100,
-                        userId: user.id,
+                    const topUp = await topUpRepo.findOne({
+                        where: { topUpTransferUrl: transferUrl },
                     });
+                    if (!topUp) {
+                        await topUpRepo.create({
+                            topUpTransferUrl: transferUrl,
+                            grossAmount: +transfer.amount.value * 100,
+                            //* TOP PROP WILL TAKE OVER THE STRIPE FEE
+                            netAmount: +transfer.amount.value * 100,
+                            userId: user.id,
+                        });
+                    }
                 }
 
                 if (isEqual(body.topic, DWOLLA_WEBHOOK_EVENTS.CUSTOMER_BANK_TRANSFER_FAILED))
