@@ -120,16 +120,16 @@ export class CronService {
             case CRON_JOBS.PLAYERS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute at 10am every tuesday
-                        cronTiming = '0 0 10 * * 2';
+                        // 0th second of 0th minute at 10pm every Tuesday
+                        cronTiming = '0 0 22 * * 2';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 0th minute at 10am every tuesday
-                        cronTiming = '0 0 10 * * 2';
+                       // 0th second of 0th minute at 10pm every Tuesday
+                       cronTiming = '0 0 22 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // 0th second of 0th minute of every hour of every day
-                        cronTiming = '0 0 */1 */1 * *';
+                        // 0th second of 0th minute at 10pm every Tuesday
+                        cronTiming = '0 0 22 * * 2';
                         break;
                 }
                 break;
@@ -1125,8 +1125,6 @@ export class CronService {
 
             favorite.coversSpread = favorite.fantasyPoints - Number(underdog.teamSpread) > underdog.fantasyPoints;
             underdog.coversSpread = underdog.fantasyPoints + Number(underdog.teamSpread) > favorite.fantasyPoints;
-
-
             favorite.winBonus = false;
             underdog.winBonus = false;
 
@@ -2314,6 +2312,7 @@ export class CronService {
                 foundLocalPlayer.teamName = remotePlayer.Team;
                 foundLocalPlayer.playerType = 1; // Regular Player
                 foundLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
+                foundLocalPlayer.isOver = false;
                 if (records.some(record => record.PlayerID === `${foundLocalPlayer.remoteId}`)) {
                     const record = records.find(record => record.PlayerID === `${foundLocalPlayer.remoteId}`);
                     if (record.EspnPlayerID.trim() !== '') {
@@ -2337,6 +2336,7 @@ export class CronService {
                 newLocalPlayer.teamId = remotePlayer.TeamID;
                 newLocalPlayer.playerType = 1; // Regular Player
                 newLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
+                newLocalPlayer.isOver = false;
                 if (records.some(record => record.PlayerID === `${newLocalPlayer.remoteId}`)) {
                     const record = records.find(record => record.PlayerID === `${newLocalPlayer.remoteId}`);
                     if (record.EspnPlayerID.trim() !== '') {
