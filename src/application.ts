@@ -1,43 +1,54 @@
 import {
     AuthenticationBindings,
     AuthenticationComponent,
-    registerAuthenticationStrategy
+    registerAuthenticationStrategy,
 } from '@loopback/authentication';
-import {AuthorizationComponent} from '@loopback/authorization';
-import {BootMixin} from '@loopback/boot';
-import {addExtension, ApplicationConfig, createBindingFromClass} from '@loopback/core';
-import {CronComponent} from '@loopback/cron';
-import {RepositoryMixin} from '@loopback/repository';
-import {RequestBodyParserOptions, RestApplication, RestBindings} from '@loopback/rest';
-import {CrudRestComponent} from '@loopback/rest-crud';
-import {ServiceMixin} from '@loopback/service-proxy';
-import {isEqual} from 'lodash';
+import { AuthorizationComponent } from '@loopback/authorization';
+import { BootMixin } from '@loopback/boot';
+import { addExtension, ApplicationConfig, createBindingFromClass } from '@loopback/core';
+import { CronComponent } from '@loopback/cron';
+import { RepositoryMixin } from '@loopback/repository';
+import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
+import { CrudRestComponent } from '@loopback/rest-crud';
+import { ServiceMixin } from '@loopback/service-proxy';
+import { isEqual } from 'lodash';
 import morgan from 'morgan';
-import {join} from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { join } from 'path';
 import {
     JWTAuthenticationStrategy,
     PassportFacebookTokenAuthProvider,
-    PassportGoogleTokenAuthProvider
+    PassportGoogleTokenAuthProvider,
 } from './authentication-strategies';
 import {
     CloseContestsCron,
     EspnSyncLeaguesCron,
-    LeagueWinCriteriaCron, OngoingGamesCron, PlayerFantasyPointsCron,
+    LeagueWinCriteriaCron,
+    OngoingGamesCron,
+    PlayerFantasyPointsCron,
     PlayersCron,
     ProjectedFantasyPointsCron,
     SpecialTeamsCron,
-    SyncGamesCron, syncTransactionsCron, TimeframeCron,
+    SyncGamesCron,
+    syncTransactionsCron,
+    TimeframeCron,
     WinCriteriaCron,
     WithdrawFundsCron,
-    YahooSyncLeaguesCron
+    YahooSyncLeaguesCron,
 } from './cron-jobs';
-import {ConfigRepository, ImportSourceRepository, ScoringTypeRepository, SpreadRepository} from './repositories';
-import {ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder} from './seeders';
-import {MySequence} from './sequence';
-import {ApplicationHelpers} from './utils/helpers';
-import {IRawRequest} from './utils/interfaces';
+import {
+    ConfigRepository,
+    ImportSourceRepository,
+    ScoringTypeRepository,
+    SpreadRepository,
+    LeagueRepository,
+} from './repositories';
+import { ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
+import { MySequence } from './sequence';
+import { ApplicationHelpers } from './utils/helpers';
+import { IRawRequest } from './utils/interfaces';
 
-export {ApplicationConfig};
+export { ApplicationConfig };
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
@@ -202,5 +213,14 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         const importSourceRepo = await this.getRepository(ImportSourceRepository);
         await importSourceRepo.deleteAll();
         await importSourceRepo.createAll(ImportSourceSeeder);
+
+        const leagueRepo = await this.getRepository(LeagueRepository);
+        // @ts-ignore
+        const leagues = await leagueRepo.find({ where: { inviteToken: null } });
+
+        leagues.forEach(async league => {
+            league.inviteToken = uuidv4();
+            await leagueRepo.save(league);
+        });
     }
 }

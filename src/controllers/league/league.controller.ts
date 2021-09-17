@@ -1,12 +1,14 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, FilterExcludingWhere, IsolationLevel, repository } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member } from '@src/models';
 import {
-    BetRepository, ConfigRepository, ContestRosterRepository,
+    BetRepository,
+    ConfigRepository,
+    ContestRosterRepository,
     ContestTeamRepository,
     ImportSourceRepository,
     InviteRepository,
@@ -16,10 +18,10 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {ContestService, LeagueService, PaymentGatewayService} from '@src/services';
-import {UserService} from '@src/services/user.service';
+import { ContestService, LeagueService, PaymentGatewayService } from '@src/services';
+import { UserService } from '@src/services/user.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -27,10 +29,10 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SCORING_TYPE,
-    SPREAD_TYPE
+    SPREAD_TYPE,
 } from '@src/utils/constants';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -40,13 +42,13 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
-    ILeagueResync
+    ILeagueResync,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
-import {INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
-import {find, isEmpty} from 'lodash';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
+import { INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR } from '@src/utils/validators';
+import { find, isEmpty } from 'lodash';
 import moment from 'moment';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Schema from 'validate';
 import logger from '../../utils/logger';
 // const YahooFantasy = require('yahoo-fantasy');
@@ -380,6 +382,47 @@ export class LeagueController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
+    @post(API_ENDPOINTS.LEAGUE.FETCH_PUBLIC_INVITE, {
+        responses: {
+            '200': {
+                description: 'Fetch League Public invitation',
+            },
+        },
+    })
+    async fetchPublicLeagueInvite(
+        @requestBody()
+        body: Partial<ILeagueInvitesFetchRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const validationSchema = {
+            token: INVITE_VALIDATOR.token,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        try {
+            const league = await this.leagueRepository.findOne({
+                where: {
+                    inviteToken: body.token,
+                },
+                include: ['user', 'teams', 'members', 'scoringType'],
+            });
+
+            return {
+                message: LEAGUE_MESSAGES.INVITATION_FETCHING_SUCCESS,
+                data: league,
+            };
+        } catch (error) {
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_FETCHING_FAILED);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
     @post(API_ENDPOINTS.LEAGUE.JOIN, {
         responses: {
             '200': {
@@ -477,6 +520,90 @@ export class LeagueController {
             const includes = await this.leagueService.fetchLeagueInclude();
 
             const updatedLeague = await this.leagueRepository.findById(invite.leagueId, includes);
+
+            return {
+                message: LEAGUE_MESSAGES.INVITATION_JOINING_SUCCESS,
+                data: {
+                    currentLeague: updatedLeague,
+                    leagues: leagues,
+                },
+            };
+        } catch (error) {
+            console.log('🚀 ~ file: league.controller.ts ~ line 206 ~ LeagueController ~ error', error);
+            throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_JOINING_FAILED);
+        }
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
+    @post(API_ENDPOINTS.LEAGUE.PUBLIC_JOIN, {
+        responses: {
+            '200': {
+                description: 'Join League with a Public invitation',
+            },
+        },
+    })
+    async joinLeaguePublicInvite(
+        @requestBody()
+        body: Partial<ILeagueInvitesFetchRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+        const userId = +currentUser[securityId];
+        const validationSchema = {
+            token: INVITE_VALIDATOR.token,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const user = await this.userRepository.findById(userId);
+
+        const league = await this.leagueRepository.findOne({
+            where: {
+                inviteToken: body.token,
+            },
+            include: ['teams', 'members', 'scoringType'],
+        });
+
+        const leagueId = league?.id || 0;
+
+        const member = await this.memberRepository.findOne({
+            where: {
+                leagueId,
+                userId: user.id,
+            },
+        });
+
+        if (member) throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.EXISTING_MEMBER);
+
+        try {
+            const memberData = new Member();
+            memberData.leagueId = leagueId;
+            memberData.userId = user.id;
+
+            await this.memberRepository.create(memberData);
+
+            const members = await this.memberRepository.find({
+                where: {
+                    userId: userId,
+                },
+            });
+
+            const leagueIdList = members.map(member => member.leagueId);
+
+            const leagues = await this.leagueRepository.find({
+                where: {
+                    id: { inq: leagueIdList },
+                },
+                order: ['createdAt DESC'],
+                include: ['teams', 'members', 'scoringType'],
+            });
+
+            const includes = await this.leagueService.fetchLeagueInclude();
+
+            const updatedLeague = await this.leagueRepository.findById(league?.id || 0, includes);
 
             return {
                 message: LEAGUE_MESSAGES.INVITATION_JOINING_SUCCESS,

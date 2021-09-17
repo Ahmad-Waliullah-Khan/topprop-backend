@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { belongsTo, hasMany, model, property } from '@loopback/repository';
 import { Base } from '.';
 import { ImportSource } from './import-source.model';
@@ -13,7 +14,7 @@ export class League extends Base {
         id: true,
         generated: true,
     })
-    id: number
+    id: number;
 
     @property({
         type: 'string',
@@ -39,6 +40,17 @@ export class League extends Base {
         default: null,
     })
     lastSyncTime: Date | null;
+
+    @property({
+        type: 'string',
+        generated: false,
+        useDefaultIdType: false,
+        default: () => uuidv4(),
+        postgresql: {
+            dataType: 'uuid',
+        },
+    })
+    inviteToken: string;
 
     @hasMany(() => Team)
     teams?: Team[];
