@@ -389,7 +389,7 @@ export class LeagueImportController {
 
             await transaction.commit();
 
-            const newLeague = await this.leagueRepository.find({
+            const newLeague = await this.leagueRepository.findOne({
                 where: {
                     remoteId: leagueId,
                 },
@@ -580,7 +580,7 @@ export class LeagueImportController {
                 user.email,
             );
 
-            const newLeague = await this.leagueRepository.find({
+            const newLeague = await this.leagueRepository.findOne({
                 where: {
                     remoteId: leagueKey,
                 },
