@@ -7,7 +7,7 @@ export const LEAGUE_MESSAGES = {
     INVITATION_FETCHING_FAILED: `League invitation fetch failed.`,
     INVITATION_JOINING_SUCCESS: `League joined successfully.`,
     INVITATION_JOINING_FAILED: `League joining failed.`,
-    INVITATION_EXPIRED: `Your invitation has expired. Please request for a new invitation from the league commissioner`,
+    INVITATION_EXPIRED: `Your invitation has expired. Please request for a new invitation from the league admin`,
     INCORRECT_USER_FOR_INVITATION: `This invitation is attached to another email. Please login to the correct account before trying again`,
     EXISTING_MEMBER: `You are already a member of this league. You cannot join again`,
     CREATE_LEAGUE_CALCULATIONS_SUCCESS: `League Contest calculations fetched successfully.`,
