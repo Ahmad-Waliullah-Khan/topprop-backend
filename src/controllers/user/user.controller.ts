@@ -224,7 +224,17 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        return { data: { token, type: RUN_TYPE, "DWOLLA_ENV": process.env.DWOLLA_ENV } };
+        return {
+            data: {
+                 token,
+                 type: RUN_TYPE,
+                 "DWOLLA_ENV": process.env.DWOLLA_ENV,
+                 "COMET_APP_ID": process.env.COMET_APPID,
+                 "COMET_AUTH_KEY": process.env.COMET_AUTH_KEY,
+                 "COMET_API_KEY": process.env.COMET_APP_API_KEY,
+                 "COMET_REGION": process.env.COMET_REGION,
+                }
+            };
     }
 
     @authenticate('facebookToken')
