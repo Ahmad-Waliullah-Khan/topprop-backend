@@ -106,22 +106,18 @@ export class PaymentGatewayWebhookController {
                 }
                 case DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_NEEDED: {
                     const details = `Your account could not be verified, please try uploading your ID to solve this.`;
-                    await this.handleCustomerVerificationUpdate(body.resourceId, details);
-
+                    await this.handleCustomerVerificationUpdate(body._links['customer'].href, details, true);
                     break;
                 }
                 case DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_FAILED: {
-                    const details = `Your account could not be verified using your ID, please reach to us directly as soon as possible to solve this.`;
-
-                    await this.handleCustomerVerificationUpdate(body.resourceId, details, true);
-
+                    const details = `Your account could not be verified using your ID, please try to upload a new document with a better quality as soon as possible to solve this.`;
+                    await this.handleCustomerVerificationUpdate(body._links['customer'].href, details, true);
                     break;
                 }
                 case DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFICATION_DOCUMENT_APPROVED: {
                     const details = `Your ID was approved and your account is in review. We will keep you posted.`;
 
-                    await this.handleCustomerVerificationUpdate(body.resourceId, details);
-
+                    await this.handleCustomerVerificationUpdate(body._links['customer'].href, details);
                     break;
                 }
                 //*HANDLE FUNDING SOURCES STATUSES
