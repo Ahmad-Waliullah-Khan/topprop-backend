@@ -383,24 +383,17 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const remotePlayers = await this.sportsDataService.fantasyPointsByDate(currentDate);
         const localPlayers = await this.playerRepository.find();
+        const exceptionDates = [2,3,4] //2=Tue, 3=Wed, 4=Thu
+
 
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
-                        foundLocalPlayer.isOver = remotePlayer.IsOver;
-                        foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
-                        foundLocalPlayer.fantasyPointsHalfPpr =
-                            remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
-                        foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                        await this.playerRepository.save(foundLocalPlayer);
-                        break;
-                    case CRON_RUN_TYPES.STAGING:
-                        const today = moment().format('dddd');
-                        const gameDay = moment(remotePlayer.Date).format('dddd');
-                        if (today === gameDay) {
+                        // Skip for Tue,Wed and Thu
+                        if(!exceptionDates.includes(currentDate.weekday())) {
+
                             foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                             foundLocalPlayer.isOver = remotePlayer.IsOver;
                             foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
@@ -409,15 +402,37 @@ export class CronService {
                             foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
                             await this.playerRepository.save(foundLocalPlayer);
                         }
+
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        const today = moment().format('dddd');
+                        const gameDay = moment(remotePlayer.Date).format('dddd');
+                        // Skip for Tue,Wed and Thu
+                        if(!exceptionDates.includes(currentDate.weekday())) {
+
+                            if (today === gameDay) {
+                                foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                                foundLocalPlayer.isOver = remotePlayer.IsOver;
+                                foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                                foundLocalPlayer.fantasyPointsHalfPpr =
+                                    remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
+                                foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                                await this.playerRepository.save(foundLocalPlayer);
+                            }
+                        }
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
-                        foundLocalPlayer.isOver = remotePlayer.IsOver;
-                        foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
-                        foundLocalPlayer.fantasyPointsHalfPpr =
-                            remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
-                        foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                        await this.playerRepository.save(foundLocalPlayer);
+                        // Skip for Tue,Wed and Thu
+                        if(!exceptionDates.includes(currentDate.weekday())) {
+
+                            foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                            foundLocalPlayer.isOver = remotePlayer.IsOver;
+                            foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                            foundLocalPlayer.fantasyPointsHalfPpr =
+                                remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
+                            foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                            await this.playerRepository.save(foundLocalPlayer);
+                        }
                         break;
                 }
             }
