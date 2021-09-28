@@ -18,6 +18,8 @@ export const USER_MESSAGES = {
     STATE_NOT_DETECTED: `Your state could not be detected. We apologise for any inconvenience caused`,
     COUNTRY_INVALID: `is not one of our supported countries yet. Please check back later.`,
     CONUTRY_NOT_DETECTED: `Your country could not be detected. We apologise for any inconvenience caused`,
+    AGE_RESTRICTED: (age: number, state: string) =>
+        `You are not old enough to use this app. You need to be ${age} to use TopProp in ${state}`,
 };
 export const WALLET_MESSAGES = {
     MISSING_WALLET: `User does not a wallet yet.`,
@@ -34,6 +36,10 @@ export const WALLET_MESSAGES = {
         `The ${side} side verification file provided is already verified`,
     ALREADY_VERIFIED: `The account is already verified.`,
     OPEN_WITHDRAW_REQUEST: `You have a pending withdraw request. Please wait till the request is processed before deleting the funding source.`,
+    WEEKLY_DEPOSIT_LIMIT: (balance: number) =>
+        `This transaction will add more than your state's monthly deposit limit. You can deposit a maximum of $${
+            balance / 100
+        } till the end of the month`,
 };
 export const WITHDRAW_REQUEST_MESSAGES = {
     WITHDRAW_REQUEST_NOT_FOUND: `Withdraw request not found.`,

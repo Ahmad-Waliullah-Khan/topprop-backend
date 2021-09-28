@@ -6,9 +6,9 @@ import { UserRepository } from '@src/repositories';
 import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
 import {
     DEV_VALID_COUNTRIES,
-    DEV_VALID_STATES,
+    DEV_STATE_PERMISSIONS,
     VALID_COUNTRIES,
-    VALID_STATES,
+    VALID_STATE_PERMISSIONS,
 } from '@src/utils/constants/state.constants';
 import { MiscHelpers, UserHelpers } from '@src/utils/helpers';
 import { LoginCredentials } from '@src/utils/interfaces';
@@ -35,7 +35,7 @@ export class UserService {
         return compare(password, hashPassword);
     }
 
-    async verifyCredentials(credentials: LoginCredentials, verifyAdmin = false): Promise<User> {
+    async verifyCredentials(credentials: LoginCredentials, verifyAdmin = false): Promise<any> {
         const verifyUserQuery: Filter<User> = {
             where: {
                 and: [
@@ -60,10 +60,11 @@ export class UserService {
             const lockedTime = moment(foundUser?.lockedTime);
             if (currentDateTime.isBefore(lockedTime, 'minute')) {
                 const timeDifferenceInMinutes = Number(lockedTime.diff(currentDateTime, 'minutes')) + 1;
-                const message = timeDifferenceInMinutes === 1 ? `${timeDifferenceInMinutes} minute` : `${timeDifferenceInMinutes} minutes`;
-                throw new HttpErrors.BadRequest(
-                    `${USER_MESSAGES.ACCOUNT_TIMEOUT} ${message}`,
-                );
+                const message =
+                    timeDifferenceInMinutes === 1
+                        ? `${timeDifferenceInMinutes} minute`
+                        : `${timeDifferenceInMinutes} minutes`;
+                throw new HttpErrors.BadRequest(`${USER_MESSAGES.ACCOUNT_TIMEOUT} ${message}`);
             }
         }
 
@@ -102,12 +103,14 @@ export class UserService {
         if (!(await this.validCountry(credentials.country)))
             throw new HttpErrors.BadRequest(`${credentials.country} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
+        const config = await this.statePermissions(foundUser.signUpState || '');
+
         foundUser.lastLoginState = credentials.state;
         foundUser.invalidLoginCount = 0;
         foundUser.lockedTime = null;
         await userRepository.updateById(foundUser.id, foundUser);
 
-        return foundUser;
+        return { ...foundUser, config };
     }
 
     assignDefaultPermissions(isAdmin = false): string[] {
@@ -241,12 +244,22 @@ export class UserService {
         return isEqual(user.id, id);
     }
 
-    async validState(state: string): Promise<boolean> {
-        let validStaties = VALID_STATES;
+    async statePermissions(state: string): Promise<any> {
+        let validStatePermissions = VALID_STATE_PERMISSIONS;
         if (isEqual(process.env.GEOTRACKING_ENV, 'development')) {
-            validStaties = [...VALID_STATES, ...DEV_VALID_STATES];
+            validStatePermissions = [...VALID_STATE_PERMISSIONS, ...DEV_STATE_PERMISSIONS];
         }
-        return validStaties.includes(state);
+        const found = validStatePermissions.find(element => element.abbr === state);
+        return found;
+    }
+
+    async validState(state: string): Promise<boolean> {
+        let validStatePermissions = VALID_STATE_PERMISSIONS;
+        if (isEqual(process.env.GEOTRACKING_ENV, 'development')) {
+            validStatePermissions = [...VALID_STATE_PERMISSIONS, ...DEV_STATE_PERMISSIONS];
+        }
+        const found = validStatePermissions.find(element => element.abbr === state);
+        return found ? found.appAccess : false;
     }
 
     async validCountry(country: string): Promise<boolean> {

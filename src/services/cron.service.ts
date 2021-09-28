@@ -1,8 +1,10 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository, Where} from '@loopback/repository';
-import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository, Where } from '@loopback/repository';
+import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
 import {
-    BetRepository, ConfigRepository, ContestRepository,
+    BetRepository,
+    ConfigRepository,
+    ContestRepository,
     ContestRosterRepository,
     GainRepository,
     LeagueContestRepository,
@@ -10,23 +12,26 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    TimeframeRepository, TopUpRepository, UserRepository,
-    WithdrawRequestRepository
+    TimeframeRepository,
+    TopUpRepository,
+    UserRepository,
+    WithdrawRequestRepository,
 } from '@src/repositories';
-import {MiscHelpers} from '@src/utils/helpers';
+import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import {TRANSFER_TYPES} from '../services';
-import {LeagueService} from '../services/league.service';
-import {PaymentGatewayService} from '../services/payment-gateway.service';
-import {SportsDataService} from '../services/sports-data.service';
-import {UserService} from '../services/user.service';
+import { TRANSFER_TYPES } from '../services';
+import { LeagueService } from '../services/league.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
-    BLOCKED_TIME_SLOTS, CONTEST_STAKEHOLDERS,
+    BLOCKED_TIME_SLOTS,
+    CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
     CRON_JOBS,
     CRON_RUN_TYPES,
@@ -37,9 +42,11 @@ import {
     PROXY_YEAR,
     RUN_TYPE,
     SCORING_TYPE,
-    TIMEFRAMES, TIMEZONE, WITHDRAW_REQUEST_STATUSES
+    TIMEFRAMES,
+    TIMEZONE,
+    WITHDRAW_REQUEST_STATUSES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -124,8 +131,8 @@ export class CronService {
                         cronTiming = '0 0 22 * * 2';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                       // 0th second of 0th minute at 10pm every Tuesday
-                       cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10pm every Tuesday
+                        cronTiming = '0 0 22 * * 2';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute at 10pm every Tuesday
@@ -370,7 +377,7 @@ export class CronService {
                 cronMessage = 'Sync Transaction Cron';
                 break;
             case CRON_JOBS.ONGOING_GAMES_CRON:
-                cronMessage = 'Ongoing Matches Check Cron';
+                cronMessage = 'Ongoing Games Check Cron';
                 break;
         }
 
@@ -420,6 +427,8 @@ export class CronService {
                         await this.playerRepository.save(foundLocalPlayer);
                         break;
                 }
+            } else {
+                logger.info(`Could not find ${remotePlayer.Name} during fetch Fantasy Points`);
             }
         });
 
@@ -1299,8 +1308,14 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(favorite.teamId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
-                    const winnerTeamFantasyPoints = favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? contestData.creatorTeamFantasyPoints : contestData.claimerTeamFantasyPoints;
-                    const loserTeamFantasyPoints = underdog.type === CONTEST_STAKEHOLDERS.CLAIMER ? contestData.claimerTeamFantasyPoints : contestData.creatorTeamFantasyPoints;
+                    const winnerTeamFantasyPoints =
+                        favorite.type === CONTEST_STAKEHOLDERS.CREATOR
+                            ? contestData.creatorTeamFantasyPoints
+                            : contestData.claimerTeamFantasyPoints;
+                    const loserTeamFantasyPoints =
+                        underdog.type === CONTEST_STAKEHOLDERS.CLAIMER
+                            ? contestData.claimerTeamFantasyPoints
+                            : contestData.creatorTeamFantasyPoints;
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
@@ -1326,7 +1341,7 @@ export class CronService {
                         },
                     });
 
-                    const underdogNetEarnings = underdog.netEarnings == -0 ? 0 : underdog.netEarnings
+                    const underdogNetEarnings = underdog.netEarnings == -0 ? 0 : underdog.netEarnings;
 
                     await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
@@ -1357,8 +1372,14 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(underdog.teamId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
-                    const winnerTeamFantasyPoints = underdog.type === CONTEST_STAKEHOLDERS.CREATOR ? contestData.creatorTeamFantasyPoints : contestData.claimerTeamFantasyPoints;
-                    const loserTeamFantasyPoints = favorite.type === CONTEST_STAKEHOLDERS.CLAIMER ? contestData.claimerTeamFantasyPoints : contestData.creatorTeamFantasyPoints;
+                    const winnerTeamFantasyPoints =
+                        underdog.type === CONTEST_STAKEHOLDERS.CREATOR
+                            ? contestData.creatorTeamFantasyPoints
+                            : contestData.claimerTeamFantasyPoints;
+                    const loserTeamFantasyPoints =
+                        favorite.type === CONTEST_STAKEHOLDERS.CLAIMER
+                            ? contestData.claimerTeamFantasyPoints
+                            : contestData.creatorTeamFantasyPoints;
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
@@ -1384,7 +1405,7 @@ export class CronService {
                         },
                     });
 
-                    const favoriteNetEarnings = favorite.netEarnings == -0 ? 0 : favorite.netEarnings
+                    const favoriteNetEarnings = favorite.netEarnings == -0 ? 0 : favorite.netEarnings;
 
                     await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_LOST, {
                         winnerUser,
@@ -1418,8 +1439,14 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
-                    const favoriteTeamFantasyPoints = underdog.type === CONTEST_STAKEHOLDERS.CREATOR ? contestData.creatorTeamFantasyPoints : contestData.claimerTeamFantasyPoints;
-                    const underdogTeamFantasyPoints = favorite.type === CONTEST_STAKEHOLDERS.CLAIMER ? contestData.claimerTeamFantasyPoints : contestData.creatorTeamFantasyPoints;
+                    const favoriteTeamFantasyPoints =
+                        underdog.type === CONTEST_STAKEHOLDERS.CREATOR
+                            ? contestData.creatorTeamFantasyPoints
+                            : contestData.claimerTeamFantasyPoints;
+                    const underdogTeamFantasyPoints =
+                        favorite.type === CONTEST_STAKEHOLDERS.CLAIMER
+                            ? contestData.claimerTeamFantasyPoints
+                            : contestData.creatorTeamFantasyPoints;
 
                     await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
@@ -1526,7 +1553,6 @@ export class CronService {
             entryGain.contestId = unclaimedContest.id;
 
             await this.gainRepository.create(entryGain);
-
         });
 
         return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : filteredContests;
@@ -2050,7 +2076,6 @@ export class CronService {
             entryGain.contestId = unclaimedContest.id;
 
             await this.gainRepository.create(entryGain);
-
         });
 
         return filteredUnClaimedLeagueContests ? filteredUnClaimedLeagueContests : [];

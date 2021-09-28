@@ -24,6 +24,7 @@ import { USER_MESSAGES, WALLET_MESSAGES } from '@src/utils/messages';
 import { WALLET_VALIDATORS } from '@src/utils/validators';
 import { isEmpty, isEqual } from 'lodash';
 import { nanoid } from 'nanoid';
+import moment from 'moment';
 import Schema from 'validate';
 
 export class WalletController {
@@ -200,6 +201,35 @@ export class WalletController {
             if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
             const user = await this.userRepository.findById(id);
             if (!user._customerTokenUrl) throw new HttpErrors.NotFound(WALLET_MESSAGES.MISSING_WALLET);
+
+            const startDate = moment().startOf('month').format();
+            const endDate = moment().endOf('month').format();
+
+            const topUps = await this.topUpRepository.find({
+                where: {
+                    and: [{ createdAt: { gte: startDate } }, { createdAt: { lte: endDate } }, { userId: id }],
+                },
+            });
+
+            const signUpState = user.signUpState || '';
+
+            const statePermissions = await this.userService.statePermissions(signUpState);
+            
+            const stateDepositLimit = statePermissions.weeklyDepositLimit;
+
+            const topupTotal = topUps.reduce(
+                (previousValue, currentValue) => previousValue + Number(currentValue.grossAmount),
+                0,
+            );
+
+            const depositAmount = Number(body.amount);
+
+            if (stateDepositLimit !== 0) {
+                if (topupTotal + depositAmount > stateDepositLimit) {
+                    const balance = stateDepositLimit - topupTotal;
+                    throw new HttpErrors.BadRequest(WALLET_MESSAGES.WEEKLY_DEPOSIT_LIMIT(balance));
+                }
+            }
 
             await this.paymentGatewayService.sendFunds(
                 user._customerTokenUrl,

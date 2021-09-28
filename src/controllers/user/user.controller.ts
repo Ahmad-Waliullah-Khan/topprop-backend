@@ -1,27 +1,27 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
-import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {User} from '@src/models';
-import {UserRepository} from '@src/repositories';
-import {JwtService} from '@src/services';
-import {UserService} from '@src/services/user.service';
-import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE} from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { User } from '@src/models';
+import { UserRepository } from '@src/repositories';
+import { JwtService } from '@src/services';
+import { UserService } from '@src/services/user.service';
+import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     EmailRequest,
     ICommonHttpResponse,
     ICustomUserProfile,
     LoginCredentials,
     ResetPasswordRequest,
-    SignupUserRequest
+    SignupUserRequest,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, USER_MESSAGES} from '@src/utils/messages';
-import {USER_VALIDATORS} from '@src/utils/validators';
-import {isEmpty, isEqual} from 'lodash';
+import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
+import { USER_VALIDATORS } from '@src/utils/validators';
+import { isEmpty, isEqual } from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -83,7 +83,17 @@ export class UserController {
 
         const validCountry = await this.userService.validCountry(body.signUpCountry || '');
         if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
-
+        
+        const statePermissions = await this.userService.statePermissions(body.signUpState);
+        const dob = moment(body.dateOfBirth);
+        const current = moment();
+        const age = current.diff(dob, 'years');
+        
+        if (age < statePermissions.minAge) {
+            throw new HttpErrors.BadRequest(
+                USER_MESSAGES.AGE_RESTRICTED(statePermissions.minAge, statePermissions.name),
+            );
+        }
         //LOWER CASING THE EMAIL
         body.email = body.email.toLowerCase();
 
@@ -216,6 +226,7 @@ export class UserController {
 
         // ensure the user exists, and the password is correct
         const user = await this.userService.verifyCredentials(credentials);
+
         const token = await this.jwtService.generateToken({
             id: user.id,
             email: user.email,
@@ -226,15 +237,16 @@ export class UserController {
 
         return {
             data: {
-                 token,
-                 type: RUN_TYPE,
-                 "DWOLLA_ENV": process.env.DWOLLA_ENV,
-                 "COMET_APP_ID": process.env.COMET_APPID,
-                 "COMET_AUTH_KEY": process.env.COMET_AUTH_KEY,
-                 "COMET_API_KEY": process.env.COMET_APP_API_KEY,
-                 "COMET_REGION": process.env.COMET_REGION,
-                }
-            };
+                token,
+                type: RUN_TYPE,
+                DWOLLA_ENV: process.env.DWOLLA_ENV,
+                COMET_APP_ID: process.env.COMET_APPID,
+                COMET_AUTH_KEY: process.env.COMET_AUTH_KEY,
+                COMET_API_KEY: process.env.COMET_APP_API_KEY,
+                COMET_REGION: process.env.COMET_REGION,
+                config: user.config,
+            },
+        };
     }
 
     @authenticate('facebookToken')
