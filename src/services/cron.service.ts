@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     ConfigRepository,
@@ -15,28 +15,27 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
     CRON_JOBS,
     CRON_RUN_TYPES,
-    EMAIL_TEMPLATES,
-    PROXY_DAY,
+    EMAIL_TEMPLATES, FP_IGNORED_SLOT, PROXY_DAY,
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
@@ -44,10 +43,9 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
-    FP_IGNORED_SLOT,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -391,28 +389,26 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const remotePlayers = await this.sportsDataService.fantasyPointsByDate(currentDate);
         const localPlayers = await this.playerRepository.find();
-        const exceptionDates = [2, 3, 4]; //2=Tue, 3=Wed, 4=Thu
+        const currentTime = moment().tz(TIMEZONE);
+
+        const startObject = { hour: FP_IGNORED_SLOT.startHour, minute: FP_IGNORED_SLOT.startMinute };
+        const startDatetime = momenttz
+            .tz(startObject, TIMEZONE)
+            .day(FP_IGNORED_SLOT.startDay)
+            .subtract(1, 'minute');
+
+        const endObject = { hour: FP_IGNORED_SLOT.endHour, minute: FP_IGNORED_SLOT.endMinute };
+        const endDatetime = momenttz
+            .tz(endObject, TIMEZONE)
+            .day(FP_IGNORED_SLOT.endDay)
+            .add(1, 'minute');
 
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        const currentTime = moment().tz(TIMEZONE);
-
-                        const startObject = { hour: FP_IGNORED_SLOT.startHour, minute: FP_IGNORED_SLOT.startMinute };
-                        const startDatetime = momenttz
-                            .tz(startObject, TIMEZONE)
-                            .day(FP_IGNORED_SLOT.startDay)
-                            .subtract(1, 'minute');
-
-                        const endObject = { hour: FP_IGNORED_SLOT.endHour, minute: FP_IGNORED_SLOT.endMinute };
-                        const endDatetime = momenttz
-                            .tz(endObject, TIMEZONE)
-                            .day(FP_IGNORED_SLOT.endDay)
-                            .add(1, 'minute');
-                            
-                        if (currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
+                        if (!currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
                             foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                             foundLocalPlayer.isOver = remotePlayer.IsOver;
                             foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
@@ -421,27 +417,12 @@ export class CronService {
                             foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
                             await this.playerRepository.save(foundLocalPlayer);
                         }
-
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         const today = moment().format('dddd');
                         const gameDay = moment(remotePlayer.Date).format('dddd');
-                        // Skip for Tue,Wed and Thu
-                        if (!exceptionDates.includes(currentDate.weekday())) {
-                            if (today === gameDay) {
-                                foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
-                                foundLocalPlayer.isOver = remotePlayer.IsOver;
-                                foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
-                                foundLocalPlayer.fantasyPointsHalfPpr =
-                                    remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
-                                foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                                await this.playerRepository.save(foundLocalPlayer);
-                            }
-                        }
-                        break;
-                    case CRON_RUN_TYPES.PROXY:
-                        // Skip for Tue,Wed and Thu
-                        if (!exceptionDates.includes(currentDate.weekday())) {
+
+                        if (today === gameDay) {
                             foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                             foundLocalPlayer.isOver = remotePlayer.IsOver;
                             foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
@@ -450,6 +431,17 @@ export class CronService {
                             foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
                             await this.playerRepository.save(foundLocalPlayer);
                         }
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+
+                        foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                        foundLocalPlayer.isOver = remotePlayer.IsOver;
+                        foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                        foundLocalPlayer.fantasyPointsHalfPpr =
+                            remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
+                        foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                        await this.playerRepository.save(foundLocalPlayer);
+
                         break;
                 }
             }
