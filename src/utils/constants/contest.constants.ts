@@ -71,3 +71,12 @@ export const BLOCKED_TIME_SLOTS = [
         endMinute: 0,
     },
 ];
+
+export const FP_IGNORED_SLOT = {
+    startDay: 2,
+    startHour: 5,
+    startMinute: 30,
+    endDay: 4,
+    endHour: 5,
+    endMinute: 0,
+};

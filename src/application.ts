@@ -1,24 +1,24 @@
 import {
     AuthenticationBindings,
     AuthenticationComponent,
-    registerAuthenticationStrategy,
+    registerAuthenticationStrategy
 } from '@loopback/authentication';
-import { AuthorizationComponent } from '@loopback/authorization';
-import { BootMixin } from '@loopback/boot';
-import { addExtension, ApplicationConfig, createBindingFromClass } from '@loopback/core';
-import { CronComponent } from '@loopback/cron';
-import { RepositoryMixin } from '@loopback/repository';
-import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
-import { CrudRestComponent } from '@loopback/rest-crud';
-import { ServiceMixin } from '@loopback/service-proxy';
-import { isEqual } from 'lodash';
+import {AuthorizationComponent} from '@loopback/authorization';
+import {BootMixin} from '@loopback/boot';
+import {addExtension, ApplicationConfig, createBindingFromClass} from '@loopback/core';
+import {CronComponent} from '@loopback/cron';
+import {RepositoryMixin} from '@loopback/repository';
+import {RequestBodyParserOptions, RestApplication, RestBindings} from '@loopback/rest';
+import {CrudRestComponent} from '@loopback/rest-crud';
+import {ServiceMixin} from '@loopback/service-proxy';
+import {isEqual} from 'lodash';
 import morgan from 'morgan';
-import { v4 as uuidv4 } from 'uuid';
-import { join } from 'path';
+import {join} from 'path';
+import {v4 as uuidv4} from 'uuid';
 import {
     JWTAuthenticationStrategy,
     PassportFacebookTokenAuthProvider,
-    PassportGoogleTokenAuthProvider,
+    PassportGoogleTokenAuthProvider
 } from './authentication-strategies';
 import {
     CloseContestsCron,
@@ -34,21 +34,19 @@ import {
     TimeframeCron,
     WinCriteriaCron,
     WithdrawFundsCron,
-    YahooSyncLeaguesCron,
+    YahooSyncLeaguesCron
 } from './cron-jobs';
 import {
     ConfigRepository,
-    ImportSourceRepository,
-    ScoringTypeRepository,
-    SpreadRepository,
-    LeagueRepository,
+    ImportSourceRepository, LeagueRepository, ScoringTypeRepository,
+    SpreadRepository
 } from './repositories';
-import { ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
-import { MySequence } from './sequence';
-import { ApplicationHelpers } from './utils/helpers';
-import { IRawRequest } from './utils/interfaces';
+import {ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder} from './seeders';
+import {MySequence} from './sequence';
+import {ApplicationHelpers} from './utils/helpers';
+import {IRawRequest} from './utils/interfaces';
 
-export { ApplicationConfig };
+export {ApplicationConfig};
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
