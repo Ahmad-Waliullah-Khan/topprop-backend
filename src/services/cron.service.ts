@@ -421,19 +421,19 @@ export class CronService {
                     case CRON_RUN_TYPES.STAGING:
                         const today = moment().format('dddd');
                         const gameDay = moment(remotePlayer.Date).format('dddd');
-
-                        if (today === gameDay) {
-                            foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
-                            foundLocalPlayer.isOver = remotePlayer.IsOver;
-                            foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
-                            foundLocalPlayer.fantasyPointsHalfPpr =
-                                remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
-                            foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                            await this.playerRepository.save(foundLocalPlayer);
+                        if (currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
+                            if (today === gameDay) {
+                                foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
+                                foundLocalPlayer.isOver = remotePlayer.IsOver;
+                                foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
+                                foundLocalPlayer.fantasyPointsHalfPpr =
+                                    remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
+                                foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                                await this.playerRepository.save(foundLocalPlayer);
+                            }
                         }
                         break;
                     case CRON_RUN_TYPES.PROXY:
-
                         foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                         foundLocalPlayer.isOver = remotePlayer.IsOver;
                         foundLocalPlayer.fantasyPoints = remotePlayer.FantasyPoints;
