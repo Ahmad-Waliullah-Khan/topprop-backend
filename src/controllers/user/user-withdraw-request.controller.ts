@@ -1,26 +1,25 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
-import { Filter, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post, requestBody } from '@loopback/rest';
-import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
-import { BetRepository, GainRepository, TopUpRepository, UserRepository } from '@src/repositories';
-import { PaymentGatewayService, TRANSFER_TYPES, UserService } from '../../services';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {service} from '@loopback/core';
+import {Filter, repository, Where} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
+import {Bet, Gain, TopUp, User, WithdrawRequest} from '@src/models';
+import {BetRepository, GainRepository, TopUpRepository, UserRepository} from '@src/repositories';
 import {
     API_ENDPOINTS,
     EMAIL_TEMPLATES,
     MINIMUM_WITHDRAW_AMOUNT,
     PERMISSIONS,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { MiscHelpers } from '@src/utils/helpers';
-import { USER_MESSAGES, WALLET_MESSAGES, WITHDRAW_REQUEST_MESSAGES } from '@src/utils/messages';
-import { WITHDRAW_REQUEST_VALIDATORS } from '@src/utils/validators';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse} from '@src/utils/interfaces';
+import {USER_MESSAGES, WALLET_MESSAGES, WITHDRAW_REQUEST_MESSAGES} from '@src/utils/messages';
+import {WITHDRAW_REQUEST_VALIDATORS} from '@src/utils/validators';
 import moment from 'moment';
 import Schema from 'validate';
+import {PaymentGatewayService, UserService} from '../../services';
 export class UserWithdrawRequestController {
     constructor(
         @repository(UserRepository) protected userRepository: UserRepository,

@@ -1,12 +1,12 @@
 //* LOAD ENV VARIABLES AT THE VERY BEGINNING
 require('dotenv').config();
-import { CronBindings } from '@loopback/cron';
+import {CronBindings} from '@loopback/cron';
 import chalk from 'chalk';
-import { isEqual } from 'lodash';
+import {isEqual} from 'lodash';
 import 'module-alias/register';
-import { ApplicationConfig, TopPropBackendApplication } from './application';
-import { ContestPayoutService, PaymentGatewayService, UserService } from './services';
-import { CRON_JOBS } from './utils/constants';
+import {ApplicationConfig, TopPropBackendApplication} from './application';
+import {ContestPayoutService, PaymentGatewayService, UserService} from './services';
+import {CRON_JOBS} from './utils/constants';
 
 export * from './application';
 
