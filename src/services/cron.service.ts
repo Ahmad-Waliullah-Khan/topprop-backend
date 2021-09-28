@@ -385,7 +385,6 @@ export class CronService {
         const localPlayers = await this.playerRepository.find();
         const exceptionDates = [2,3,4] //2=Tue, 3=Wed, 4=Thu
 
-
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
