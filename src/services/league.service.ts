@@ -271,7 +271,7 @@ export class LeagueService {
         return winBonus;
     }
 
-    async pingYahoo(accessToken: string) {
+    async pingYahoo(accessToken: string, leagueKey: string) {
         const resp = await axios({
             url: `https://fantasysports.yahooapis.com/fantasy/v2/league/${leagueKey}/teams`,
 
@@ -286,11 +286,17 @@ export class LeagueService {
     async resyncYahoo(localLeagueId: number) {
         const localLeague = await this.leagueRepository.findById(Number(localLeagueId));
 
-        const userId = localLeague ? localLeague.userId : 0;
+        if (!localLeague?.userId) {
+            return;
+        }
+        const userId = localLeague.userId;
 
         const userData = await this.userRepository.findById(userId);
 
-        const leagueId = localLeague ? localLeague.remoteId : 0;
+        if (!localLeague.remoteId) {
+            return;
+        }
+        const leagueId = localLeague.remoteId;
 
         const teamObjects: any[] = [];
         const rosterObjects: any[] = [];
@@ -307,7 +313,7 @@ export class LeagueService {
             userData.yahooRefreshToken = refresh_token ? refresh_token : userData.yahooRefreshToken;
 
             try {
-                await this.pingYahoo(access_token);
+                await this.pingYahoo(access_token, leagueId);
             } catch (err) {
                 throw new Error('Aborting Yahoo Calls');
             }
