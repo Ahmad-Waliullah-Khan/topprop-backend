@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     ConfigRepository,
@@ -15,20 +15,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -45,9 +45,9 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -690,6 +690,7 @@ export class CronService {
                     winnerPlayer,
                     loserPlayer,
                     receiverUser,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -707,6 +708,7 @@ export class CronService {
                     winnerPlayer,
                     loserPlayer,
                     receiverUser,
+                    c2d: MiscHelpers.c2d,
                     text: {
                         title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
                         subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
@@ -775,7 +777,7 @@ export class CronService {
                     const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserPlayer = await this.playerRepository.findById(underdog.playerId);
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -796,7 +798,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -804,6 +806,7 @@ export class CronService {
                         contestData,
                         netEarnings: underdog.netEarnings,
                         clientHost,
+                        c2d: MiscHelpers.c2d,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -821,7 +824,7 @@ export class CronService {
                     const winnerPlayer = await this.playerRepository.findById(underdog.playerId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserPlayer = await this.playerRepository.findById(favorite.playerId);
-                    this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
+                    await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -842,7 +845,7 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
+                    await this.userService.sendEmail(loserUser, EMAIL_TEMPLATES.CONTEST_LOST, {
                         winnerUser,
                         loserUser,
                         winnerPlayer,
@@ -850,6 +853,7 @@ export class CronService {
                         contestData,
                         netEarnings: favorite.netEarnings,
                         clientHost,
+                        c2d: MiscHelpers.c2d,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -870,13 +874,14 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogPlayer = await this.playerRepository.findById(underdog.playerId);
 
-                    this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
+                    await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoritePlayer,
                         underdogPlayer,
                         contestData,
                         clientHost,
+                        c2d: MiscHelpers.c2d,
                         netEarning: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -889,13 +894,14 @@ export class CronService {
                         },
                     });
 
-                    this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
+                    await this.userService.sendEmail(underdogUser, EMAIL_TEMPLATES.CONTEST_DRAW_UNDERDOG, {
                         favoriteUser,
                         underdogUser,
                         favoritePlayer,
                         underdogPlayer,
                         contestData,
                         clientHost,
+                        c2d: MiscHelpers.c2d,
                         netEarning: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
