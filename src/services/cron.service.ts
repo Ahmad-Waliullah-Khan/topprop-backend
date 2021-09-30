@@ -394,16 +394,10 @@ export class CronService {
         const currentTime = moment().tz(TIMEZONE);
 
         const startObject = { hour: FP_IGNORED_SLOT.startHour, minute: FP_IGNORED_SLOT.startMinute };
-        const startDatetime = momenttz
-            .tz(startObject, TIMEZONE)
-            .day(FP_IGNORED_SLOT.startDay)
-            .subtract(1, 'minute');
+        const startDatetime = momenttz.tz(startObject, TIMEZONE).day(FP_IGNORED_SLOT.startDay).subtract(1, 'minute');
 
         const endObject = { hour: FP_IGNORED_SLOT.endHour, minute: FP_IGNORED_SLOT.endMinute };
-        const endDatetime = momenttz
-            .tz(endObject, TIMEZONE)
-            .day(FP_IGNORED_SLOT.endDay)
-            .add(1, 'minute');
+        const endDatetime = momenttz.tz(endObject, TIMEZONE).day(FP_IGNORED_SLOT.endDay).add(1, 'minute');
 
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
@@ -2391,6 +2385,10 @@ export class CronService {
             }
         });
 
+        if (localPlayers.length > 0) {
+            await this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
+        }
+
         return playerPromises;
     }
 
@@ -2407,6 +2405,7 @@ export class CronService {
                 foundLocalPlayer.available = true;
                 foundLocalPlayer.teamName = remoteTeam.Key;
                 foundLocalPlayer.playerType = 2; // Special Team Player
+                foundLocalPlayer.isOver = false;
                 const record = DST_IDS.find(record => record.sportsdataplayerid === foundLocalPlayer.remoteId);
                 if (record) {
                     foundLocalPlayer.yahooPlayerId = record.yahooplayerid;
@@ -2428,6 +2427,7 @@ export class CronService {
                 newLocalPlayer.teamName = remoteTeam.Key;
                 newLocalPlayer.teamId = remoteTeam.TeamID;
                 newLocalPlayer.playerType = 2; // Special Team Player
+                newLocalPlayer.isOver = false;
                 const record = DST_IDS.find(record => record.sportsdataplayerid === newLocalPlayer.remoteId);
                 if (record) {
                     newLocalPlayer.yahooPlayerId = record.yahooplayerid;
