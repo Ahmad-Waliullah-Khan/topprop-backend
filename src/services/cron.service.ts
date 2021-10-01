@@ -262,7 +262,7 @@ export class CronService {
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of every 0th and 30th minute
-                        cronTiming = '0 0,30 * * * *';
+                        cronTiming = '0 */30 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 30th minute
@@ -2769,7 +2769,7 @@ export class CronService {
 
         yahooLeagues.map(async league => {
             await this.leagueService.resyncYahoo(league.id);
-            await sleep(1000);
+            await sleep(10000);
         });
         const updatedYahooLeagues = await this.leagueRepository.find({
             where: {
