@@ -2384,9 +2384,9 @@ export class CronService {
                 await this.playerRepository.create(newLocalPlayer);
             }
         });
-
+        
         if (localPlayers.length > 0) {
-            await this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
+            this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
         }
 
         return playerPromises;
@@ -2742,10 +2742,12 @@ export class CronService {
             return league.importSourceId === 1;
         });
 
-        espnLeagues.map(async league => {
+        for (let i = 0; i < espnLeagues.length; i++) {
+            const league = espnLeagues[i];
             await this.leagueService.resyncESPN(league.id);
             await sleep(30000);
-        });
+        }
+
         const updatedEspnLeagues = await this.leagueRepository.find({
             where: {
                 importSourceId: 2,
@@ -2767,10 +2769,12 @@ export class CronService {
             return league.importSourceId === 2;
         });
 
-        yahooLeagues.map(async league => {
+        for (let i = 0; i < yahooLeagues.length; i++) {
+            const league = yahooLeagues[i];
             await this.leagueService.resyncYahoo(league.id);
             await sleep(10000);
-        });
+        }
+
         const updatedYahooLeagues = await this.leagueRepository.find({
             where: {
                 importSourceId: 2,
