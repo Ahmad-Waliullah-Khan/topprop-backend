@@ -533,8 +533,13 @@ export class CronService {
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
 
+        // comment out, to force win-check without match being over
+        // const filteredContests = contests.filter(contest => {
+        //     return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
+        // });
+
         const filteredContests = contests.filter(contest => {
-            return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
+            return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
         });
 
         filteredContests.map(async contest => {
@@ -727,6 +732,12 @@ export class CronService {
                 const claimerWinAmount =
                     favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.netEarnings : favorite.netEarnings;
 
+                const creatorMaxWin =
+                favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? favorite.playerMaxWin : underdog.playerMaxWin;
+
+                const claimerMaxWin =
+                favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.playerMaxWin : favorite.playerMaxWin;
+
                 const constestData = {
                     winnerId: winnerId,
                     topPropProfit: topPropProfit,
@@ -736,6 +747,8 @@ export class CronService {
                     winnerLabel: winnerLabel,
                     creatorWinAmount: creatorWinAmount,
                     claimerWinAmount: claimerWinAmount,
+                    creatorMaxWin: creatorMaxWin,
+                    claimerMaxWin: claimerMaxWin,
                     creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
                     claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
                 };
@@ -777,6 +790,14 @@ export class CronService {
                     const winnerPlayer = await this.playerRepository.findById(favorite.playerId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserPlayer = await this.playerRepository.findById(underdog.playerId);
+
+                    const winnerWinAmount = favorite.netEarnings;
+                    const loserWinAmount = underdog.netEarnings;
+                    const winnerMaxWin = favorite.playerMaxWin;
+                    const loserMaxWin = underdog.playerMaxWin;
+                    const winnerSpread = favorite.playerSpread;
+                    const loserSpread = underdog.playerSpread;
+
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
                         winnerUser,
                         loserUser,
@@ -785,6 +806,12 @@ export class CronService {
                         contestData,
                         netEarnings: favorite.netEarnings,
                         clientHost,
+                        winnerWinAmount,
+                        loserWinAmount,
+                        winnerMaxWin,
+                        loserMaxWin,
+                        winnerSpread,
+                        loserSpread,
                         c2d: MiscHelpers.c2d,
                         winAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
@@ -806,6 +833,12 @@ export class CronService {
                         contestData,
                         netEarnings: underdog.netEarnings,
                         clientHost,
+                        winnerWinAmount,
+                        loserWinAmount,
+                        winnerMaxWin,
+                        loserMaxWin,
+                        winnerSpread,
+                        loserSpread,
                         c2d: MiscHelpers.c2d,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
@@ -824,6 +857,14 @@ export class CronService {
                     const winnerPlayer = await this.playerRepository.findById(underdog.playerId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserPlayer = await this.playerRepository.findById(favorite.playerId);
+
+                    const winnerWinAmount = underdog.netEarnings;
+                    const loserWinAmount = favorite.netEarnings;
+                    const winnerMaxWin = underdog.playerMaxWin;
+                    const loserMaxWin = favorite.playerMaxWin;
+                    const winnerSpread = underdog.playerSpread;
+                    const loserSpread = favorite.playerSpread;
+
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.CONTEST_WON, {
                         winnerUser,
                         loserUser,
@@ -832,6 +873,10 @@ export class CronService {
                         contestData,
                         netEarnings: underdog.netEarnings,
                         clientHost,
+                        winnerWinAmount,
+                        loserWinAmount,
+                        winnerMaxWin,
+                        loserMaxWin,
                         winAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -853,6 +898,10 @@ export class CronService {
                         contestData,
                         netEarnings: favorite.netEarnings,
                         clientHost,
+                        winnerWinAmount,
+                        loserWinAmount,
+                        winnerMaxWin,
+                        loserMaxWin,
                         c2d: MiscHelpers.c2d,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
@@ -2260,6 +2309,30 @@ export class CronService {
                 // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
                 await this.gainRepository.create(entryGain);
+
+                //Send Contest Closed mail
+                const contestData = await this.contestRepository.findById(contest.id);
+                const winnerUser = await this.userRepository.findById(contestData.creatorId);
+                const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
+                const clientHost = process.env.CLIENT_HOST;
+                const receiverUser = winnerUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+                    contestData,
+                    winnerUser,
+                    winnerPlayer,
+                    receiverUser,
+                    c2d: MiscHelpers.c2d,
+                    text: {
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
+                    },
+                });
+
+
             } else {
                 // No data so autoclose
                 const constestData = {
@@ -2289,7 +2362,51 @@ export class CronService {
                 entryGain.contestId = contest.id;
 
                 await this.gainRepository.create(entryGain);
+
+                const contestData = await this.contestRepository.findById(contest.id);
+                const winnerUser = await this.userRepository.findById(contestData.creatorId);
+                const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
+                const loserUser = await this.userRepository.findById(contestData.claimerId);
+                const loserPlayer = await this.playerRepository.findById(contestData.claimerPlayerId);
+                const clientHost = process.env.CLIENT_HOST;
+
+                let receiverUser = winnerUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+                    contestData,
+                    winnerUser,
+                    winnerPlayer,
+                    receiverUser,
+                    c2d: MiscHelpers.c2d,
+                    text: {
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
+                    },
+                });
+
+                receiverUser = loserUser;
+                await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
+                    contestData,
+                    winnerUser,
+                    loserUser,
+                    winnerPlayer,
+                    loserPlayer,
+                    receiverUser,
+                    c2d: MiscHelpers.c2d,
+                    text: {
+                        title: `Hey ${receiverUser ? receiverUser.fullName : ''}`,
+                        subtitle: `We are sorry - your contest has been voided on TopProp. Click the button below to create a new contest. To understand why your contest was voided, view our Terms and Conditions using the link in the footer.`,
+                    },
+                    link: {
+                        url: `${clientHost}`,
+                        text: `Create New Contest`,
+                    },
+                });
             }
+
         });
 
         return contests;
