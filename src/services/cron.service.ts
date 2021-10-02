@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     ConfigRepository,
@@ -15,20 +15,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -45,9 +45,9 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 
@@ -724,7 +724,6 @@ export class CronService {
 
                 const claimerWinAmount =
                     favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.netEarnings : favorite.netEarnings;
-
                 const constestData = {
                     winnerId: winnerId,
                     topPropProfit: topPropProfit,
@@ -759,7 +758,7 @@ export class CronService {
 
                 const winningGain = new Gain();
                 winningGain.contestType = 'battleground';
-                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
                 // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
@@ -1870,12 +1869,11 @@ export class CronService {
 
                 const winningGain = new Gain();
                 winningGain.contestType = 'League';
-                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
                 // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
                 const clientHost = process.env.CLIENT_HOST;
-
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
@@ -2384,7 +2382,7 @@ export class CronService {
                 await this.playerRepository.create(newLocalPlayer);
             }
         });
-        
+
         if (localPlayers.length > 0) {
             this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
         }
