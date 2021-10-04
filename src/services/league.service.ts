@@ -271,14 +271,32 @@ export class LeagueService {
         return winBonus;
     }
 
+    async pingYahoo(accessToken: string, leagueKey: string) {
+        const resp = await axios({
+            url: `https://fantasysports.yahooapis.com/fantasy/v2/league/${leagueKey}/teams`,
+
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        return resp.data;
+    }
+
     async resyncYahoo(localLeagueId: number) {
         const localLeague = await this.leagueRepository.findById(Number(localLeagueId));
 
-        const userId = localLeague ? localLeague.userId : 0;
+        if (!localLeague?.userId) {
+            return;
+        }
+        const userId = localLeague.userId;
 
         const userData = await this.userRepository.findById(userId);
 
-        const leagueId = localLeague ? localLeague.remoteId : 0;
+        if (!localLeague.remoteId) {
+            return;
+        }
+        const leagueId = localLeague.remoteId;
 
         const teamObjects: any[] = [];
         const rosterObjects: any[] = [];
@@ -293,6 +311,12 @@ export class LeagueService {
             const { access_token, refresh_token } = refreshedYahooTokens.data;
             userData.yahooAccessToken = access_token ? access_token : userData.yahooAccessToken;
             userData.yahooRefreshToken = refresh_token ? refresh_token : userData.yahooRefreshToken;
+
+            try {
+                await this.pingYahoo(access_token, leagueId);
+            } catch (err) {
+                throw new Error('Aborting Yahoo Calls');
+            }
 
             const yf = new YahooFantasy(
                 process.env.YAHOO_APPLICATION_KEY,

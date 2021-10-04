@@ -262,7 +262,7 @@ export class CronService {
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of every 0th and 30th minute
-                        cronTiming = '0 0,30 * * * *';
+                        cronTiming = '0 */30 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 30th minute
@@ -774,7 +774,7 @@ export class CronService {
 
                 const winningGain = new Gain();
                 winningGain.contestType = 'battleground';
-                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
                 // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
@@ -1925,12 +1925,11 @@ export class CronService {
 
                 const winningGain = new Gain();
                 winningGain.contestType = 'League';
-                winningGain.amount = Number(winningAmount) * 100;
+                winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
                 // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
                 const clientHost = process.env.CLIENT_HOST;
-
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
@@ -2509,7 +2508,7 @@ export class CronService {
         });
 
         if (localPlayers.length > 0) {
-            await this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
+            this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
         }
 
         return playerPromises;
@@ -2865,10 +2864,12 @@ export class CronService {
             return league.importSourceId === 1;
         });
 
-        espnLeagues.map(async league => {
+        for (let i = 0; i < espnLeagues.length; i++) {
+            const league = espnLeagues[i];
             await this.leagueService.resyncESPN(league.id);
             await sleep(30000);
-        });
+        }
+
         const updatedEspnLeagues = await this.leagueRepository.find({
             where: {
                 importSourceId: 2,
@@ -2890,10 +2891,12 @@ export class CronService {
             return league.importSourceId === 2;
         });
 
-        yahooLeagues.map(async league => {
+        for (let i = 0; i < yahooLeagues.length; i++) {
+            const league = yahooLeagues[i];
             await this.leagueService.resyncYahoo(league.id);
-            await sleep(1000);
-        });
+            await sleep(10000);
+        }
+
         const updatedYahooLeagues = await this.leagueRepository.find({
             where: {
                 importSourceId: 2,

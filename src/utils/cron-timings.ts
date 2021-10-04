@@ -62,7 +62,7 @@ switch (cronEnv) {
         CRON_TIMING_TIMEFRAME_CRON = '0 15 * * * 3';
         CRON_TIMING_CLOSE_CONTEST_CRON = '0 0 9 * * 2';
         CRON_TIMING_LEAGUE_WIN_CHECK_CRON = '45 */5 * * * *';
-        CRON_TIMING_YAHOO_SYNC_LEAGUES_CRON = '0 */30 * * * *';
+        CRON_TIMING_YAHOO_SYNC_LEAGUES_CRON = '0 0 */6 * * *';
         CRON_TIMING_ESPN_SYNC_LEAGUES_CRON = '0 0 */6 * * *';
         CRON_TIMING_WITHDRAW_FUNDS_CRON = '0 */5 * * * *';
         CRON_TIMING_LEAGUE_WIN_CRITERIA_CRON = '0 */1 * * * *';

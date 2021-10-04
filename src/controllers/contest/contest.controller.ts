@@ -27,6 +27,10 @@ import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/val
 import {isEmpty} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
+<<<<<<< HEAD
+=======
+import {ErrorHandler} from '@src/utils/helpers';
+>>>>>>> develop
 
 export class ContestController {
     constructor(
@@ -265,7 +269,7 @@ export class ContestController {
 
         const funds = await this.paymentGatewayService.getTopPropBalance(user.id);
         const entryAmount = contestData.entryAmount || 0;
-        if (funds < entryAmount) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.INSUFFICIENT_BALANCE);
+        if (funds < entryAmount ) throw new HttpErrors.BadRequest(`${CONTEST_MESSAGES.INSUFFICIENT_BALANCE}`);
 
         contestData.claimerId = body.claimerId;
         contestData.status = CONTEST_STATUSES.MATCHED;

@@ -39,7 +39,8 @@
         "//prestart": "npm run build",
         "start": "node -r source-map-support/register .",
         "dev": "nodemon .",
-        "clean": "lb-clean dist *.tsbuildinfo .eslintcache"
+        "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
+        "postinstall": "patch-package"
     },
     "nodemonConfig": {
         "verbose": true,
@@ -133,6 +134,7 @@
         "module-alias": "^2.2.2",
         "morgan": "^1.10.0",
         "nodemon": "^2.0.7",
+        "patch-package": "^6.4.7",
         "randomstring": "^1.1.5",
         "source-map-support": "^0.5.19",
         "typescript": "~4.3.2"
