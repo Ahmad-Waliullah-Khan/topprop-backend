@@ -2279,7 +2279,7 @@ export class CronService {
 
         const contests = await this.contestRepository.find({
             where: {
-                status: CONTEST_STATUSES.OPEN,
+                // status: CONTEST_STATUSES.OPEN,
                 ended: false,
             },
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
@@ -2313,13 +2313,18 @@ export class CronService {
                 const contestData = await this.contestRepository.findById(contest.id);
                 const winnerUser = await this.userRepository.findById(contestData.creatorId);
                 const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
-                console.log(winnerPlayer);
+                const loserUser = null;
+                const loserPlayer = null;
+                const winnerPlayerMaxWin = contestData.creatorPlayerMaxWin;
                 const clientHost = process.env.CLIENT_HOST;
                 const receiverUser = winnerUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
                     contestData,
                     winnerUser,
                     winnerPlayer,
+                    winnerPlayerMaxWin,
+                    loserUser,
+                    loserPlayer,
                     receiverUser,
                     c2d: MiscHelpers.c2d,
                     text: {
@@ -2368,6 +2373,7 @@ export class CronService {
                 const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
                 const loserUser = await this.userRepository.findById(contestData.claimerId);
                 const loserPlayer = await this.playerRepository.findById(contestData.claimerPlayerId);
+                const winnerPlayerMaxWin = contestData.creatorPlayerMaxWin;
                 const clientHost = process.env.CLIENT_HOST;
 
                 let receiverUser = winnerUser;
@@ -2375,6 +2381,9 @@ export class CronService {
                     contestData,
                     winnerUser,
                     winnerPlayer,
+                    winnerPlayerMaxWin,
+                    loserUser,
+                    loserPlayer,
                     receiverUser,
                     c2d: MiscHelpers.c2d,
                     text: {
@@ -2393,6 +2402,7 @@ export class CronService {
                     winnerUser,
                     loserUser,
                     winnerPlayer,
+                    winnerPlayerMaxWin,
                     loserPlayer,
                     receiverUser,
                     c2d: MiscHelpers.c2d,
