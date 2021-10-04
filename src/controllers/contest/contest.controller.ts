@@ -27,10 +27,6 @@ import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/val
 import {isEmpty} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
-<<<<<<< HEAD
-=======
-import {ErrorHandler} from '@src/utils/helpers';
->>>>>>> develop
 
 export class ContestController {
     constructor(

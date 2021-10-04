@@ -2313,6 +2313,7 @@ export class CronService {
                 const contestData = await this.contestRepository.findById(contest.id);
                 const winnerUser = await this.userRepository.findById(contestData.creatorId);
                 const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
+                console.log(winnerPlayer);
                 const clientHost = process.env.CLIENT_HOST;
                 const receiverUser = winnerUser;
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.CONTEST_CLOSED, {
