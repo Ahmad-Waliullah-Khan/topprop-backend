@@ -12,13 +12,11 @@ export class BonusPayout extends Base {
 
   @property({
     type: 'number',
-    generated: true,
   })
   amount: number;
 
   @property({
     type: 'string',
-    generated: true,
   })
   message: string;
 
