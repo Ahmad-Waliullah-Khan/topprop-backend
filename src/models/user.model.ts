@@ -212,6 +212,11 @@ export class User extends Entity {
     verificationFileUploaded?: boolean;
 
     @property({
+        type: 'boolean',
+    })
+    bonusPayoutProcessed?: boolean | null;
+
+    @property({
         type: 'string',
         default: null,
     })

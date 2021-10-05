@@ -1,9 +1,8 @@
 import {Model, model, property} from '@loopback/repository';
 import { Base } from '.';
-import { STATUS } from '@src/utils/constants';
 
 @model({settings: {strict: false}})
-export class BonusPayout extends Base {
+export class CouponCode extends Base {
   @property({
     type: 'number',
     id: true,
@@ -12,23 +11,16 @@ export class BonusPayout extends Base {
   id: number;
 
   @property({
-    type: 'number',
-    required: true,
-  })
-  amount: number;
-
-  @property({
     type: 'string',
     required: true,
   })
-  message: string;
+  code: string;
 
   @property({
     type: 'number',
     required: true,
-    default: STATUS.PENDING,
   })
-  status: number;
+  value: number;
 
   // Define well-known properties here
 
@@ -36,13 +28,13 @@ export class BonusPayout extends Base {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [prop: string]: any;
 
-  constructor(data?: Partial<BonusPayout>) {
+  constructor(data?: Partial<CouponCode>) {
     super(data);
   }
 }
 
-export interface BonusPayoutRelations {
+export interface CouponCodeRelations {
   // describe navigational properties here
 }
 
-export type BonusPayoutWithRelations = BonusPayout & BonusPayoutRelations;
+export type CouponCodeWithRelations = CouponCode & CouponCodeRelations;
