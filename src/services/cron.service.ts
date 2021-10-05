@@ -534,13 +534,13 @@ export class CronService {
         });
 
         // comment out, to force win-check without match being over
-        // const filteredContests = contests.filter(contest => {
-        //     return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
-        // });
-
         const filteredContests = contests.filter(contest => {
-            return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+            return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
         });
+
+        // const filteredContests = contests.filter(contest => {
+        //     return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+        // });
 
         filteredContests.map(async contest => {
             const entryAmount = Number(contest.entryAmount);
@@ -2301,16 +2301,17 @@ export class CronService {
                 };
                 await this.contestRepository.updateById(contest.id, constestData);
 
+                const contestData = await this.contestRepository.findById(contest.id);
+
                 const entryGain = new Gain();
                 entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount);
-                entryGain.userId = favorite.userId;
+                entryGain.userId = contestData.creatorId;
                 // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
                 await this.gainRepository.create(entryGain);
 
                 //Send Contest Closed mail
-                const contestData = await this.contestRepository.findById(contest.id);
                 const winnerUser = await this.userRepository.findById(contestData.creatorId);
                 const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
                 const loserUser = null;
@@ -2351,10 +2352,12 @@ export class CronService {
                 };
                 await this.contestRepository.updateById(contest.id, constestData);
 
+                const contestData = await this.contestRepository.findById(contest.id);
+
                 const entryGain = new Gain();
                 entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount);
-                entryGain.userId = favorite.userId;
+                entryGain.userId = contestData.creatorId;
                 // entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
 
@@ -2362,13 +2365,12 @@ export class CronService {
 
                 entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount);
-                entryGain.userId = underdog.userId;
+                entryGain.userId = contestData.claimerId;
                 // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
 
                 await this.gainRepository.create(entryGain);
 
-                const contestData = await this.contestRepository.findById(contest.id);
                 const winnerUser = await this.userRepository.findById(contestData.creatorId);
                 const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
                 const loserUser = await this.userRepository.findById(contestData.claimerId);
