@@ -533,14 +533,14 @@ export class CronService {
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
 
-        // comment out, to force win-check without match being over
-        const filteredContests = contests.filter(contest => {
-            return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
-        });
-
+        // TODO: Comment out, to force win-check without match being over
         // const filteredContests = contests.filter(contest => {
-        //     return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+        //     return !contest.creatorPlayer?.isOver && !contest.claimerPlayer?.isOver;
         // });
+
+        const filteredContests = contests.filter(contest => {
+            return contest.creatorPlayer?.isOver && contest.claimerPlayer?.isOver;
+        });
 
         filteredContests.map(async contest => {
             const entryAmount = Number(contest.entryAmount);
