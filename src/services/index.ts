@@ -11,3 +11,4 @@ export * from './player.service';
 export * from './sports-data.service';
 export * from './team.service';
 export * from './user.service';
+export * from './coupon-code.service';
