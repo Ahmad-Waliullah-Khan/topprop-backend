@@ -20,6 +20,8 @@ export const USER_MESSAGES = {
     CONUTRY_NOT_DETECTED: `Your country could not be detected. We apologise for any inconvenience caused`,
     AGE_RESTRICTED: (age: number, state: string) =>
         `You are not old enough to use this app. You need to be ${age} to use TopProp in ${state}`,
+    AGE_RESTRICTED_ROW: (age: number) =>
+        `You are not old enough to use this app. You need to be ${age} to use TopProp`,
 };
 export const WALLET_MESSAGES = {
     MISSING_WALLET: `User does not a wallet yet.`,

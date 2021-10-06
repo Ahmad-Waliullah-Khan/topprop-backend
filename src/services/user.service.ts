@@ -9,6 +9,7 @@ import {
     DEV_STATE_PERMISSIONS,
     VALID_COUNTRIES,
     VALID_STATE_PERMISSIONS,
+    FALLBACK_PERMISSIONS,
 } from '@src/utils/constants/state.constants';
 import { MiscHelpers, UserHelpers } from '@src/utils/helpers';
 import { LoginCredentials } from '@src/utils/interfaces';
@@ -93,15 +94,15 @@ export class UserService {
             throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_NOT_DETECTED);
         }
 
-        if (!(await this.validState(credentials.state)))
-            throw new HttpErrors.BadRequest(`${credentials.state} ${USER_MESSAGES.STATE_INVALID}`);
+        // if (!(await this.validState(foundUser.signUpState || '')))
+        // throw new HttpErrors.BadRequest(`${foundUser.signUpState} ${USER_MESSAGES.STATE_INVALID}`);
 
         if (credentials.country === undefined || credentials.country === null || credentials.country === '') {
             throw new HttpErrors.BadRequest(USER_MESSAGES.CONUTRY_NOT_DETECTED);
         }
 
-        if (!(await this.validCountry(credentials.country)))
-            throw new HttpErrors.BadRequest(`${credentials.country} ${USER_MESSAGES.COUNTRY_INVALID}`);
+        // if (!(await this.validCountry(credentials.country)))
+        //     throw new HttpErrors.BadRequest(`${credentials.country} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
         const config = await this.statePermissions(foundUser.signUpState || '');
 
@@ -250,7 +251,7 @@ export class UserService {
             validStatePermissions = [...VALID_STATE_PERMISSIONS, ...DEV_STATE_PERMISSIONS];
         }
         const found = validStatePermissions.find(element => element.abbr === state);
-        return found;
+        return found || FALLBACK_PERMISSIONS;
     }
 
     async validState(state: string): Promise<boolean> {
