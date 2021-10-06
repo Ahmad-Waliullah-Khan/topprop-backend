@@ -14,7 +14,7 @@ import {
 } from '@src/repositories';
 import {ContestPayoutService, ContestService, PaymentGatewayService, UserService} from '@src/services';
 import {API_ENDPOINTS, CONTEST_STATUSES, EMAIL_TEMPLATES, PERMISSIONS} from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
@@ -207,21 +207,6 @@ export class ContestController {
         const myContests = await this.contestRepository.find(myContestFilter);
         const contests = await this.contestRepository.find(contestFilter);
 
-        // const user = await this.userRepository.findById(userId);
-        const creatorPlayer = await this.playerRepository.findById(creatorPlayerId);
-        const claimerPlayer = await this.playerRepository.findById(claimerPlayerId);
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.CONTEST_CREATED, {
-            user,
-            creatorPlayer,
-            claimerPlayer,
-            contestData,
-            text: {
-                title: `Congratulations ${user ? user.fullName : ''}, you have created a contest on TopProp.`,
-                subtitle:
-                    'Your contest is now on standby, but don’t worry. We will notify you when an opponent matches your contest.',
-            },
-        });
-
         return {
             message: CONTEST_MESSAGES.CREATE_SUCCESS,
             data: {
@@ -328,26 +313,15 @@ export class ContestController {
         const creatorPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
         const claimerPlayer = await this.playerRepository.findById(contestData.claimerPlayerId);
         const creatorUser = await this.userRepository.findById(contestData.creatorId);
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.CONTEST_CLAIMED, {
-            user,
-            creatorUser,
-            creatorPlayer,
-            claimerPlayer,
-            contestData,
-            text: {
-                title: `Congratulations ${
-                    user ? user.fullName : ''
-                }, you have matched a contest on TopProp and are cleared for takeoff!`,
-                subtitle: 'Good luck!',
-            },
-        });
-        this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.CONTEST_CLAIMED_BY_CLAIMER, {
+
+        await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
             claimerPlayer,
             creatorPlayer,
             user,
             contestData,
             moment: moment,
+            c2d: MiscHelpers.c2d,
             text: {
                 title: `${
                     user ? user.fullName : ''

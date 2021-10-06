@@ -1,12 +1,12 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { service } from '@loopback/core';
-import { get, HttpErrors } from '@loopback/rest';
-import { CronService } from '@src/services';
-import { API_ENDPOINTS, CRON_JOBS, CRON_RUN_TYPES, PERMISSIONS, RUN_TYPE } from '@src/utils/constants';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse } from '@src/utils/interfaces';
-import { CRON_MESSAGES } from '@src/utils/messages';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {service} from '@loopback/core';
+import {get, HttpErrors} from '@loopback/rest';
+import {CronService} from '@src/services';
+import {API_ENDPOINTS, CRON_JOBS, CRON_RUN_TYPES, PERMISSIONS, RUN_TYPE} from '@src/utils/constants';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse} from '@src/utils/interfaces';
+import {CRON_MESSAGES} from '@src/utils/messages';
 import chalk from 'chalk';
 import logger from '../../utils/logger';
 
@@ -140,9 +140,15 @@ export class CronController {
             throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
             const filteredContests = await this.cronService.leagueCloseContests();
+            const filteredBattlegroundContest = await this.cronService.closeContests();
             this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
 
-            return { data: filteredContests };
+            const contests = {
+                "leagueContests": filteredContests,
+                "battlegroundContests": filteredBattlegroundContest
+            }
+
+            return { data: contests };
         } catch (error) {
             logger.error(chalk.redBright(`Error on league close contests cron job. Error: `, error));
         }
