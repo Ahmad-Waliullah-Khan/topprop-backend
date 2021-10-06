@@ -287,7 +287,7 @@ export const US_STATE_PERMISSIONS = [
         name: 'Maryland',
         abbr: 'MD',
         appAccess: true,
-        paidContests: false,
+        paidContests: true,
         minAge: 18,
         weeklyDepositLimit: 500000,
         leaguesEnabled: true,
@@ -297,7 +297,7 @@ export const US_STATE_PERMISSIONS = [
         name: 'Massachusetts',
         abbr: 'MA',
         appAccess: true,
-        paidContests: false,
+        paidContests: true,
         minAge: 21,
         weeklyDepositLimit: 100000,
         leaguesEnabled: true,
@@ -504,10 +504,10 @@ export const US_STATE_PERMISSIONS = [
         battlegroundEnabled: true,
     },
     {
-        name: 'Tenessee',
+        name: 'Tennessee',
         abbr: 'TN',
         appAccess: true,
-        paidContests: false,
+        paidContests: true,
         minAge: 18,
         weeklyDepositLimit: 250000,
         leaguesEnabled: true,
@@ -882,3 +882,12 @@ export const DEV_STATE_PERMISSIONS = [
         battlegroundEnabled: true,
     },
 ];
+
+export const FALLBACK_PERMISSIONS = {
+    appAccess: true,
+    paidContests: false,
+    minAge: 18,
+    weeklyDepositLimit: 0,
+    leaguesEnabled: true,
+    battlegroundEnabled: true,
+};

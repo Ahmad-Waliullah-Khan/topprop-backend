@@ -74,25 +74,31 @@ export class UserController {
             throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_NOT_DETECTED);
         }
 
-        const validState = await this.userService.validState(body.signUpState);
-        if (!validState) throw new HttpErrors.BadRequest(`${body.signUpState} ${USER_MESSAGES.STATE_INVALID}`);
+        // const validState = await this.userService.validState(body.signUpState);
+        // if (!validState) throw new HttpErrors.BadRequest(`${body.signUpState} ${USER_MESSAGES.STATE_INVALID}`);
 
         if (body.signUpCountry === undefined || body.signUpCountry === null || body.signUpCountry === '') {
             throw new HttpErrors.BadRequest(USER_MESSAGES.CONUTRY_NOT_DETECTED);
         }
 
-        const validCountry = await this.userService.validCountry(body.signUpCountry || '');
-        if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
-        
+        // const validCountry = await this.userService.validCountry(body.signUpCountry || '');
+        // if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
+
         const statePermissions = await this.userService.statePermissions(body.signUpState);
         const dob = moment(body.dateOfBirth);
         const current = moment();
         const age = current.diff(dob, 'years');
-        
+
         if (age < statePermissions.minAge) {
-            throw new HttpErrors.BadRequest(
-                USER_MESSAGES.AGE_RESTRICTED(statePermissions.minAge, statePermissions.name),
-            );
+            if (statePermissions.name) {
+                throw new HttpErrors.BadRequest(
+                    USER_MESSAGES.AGE_RESTRICTED(statePermissions.minAge, statePermissions.name),
+                );
+            }else{
+                throw new HttpErrors.BadRequest(
+                    USER_MESSAGES.AGE_RESTRICTED_ROW(statePermissions.minAge),
+                );
+            }
         }
         //LOWER CASING THE EMAIL
         body.email = body.email.toLowerCase();
