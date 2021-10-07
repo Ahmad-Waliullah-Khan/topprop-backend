@@ -13,8 +13,8 @@ import { CrudRestComponent } from '@loopback/rest-crud';
 import { ServiceMixin } from '@loopback/service-proxy';
 import { isEqual } from 'lodash';
 import morgan from 'morgan';
-import {join} from 'path';
-import {v4 as uuidv4} from 'uuid';
+import { join } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import {
     JWTAuthenticationStrategy,
     PassportFacebookTokenAuthProvider,
@@ -36,18 +36,22 @@ import {
     WithdrawFundsCron,
     YahooSyncLeaguesCron,
 } from './cron-jobs';
+import { BonusPayoutCron } from './cron-jobs/bonus-payout.cron';
+import { BonusProcessedCron } from './cron-jobs/bonus-processed.cron';
 import {
     ConfigRepository,
-    ImportSourceRepository, LeagueRepository, ScoringTypeRepository,
+    ImportSourceRepository,
+    LeagueRepository,
+    ScoringTypeRepository,
     SpreadRepository,
     UserRepository,
 } from './repositories';
-import {ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder} from './seeders';
-import {MySequence} from './sequence';
-import {ApplicationHelpers} from './utils/helpers';
-import {IRawRequest} from './utils/interfaces';
+import { ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
+import { MySequence } from './sequence';
+import { ApplicationHelpers } from './utils/helpers';
+import { IRawRequest } from './utils/interfaces';
 
-export {ApplicationConfig};
+export { ApplicationConfig };
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
@@ -183,6 +187,11 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const OngoingGamesCronBinding = createBindingFromClass(OngoingGamesCron);
         this.add(OngoingGamesCronBinding);
+
+        const BonusPayoutCronBinding = createBindingFromClass(BonusPayoutCron);
+        this.add(BonusPayoutCronBinding);
+        const BonusProcessedCronBinding = createBindingFromClass(BonusProcessedCron);
+        this.add(BonusProcessedCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);

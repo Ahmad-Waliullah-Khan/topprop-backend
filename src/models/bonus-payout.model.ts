@@ -1,54 +1,53 @@
-import {Model, model, property} from '@loopback/repository';
-import { Base } from '.';
+import { belongsTo, model, property } from '@loopback/repository';
 import { STATUS } from '@src/utils/constants';
+import { Base } from '.';
+import { User, UserWithRelations } from './user.model';
 
-@model({settings: {strict: false}})
+@model({ settings: { strict: false } })
 export class BonusPayout extends Base {
-  @property({
-    type: 'number',
-    id: true,
-    generated: true,
-  })
-  id: number;
+    @property({
+        type: 'number',
+        id: true,
+        generated: true,
+    })
+    id: number;
 
-  @property({
-    type: 'number',
-    required: true,
-  })
-  userId: number;
+    @property({
+        type: 'number',
+        required: true,
+    })
+    amount: number;
 
-  @property({
-    type: 'number',
-    required: true,
-  })
-  amount: number;
+    @property({
+        type: 'string',
+        required: true,
+    })
+    message: string;
 
-  @property({
-    type: 'string',
-    required: true,
-  })
-  message: string;
+    @property({
+        type: 'number',
+        required: true,
+        default: STATUS.PENDING,
+    })
+    status: number;
 
-  @property({
-    type: 'string',
-    required: true,
-    default: STATUS.PENDING,
-  })
-  status: string;
+    @belongsTo(() => User)
+    userId: number;
 
-  // Define well-known properties here
+    // Define well-known properties here
 
-  // Indexer property to allow additional data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [prop: string]: any;
+    // Indexer property to allow additional data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [prop: string]: any;
 
-  constructor(data?: Partial<BonusPayout>) {
-    super(data);
-  }
+    constructor(data?: Partial<BonusPayout>) {
+        super(data);
+    }
 }
 
 export interface BonusPayoutRelations {
-  // describe navigational properties here
+    // describe navigational properties here
+    user?: UserWithRelations;
 }
 
 export type BonusPayoutWithRelations = BonusPayout & BonusPayoutRelations;

@@ -15,6 +15,8 @@ let CRON_TIMING_LEAGUE_WIN_CRITERIA_CRON = '';
 let CRON_TIMING_SYNC_GAMES_CRON = '';
 let CRON_TIMING_SYNC_TEAMS_CRON = '';
 let CRON_TIMING_ONGOING_GAMES_CRON = '';
+let CRON_TIMING_BONUS_PAYOUT = '';
+let CRON_TIMING_BONUS_PROCESSED = '';
 
 switch (cronEnv) {
     case 'development':
@@ -34,6 +36,8 @@ switch (cronEnv) {
         CRON_TIMING_SYNC_TEAMS_CRON = '0 45 * * * *';
         CRON_TIMING_SYNC_GAMES_CRON = '0 * * * * *';
         CRON_TIMING_ONGOING_GAMES_CRON = '0 */1 * * * *';
+        CRON_TIMING_BONUS_PAYOUT = '0 */1 * * * *';
+        CRON_TIMING_BONUS_PROCESSED = '0 */1 * * * *';
         break;
     case 'staging':
         CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
@@ -52,6 +56,9 @@ switch (cronEnv) {
         CRON_TIMING_SYNC_TEAMS_CRON = '0 45 * * * *';
         CRON_TIMING_SYNC_GAMES_CRON = '0 30 * * * *';
         CRON_TIMING_ONGOING_GAMES_CRON = '0 */5 * * * *';
+        CRON_TIMING_BONUS_PAYOUT = '0 */5 * * * *';
+        CRON_TIMING_BONUS_PROCESSED = '0 */5 * * * *';
+
         break;
     case 'production':
         CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
@@ -70,6 +77,9 @@ switch (cronEnv) {
         CRON_TIMING_SYNC_TEAMS_CRON = '0 45 * * * *';
         CRON_TIMING_SYNC_GAMES_CRON = '0 30 * * * *';
         CRON_TIMING_ONGOING_GAMES_CRON = '0 */5 * * * *';
+        CRON_TIMING_BONUS_PAYOUT = '0 0 */1 * * *';
+        CRON_TIMING_BONUS_PROCESSED = '0 0 */1 * * *';
+
         break;
 }
 
@@ -88,3 +98,5 @@ export const WITHDRAW_FUNDS_CRON_TIMING = CRON_TIMING_WITHDRAW_FUNDS_CRON;
 export const LEAGUE_WIN_CRITERIA_CRON_TIMING = CRON_TIMING_LEAGUE_WIN_CRITERIA_CRON;
 export const SYNC_GAMES_CRON_TIMING = CRON_TIMING_SYNC_GAMES_CRON;
 export const SYNC_TEAMS_CRON_TIMING = CRON_TIMING_SYNC_TEAMS_CRON;
+export const PROMO_CRON_TIMING = CRON_TIMING_BONUS_PAYOUT;
+export const BONUS_PROCESSED_TIMING = CRON_TIMING_BONUS_PROCESSED;

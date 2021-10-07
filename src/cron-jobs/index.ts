@@ -1,4 +1,6 @@
 // export * from './sync-teams.cron';
+export * from './bonus-payout.cron';
+export * from './bonus-processed.cron';
 export * from './close-contests.cron';
 export * from './espn-sync-leagues.cron';
 export * from './league-win-criteria.cron';
@@ -15,4 +17,3 @@ export * from './timeframe.cron';
 export * from './win-criteria.cron';
 export * from './withdraw-funds.cron';
 export * from './yahoo-sync-leagues.cron';
-
