@@ -39,7 +39,8 @@ import {
 import {
     ConfigRepository,
     ImportSourceRepository, LeagueRepository, ScoringTypeRepository,
-    SpreadRepository
+    SpreadRepository,
+    UserRepository,
 } from './repositories';
 import {ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder} from './seeders';
 import {MySequence} from './sequence';
@@ -220,5 +221,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
             league.inviteToken = uuidv4();
             await leagueRepo.save(league);
         });
+
+        const userRepo = await this.getRepository(UserRepository);
     }
 }

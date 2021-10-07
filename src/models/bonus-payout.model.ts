@@ -15,6 +15,12 @@ export class BonusPayout extends Base {
     type: 'number',
     required: true,
   })
+  userId: number;
+
+  @property({
+    type: 'number',
+    required: true,
+  })
   amount: number;
 
   @property({
@@ -24,11 +30,11 @@ export class BonusPayout extends Base {
   message: string;
 
   @property({
-    type: 'number',
+    type: 'string',
     required: true,
     default: STATUS.PENDING,
   })
-  status: number;
+  status: string;
 
   // Define well-known properties here
 

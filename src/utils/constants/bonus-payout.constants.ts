@@ -1,4 +1,4 @@
 export enum STATUS {
-    PENDING = 1,
-    COMPLETE = 2,
+    PENDING = 'pending',
+    COMPLETE = 'complete',
 }

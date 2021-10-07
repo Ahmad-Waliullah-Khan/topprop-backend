@@ -164,6 +164,12 @@ export class User extends Entity {
 
     @property({
         type: 'date',
+        default: null,
+    })
+    verifiedAt?: string | null;
+
+    @property({
+        type: 'date',
         default: () => new Date(),
     })
     createdAt?: string;
