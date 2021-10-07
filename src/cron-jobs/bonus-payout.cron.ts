@@ -1,11 +1,11 @@
-import { service } from '@loopback/core';
-import { CronJob, cronJob } from '@loopback/cron';
-import { CronService } from '@src/services';
-import { PROMO_CRON_TIMING } from '@src/utils/cron-timings';
+import {service} from '@loopback/core';
+import {CronJob, cronJob} from '@loopback/cron';
+import {CronService} from '@src/services';
+import {PROMO_CRON_TIMING} from '@src/utils/cron-timings';
 import chalk from 'chalk';
 import cron from 'cron';
 import logger from '../utils/logger';
-import { CRON_JOBS } from './../utils/constants/misc.constants';
+import {CRON_JOBS} from './../utils/constants/misc.constants';
 
 @cronJob()
 export class BonusPayoutCron extends CronJob {
@@ -17,7 +17,6 @@ export class BonusPayoutCron extends CronJob {
             onTick: async () => {
                 try {
                     const bonusPromise = await this.cronService.bonusPayout();
-                    Promise.all(bonusPromise);
                     this.cronService.cronLogger(CRON_JOBS.BONUS_PAYOUT_CRON);
 
                     const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.BONUS_PAYOUT_CRON);

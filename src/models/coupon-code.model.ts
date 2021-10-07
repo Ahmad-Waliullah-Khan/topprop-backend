@@ -1,7 +1,7 @@
 import {model, property} from '@loopback/repository';
 import {Base} from '.';
 
-@model()
+@model({settings: {strict: false}})
 export class CouponCode extends Base {
   @property({
     type: 'number',

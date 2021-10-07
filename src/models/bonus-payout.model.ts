@@ -3,7 +3,7 @@ import {BONUSSTATUS} from '@src/utils/constants';
 import {Base} from '.';
 import {User, UserWithRelations} from './user.model';
 
-@model()
+@model({settings: {strict: false}})
 export class BonusPayout extends Base {
     @property({
         type: 'number',

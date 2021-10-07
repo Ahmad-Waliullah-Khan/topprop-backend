@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -47,12 +47,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -2825,32 +2825,30 @@ export class CronService {
     }
 
     async bonusPayout() {
-        const user = await this.userRepository.find();
-        if (user) {
-            user.map(async data => {
-                if (!data.bonusPayoutProcessed && data.verifiedAt) {
-                    const couponData = await this.couponCodeRepository.find({
-                        where: {
-                            code: data.promo,
-                        },
-                    });
-                    const [CouponCode] = couponData;
+        const users = await this.userRepository.find();
+        if (users) {
+            users.map(async user => {
+                console.log(user.promo);
+                if ((!user.bonusPayoutProcessed || user.bonusPayoutProcessed == null) && user.verifiedAt) {
+                    const couponData = await this.couponCodeRepository.findOne({ where: { code: user.promo } });
 
-                    const userData = {
-                        amount: CouponCode.value,
-                        message: CouponCode.code,
-                        status: BONUSSTATUS.PENDING,
-                        userId: data.id,
-                    };
-                    await this.bonusPayoutRepository.create(userData);
-                    await this.userRepository.updateById(data.id, {
-                        bonusPayoutProcessed: true,
-                    });
+                    if(couponData) {
+                        const bonusPayoutData = {
+                            amount: couponData?.value,
+                            message: couponData?.code,
+                            status: BONUSSTATUS.PENDING,
+                            userId: user.id,
+                        };
+                        await this.bonusPayoutRepository.create(bonusPayoutData);
+                        await this.userRepository.updateById(user.id, {
+                            bonusPayoutProcessed: true,
+                        });
+                    }
                 }
             });
         }
 
-        return user;
+        return users;
     }
 
     async bonusProcessed() {
