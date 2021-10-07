@@ -464,11 +464,11 @@ export class ContestController {
         if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
 
         const spread = await this.contestService.calculateSpread(body.playerId, body.opponentId, body.type);
+        const entryAmount = body.entry ? body.entry * 100 : 0;
+        const coverWithBonus = await this.contestService.calculateCover(spread, entryAmount, true);
+        const coverWithoutBonus = await this.contestService.calculateCover(spread, entryAmount, false);
 
-        const coverWithBonus = await this.contestService.calculateCover(spread, body.entry, true);
-        const coverWithoutBonus = await this.contestService.calculateCover(spread, body.entry, false);
-
-        const winBonus = await this.contestService.calculateWinBonus(spread, body.entry);
+        const winBonus = await this.contestService.calculateWinBonus(spread, entryAmount);
 
         return {
             data: {
