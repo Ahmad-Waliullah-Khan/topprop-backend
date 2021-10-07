@@ -1,9 +1,9 @@
-import { belongsTo, model, property } from '@loopback/repository';
-import { STATUS } from '@src/utils/constants';
-import { Base } from '.';
-import { User, UserWithRelations } from './user.model';
+import {belongsTo, model, property} from '@loopback/repository';
+import {BONUSSTATUS} from '@src/utils/constants';
+import {Base} from '.';
+import {User, UserWithRelations} from './user.model';
 
-@model({ settings: { strict: false } })
+@model()
 export class BonusPayout extends Base {
     @property({
         type: 'number',
@@ -27,7 +27,7 @@ export class BonusPayout extends Base {
     @property({
         type: 'number',
         required: true,
-        default: STATUS.PENDING,
+        default: BONUSSTATUS.PENDING,
     })
     status: number;
 

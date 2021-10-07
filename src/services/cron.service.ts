@@ -52,7 +52,7 @@ import {
 import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUS_STATUS } from './../utils/constants/bonus-payout.constants';
+import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -2839,7 +2839,7 @@ export class CronService {
                     const userData = {
                         amount: CouponCode.value,
                         message: CouponCode.code,
-                        status: BONUS_STATUS.PENDING,
+                        status: BONUSSTATUS.PENDING,
                         userId: data.id,
                     };
                     await this.bonusPayoutRepository.create(userData);
@@ -2859,7 +2859,7 @@ export class CronService {
 
         if (pendingBonus) {
             pendingBonus.map(async bonus => {
-                if (bonus.status === BONUS_STATUS.PENDING) {
+                if (bonus.status === BONUSSTATUS.PENDING) {
                     const topupData = {
                         userId: bonus.userId,
                         grossAmount: bonus.amount,
@@ -2867,7 +2867,7 @@ export class CronService {
                     };
                     await this.topUpRepository.create(topupData);
                     await this.bonusPayoutRepository.updateById(bonus.id, {
-                        status: BONUS_STATUS.COMPLETE,
+                        status: BONUSSTATUS.COMPLETE,
                     });
                 }
             });

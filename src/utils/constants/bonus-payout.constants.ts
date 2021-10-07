@@ -3,8 +3,8 @@ export enum STATUS {
     COMPLETE = 'complete',
 }
 
-export enum BONUS_STATUS {
-    PENDING =1,
-    PROCCESSED=2,
-    COMPLETE =0
+export enum BONUSSTATUS {
+    PENDING = 1,
+    PROCCESSED = 2,
+    COMPLETE = 0,
 }
