@@ -68,6 +68,15 @@ export class WalletController {
             }
 
             const customer = await this.paymentGatewayService.getCustomer(user._customerTokenUrl as string);
+            if (user.verifiedAt === null && customer?.status === 'verified') {
+                user.verifiedAt = moment().toDate().toString();
+                if (user.promo) {
+                    user.bonusPayoutProcessed = false;
+                } else {
+                    user.bonusPayoutProcessed = true;
+                }
+                await this.userRepository.save(user);
+            }
 
             return { data: customer };
         } catch (error) {
@@ -156,7 +165,50 @@ export class WalletController {
             if (!user._customerTokenUrl) throw new HttpErrors.NotFound(WALLET_MESSAGES.MISSING_WALLET);
 
             const transfers = await this.paymentGatewayService.fetchTransfers(user._customerTokenUrl);
-            return { data: transfers };
+
+            const topUps = await this.topUpRepository.find({
+                where: {
+                    and: [{ userId: id }],
+                },
+            });
+
+            const withdrawRequests = await this.withdrawRequestRepository.find({
+                where: {
+                    and: [{ userId: id }],
+                },
+            });
+
+            const processedDeposits = topUps.map(deposit => {
+                return {
+                    id: `${deposit.id.toString()}_deposit`,
+                    status: 'processed',
+                    narration: deposit.topUpTransferUrl === null ? 'TopProp Rewards' : 'User Deposit',
+                    type: 'deposit',
+                    amount: deposit.netAmount,
+                    created: deposit.createdAt,
+                };
+            });
+
+            const processedWithdrawals = withdrawRequests.map(withdrawal => {
+                return {
+                    id: `${withdrawal.id.toString()}_withdrawal`,
+                    status: withdrawal.status,
+                    type: 'withdrawal',
+                    narration: 'User Withdrawal',
+                    amount: withdrawal.netAmount,
+                    created: withdrawal.createdAt,
+                };
+            });
+
+            const mergedTransactions = [...processedDeposits, ...processedWithdrawals].sort(
+                (transaction1: WalletTransfer, transaction2: WalletTransfer) => {
+                    const dateA = moment(transaction1.created);
+                    const dateB = moment(transaction2.created);
+                    return dateB.diff(dateA);
+                },
+            );
+
+            return { data: mergedTransactions };
         } catch (error) {
             ErrorHandler.httpError(error);
         }
@@ -214,7 +266,7 @@ export class WalletController {
             const signUpState = user.signUpState || '';
 
             const statePermissions = await this.userService.statePermissions(signUpState);
-            
+
             const stateDepositLimit = statePermissions.weeklyDepositLimit;
 
             const topupTotal = topUps.reduce(

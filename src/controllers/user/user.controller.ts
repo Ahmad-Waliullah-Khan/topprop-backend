@@ -1,12 +1,13 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
+import { BootBindings } from '@loopback/boot';
 import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
-import { JwtService } from '@src/services';
+import { JwtService, CouponCodeService } from '@src/services';
 import { UserService } from '@src/services/user.service';
 import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
@@ -30,6 +31,7 @@ export class UserController {
         @repository(UserRepository)
         public userRepository: UserRepository,
         @service() protected userService: UserService,
+        @service() protected couponCodeService: CouponCodeService,
         @service() protected jwtService: JwtService,
     ) {}
 
@@ -124,9 +126,18 @@ export class UserController {
             body.accountConfirmedAt = moment().toDate();
         }
 
+        body.bonusPayoutProcessed = true;
+        if(body.promo){
+            const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
+            if(validCouponCode){
+                body.bonusPayoutProcessed = false;
+            }
+        }
+
         delete body.password;
         delete body.confirmPassword;
         delete body.signUpCountry;
+        delete body.couponCode;
         const user = await this.userRepository.create(body);
         const token = await this.jwtService.generateToken({
             id: user.id,

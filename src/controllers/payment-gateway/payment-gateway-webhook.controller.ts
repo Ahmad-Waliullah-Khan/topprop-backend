@@ -18,6 +18,8 @@ import { Buffer } from 'buffer';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { isEqual, lastIndexOf } from 'lodash';
 import moment from 'moment';
+// const tslib_1 = require("tslib");
+// const moment_1 = tslib_1.__importDefault(require("moment"));
 
 export class PaymentGatewayWebhookController {
     private webhookSecret: string;
@@ -93,7 +95,7 @@ export class PaymentGatewayWebhookController {
                 }
                 //*HANDLE CUSTOMER VERIFICATIONS STATUSES
                 case DWOLLA_WEBHOOK_EVENTS.CUSTOMER_VERIFIED: {
-                    const details = `Your account is now verified. You profile is now complete!`;
+                    const details = `Your account is now verified. Your profile is now complete!`;
                     await this.handleCustomerVerificationUpdate(body.resourceId, details);
 
                     break;
@@ -187,6 +189,10 @@ export class PaymentGatewayWebhookController {
             if (idVerificationFailed) {
                 const userRepo = await this.userRepositoryGetter();
                 await userRepo.updateById(user.id, { verificationFileName: null, verificationFileUploaded: false });
+            }
+            if(details === `Your account is now verified. Your profile is now complete!`){
+                const userRepo = await this.userRepositoryGetter();
+                await userRepo.updateById(user.id, { verifiedAt: moment().toDate().toString() });
             }
         }
     }

@@ -164,6 +164,12 @@ export class User extends Entity {
 
     @property({
         type: 'date',
+        default: null,
+    })
+    verifiedAt?: string | null;
+
+    @property({
+        type: 'date',
         default: () => new Date(),
     })
     createdAt?: string;
@@ -210,6 +216,11 @@ export class User extends Entity {
         default: false,
     })
     verificationFileUploaded?: boolean;
+
+    @property({
+        type: 'boolean',
+    })
+    bonusPayoutProcessed?: boolean | null;
 
     @property({
         type: 'string',

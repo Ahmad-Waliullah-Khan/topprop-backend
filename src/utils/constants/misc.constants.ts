@@ -24,6 +24,9 @@ export enum CRON_JOBS {
     SYNC_TEAMS_CRON = 'sync-teams-cron',
     SYNC_GAMES_CRON = 'sync-games-cron',
     PLAYER_RESULTS_CRON = 'player-results-cron',
+
+    BONUS_PAYOUT_CRON = 'verified-bonus-payout',
+    BONUS_PAYOUT_PROCESSED_CRON = 'bonus-payout-processed',
 }
 
 export const sportApiDateFormat = 'YYYY-MMM-DD';

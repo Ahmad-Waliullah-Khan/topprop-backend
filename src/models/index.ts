@@ -1,6 +1,7 @@
 export * from './base.model';
 export * from './bet.model';
 export * from './contact-submission.model';
+export * from './bonus-payout.model';
 export * from './contender.model';
 export * from './contest-payout.model';
 export * from './contest-roster.model';
@@ -26,3 +27,4 @@ export * from './withdraw-request.model';
 
 export * from './payment-gateway-event.model';
 export * from './config.model';
+export * from './coupon-code.model';

@@ -1,11 +1,13 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository, Where} from '@loopback/repository';
-import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository, Where } from '@loopback/repository';
+import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
 import {
     BetRepository,
+    BonusPayoutRepository,
     ConfigRepository,
     ContestRepository,
     ContestRosterRepository,
+    CouponCodeRepository,
     GainRepository,
     LeagueContestRepository,
     LeagueRepository,
@@ -15,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository
+    WithdrawRequestRepository,
 } from '@src/repositories';
-import {MiscHelpers} from '@src/utils/helpers';
+import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import {TRANSFER_TYPES} from '../services';
-import {LeagueService} from '../services/league.service';
-import {PaymentGatewayService} from '../services/payment-gateway.service';
-import {SportsDataService} from '../services/sports-data.service';
-import {UserService} from '../services/user.service';
+import { TRANSFER_TYPES } from '../services';
+import { LeagueService } from '../services/league.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -45,11 +47,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES
+    WITHDRAW_REQUEST_STATUSES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
+import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -72,6 +75,8 @@ export class CronService {
         @repository('LeagueRepository') private leagueRepository: LeagueRepository,
         @repository('WithdrawRequestRepository') private withdrawRequestRepository: WithdrawRequestRepository,
         @repository('ConfigRepository') private configRepository: ConfigRepository,
+        @repository('BonusPayoutRepository') private bonusPayoutRepository: BonusPayoutRepository,
+        @repository('CouponCodeRepository') private couponCodeRepository: CouponCodeRepository,
     ) {}
 
     async fetchDate() {
@@ -337,6 +342,39 @@ export class CronService {
                         break;
                 }
                 break;
+
+            case CRON_JOBS.BONUS_PAYOUT_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 2 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.BONUS_PAYOUT_PROCESSED_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 2 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -379,6 +417,12 @@ export class CronService {
                 break;
             case CRON_JOBS.ONGOING_GAMES_CRON:
                 cronMessage = 'Ongoing Games Check Cron';
+                break;
+            case CRON_JOBS.BONUS_PAYOUT_CRON:
+                cronMessage = 'Bonus payout Cron';
+                break;
+            case CRON_JOBS.BONUS_PAYOUT_PROCESSED_CRON:
+                cronMessage = 'Bonus processed Cron';
                 break;
         }
 
@@ -2915,6 +2959,60 @@ export class CronService {
                 importSourceId: 2,
             },
         });
+    }
+
+    async bonusPayout() {
+        const users = await this.userRepository.find({
+            where: {
+                bonusPayoutProcessed: false,
+            },
+        });
+        if (users) {
+            users.map(async user => {
+                if (user.verifiedAt) {
+                    const couponData = await this.couponCodeRepository.findOne({ where: { code: user.promo } });
+
+                    if (couponData) {
+                        const bonusPayoutData = {
+                            amount: couponData?.value,
+                            message: couponData?.code,
+                            status: BONUSSTATUS.PENDING,
+                            userId: user.id,
+                        };
+                        await this.bonusPayoutRepository.create(bonusPayoutData);
+                        await this.userRepository.updateById(user.id, {
+                            bonusPayoutProcessed: true,
+                        });
+                    }
+                }
+            });
+        }
+
+        return users;
+    }
+
+    async bonusProcessed() {
+        // pending payout
+        const pendingBonus = await this.bonusPayoutRepository.find({
+            where: {
+                status: BONUSSTATUS.PENDING,
+            },
+        });
+
+        if (pendingBonus) {
+            pendingBonus.map(async bonus => {
+                const topupData = {
+                    userId: bonus.userId,
+                    grossAmount: bonus.amount,
+                    netAmount: bonus.amount,
+                };
+                await this.topUpRepository.create(topupData);
+                await this.bonusPayoutRepository.updateById(bonus.id, {
+                    status: BONUSSTATUS.COMPLETE,
+                });
+            });
+        }
+        return pendingBonus;
     }
 
     async withdrawFunds() {

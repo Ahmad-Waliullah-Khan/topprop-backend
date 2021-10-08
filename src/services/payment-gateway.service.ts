@@ -686,9 +686,11 @@ export interface DwollaTransfer {
 }
 export interface WalletTransfer {
     id?: string;
-    status?: 'processed' | 'pending' | 'cancelled' | 'failed';
+    status?: string;
+    type?: string;
+    narration?: string;
     amount: number;
-    created?: string;
+    created?: string | Date;
 }
 
 export enum TRANSFER_TYPES {
