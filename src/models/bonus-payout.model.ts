@@ -1,7 +1,7 @@
-import {belongsTo, model, property} from '@loopback/repository';
-import {BONUSSTATUS} from '@src/utils/constants';
-import {Base} from '.';
-import {User, UserWithRelations} from './user.model';
+import { belongsTo, model, property } from '@loopback/repository';
+import { BONUSSTATUS } from '@src/utils/constants';
+import { Base } from '.';
+import { User, UserWithRelations } from './user.model';
 
 @model()
 export class BonusPayout extends Base {

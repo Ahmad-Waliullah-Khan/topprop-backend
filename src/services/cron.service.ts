@@ -19,7 +19,7 @@ import {
     UserRepository,
     WithdrawRequestRepository,
 } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
@@ -368,6 +368,22 @@ export class CronService {
                     case CRON_RUN_TYPES.STAGING:
                         // Every 5 minutes
                         cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 2 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
+            case CRON_JOBS.VERIFIED_BONUS_PAYPUT_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 0 * * * 3';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 0 */5 * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // Every 2 minutes
@@ -777,10 +793,10 @@ export class CronService {
                     favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.netEarnings : favorite.netEarnings;
 
                 const creatorMaxWin =
-                favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? favorite.playerMaxWin : underdog.playerMaxWin;
+                    favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? favorite.playerMaxWin : underdog.playerMaxWin;
 
                 const claimerMaxWin =
-                favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.playerMaxWin : favorite.playerMaxWin;
+                    favorite.type === CONTEST_STAKEHOLDERS.CREATOR ? underdog.playerMaxWin : favorite.playerMaxWin;
 
                 const constestData = {
                     winnerId: winnerId,
@@ -1326,6 +1342,9 @@ export class CronService {
                 let receiverUser = favoriteUser;
                 const clientHost = process.env.CLIENT_HOST;
 
+                const favoriteTeamFantasyPoints = favorite.fantasyPoints;
+                const underdogTeamFantasyPoints = underdog.fantasyPoints;
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                     contestData,
                     favoriteUser,
@@ -1334,6 +1353,8 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     clientHost,
+                    favoriteTeamFantasyPoints,
+                    underdogTeamFantasyPoints,
                     maxWin: contestData.creatorTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
@@ -1351,6 +1372,8 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     clientHost,
+                    favoriteTeamFantasyPoints,
+                    underdogTeamFantasyPoints,
                     maxWin: contestData.claimerTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
@@ -1896,6 +1919,9 @@ export class CronService {
                 const clientHost = process.env.CLIENT_HOST;
                 let receiverUser = favoriteUser;
 
+                const favoriteTeamFantasyPoints = favorite.fantasyPoints;
+                const underdogTeamFantasyPoints = underdog.fantasyPoints;
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                     contestData,
                     favoriteUser,
@@ -1904,6 +1930,8 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     clientHost,
+                    favoriteTeamFantasyPoints,
+                    underdogTeamFantasyPoints,
                     maxWin: contestData.creatorTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
@@ -1921,6 +1949,8 @@ export class CronService {
                     underdogTeam,
                     receiverUser,
                     clientHost,
+                    favoriteTeamFantasyPoints,
+                    underdogTeamFantasyPoints,
                     maxWin: contestData.claimerTeamMaxWin,
                     c2d: MiscHelpers.c2d,
                     text: {
@@ -1985,12 +2015,17 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
 
+                    const winnerTeamFantasyPoints = favorite.fantasyPoints;
+                    const loserTeamFantasyPoints = underdog.fantasyPoints;
+
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: favorite.netEarnings,
                         clientHost,
                         winAmount: `${new Intl.NumberFormat('en-US', {
@@ -2013,6 +2048,8 @@ export class CronService {
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: underdog.netEarnings,
                         clientHost,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
@@ -2035,12 +2072,17 @@ export class CronService {
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
 
+                    const winnerTeamFantasyPoints = underdog.fantasyPoints;
+                    const loserTeamFantasyPoints = favorite.fantasyPoints;
+
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: underdog.netEarnings,
                         clientHost,
                         winAmount: `${new Intl.NumberFormat('en-US', {
@@ -2063,6 +2105,8 @@ export class CronService {
                         winnerTeam,
                         loserTeam,
                         contestData,
+                        winnerTeamFantasyPoints,
+                        loserTeamFantasyPoints,
                         netEarnings: favorite.netEarnings,
                         clientHost,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
@@ -2087,6 +2131,9 @@ export class CronService {
                     const underdogUser = await this.userRepository.findById(underdog.userId);
                     const underdogTeam = await this.teamRepository.findById(underdog.teamId);
 
+                    const favoriteTeamFantasyPoints = favorite.fantasyPoints;
+                    const underdogTeamFantasyPoints = underdog.fantasyPoints;
+
                     await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
@@ -2094,6 +2141,8 @@ export class CronService {
                         underdogTeam,
                         contestData,
                         clientHost,
+                        favoriteTeamFantasyPoints,
+                        underdogTeamFantasyPoints,
                         netEarning: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -2115,6 +2164,8 @@ export class CronService {
                         underdogTeam,
                         contestData,
                         clientHost,
+                        favoriteTeamFantasyPoints,
+                        underdogTeamFantasyPoints,
                         netEarning: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -2381,8 +2432,6 @@ export class CronService {
                         text: `Create New Contest`,
                     },
                 });
-
-
             } else {
                 // No data so autoclose
                 const constestData = {
@@ -2462,7 +2511,6 @@ export class CronService {
                     },
                 });
             }
-
         });
 
         return contests;
@@ -2536,7 +2584,7 @@ export class CronService {
                         foundLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                await this.playerRepository.save(foundLocalPlayer);
+                return await this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
                 newLocalPlayer.remoteId = remotePlayer.PlayerID;
@@ -2560,12 +2608,15 @@ export class CronService {
                         newLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                await this.playerRepository.create(newLocalPlayer);
+                return await this.playerRepository.create(newLocalPlayer);
             }
         });
 
         if (localPlayers.length > 0) {
-            this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
+            const overPlayers = await this.playerRepository.find({ where: { isOver: true } });
+            if (overPlayers.length > 0) {
+                this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
+            }
         }
 
         return playerPromises;
@@ -3013,6 +3064,35 @@ export class CronService {
             });
         }
         return pendingBonus;
+    }
+
+    async verifiedBonus() {
+        const user = await this.userRepository.find({
+            where: {
+                _customerTokenUrl: { neq: null },
+                verifiedAt: { eq: null },
+            },
+        });
+        try {
+            if (user) {
+                user.map(async data => {
+                    const customer = await this.paymentGatewayService.getCustomer(data._customerTokenUrl as string);
+                    if (customer?.status === 'verified') {
+                        data.verifiedAt = moment().toDate().toString();
+                        if (data.promo) {
+                            data.bonusPayoutProcessed = false;
+                        } else {
+                            data.bonusPayoutProcessed = true;
+                        }
+                        await this.userRepository.save(data);
+                    }
+                });
+            }
+        } catch (error) {
+            ErrorHandler.httpError(error);
+        }
+
+        return user;
     }
 
     async withdrawFunds() {

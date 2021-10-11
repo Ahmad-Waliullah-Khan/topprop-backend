@@ -27,6 +27,8 @@ export enum CRON_JOBS {
 
     BONUS_PAYOUT_CRON = 'verified-bonus-payout',
     BONUS_PAYOUT_PROCESSED_CRON = 'bonus-payout-processed',
+
+    VERIFIED_BONUS_PAYPUT_CRON = 'verified-bonus-payput',
 }
 
 export const sportApiDateFormat = 'YYYY-MMM-DD';

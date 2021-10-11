@@ -45,7 +45,7 @@ export class PaymentGatewayWebhookController {
         webhook_secret: string,
         payload_body: string | Buffer,
     ): boolean {
-        var hash = createHmac('sha256', webhook_secret).update(payload_body).digest('hex');
+        const hash = createHmac('sha256', webhook_secret).update(payload_body).digest('hex');
         return timingSafeEqual(Buffer.from(proposed_signature), Buffer.from(hash));
     }
 
@@ -190,7 +190,7 @@ export class PaymentGatewayWebhookController {
                 const userRepo = await this.userRepositoryGetter();
                 await userRepo.updateById(user.id, { verificationFileName: null, verificationFileUploaded: false });
             }
-            if(details === `Your account is now verified. Your profile is now complete!`){
+            if (details === `Your account is now verified. Your profile is now complete!`) {
                 const userRepo = await this.userRepositoryGetter();
                 await userRepo.updateById(user.id, { verifiedAt: moment().toDate().toString() });
             }

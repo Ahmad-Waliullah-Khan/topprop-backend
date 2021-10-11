@@ -38,6 +38,7 @@ import {
 } from './cron-jobs';
 import { BonusPayoutCron } from './cron-jobs/bonus-payout.cron';
 import { BonusProcessedCron } from './cron-jobs/bonus-processed.cron';
+import { VerifiedBonusCron } from './cron-jobs/verified-bonus-cron';
 import {
     ConfigRepository,
     ImportSourceRepository,
@@ -192,6 +193,8 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         this.add(BonusPayoutCronBinding);
         const BonusProcessedCronBinding = createBindingFromClass(BonusProcessedCron);
         this.add(BonusProcessedCronBinding);
+        const VerifiedBonusCronBinding = createBindingFromClass(VerifiedBonusCron);
+        this.add(VerifiedBonusCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);

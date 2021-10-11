@@ -1,13 +1,12 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
-import { BootBindings } from '@loopback/boot';
 import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
 import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { User } from '@src/models';
 import { UserRepository } from '@src/repositories';
-import { JwtService, CouponCodeService } from '@src/services';
+import { CouponCodeService, JwtService } from '@src/services';
 import { UserService } from '@src/services/user.service';
 import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
@@ -96,10 +95,8 @@ export class UserController {
                 throw new HttpErrors.BadRequest(
                     USER_MESSAGES.AGE_RESTRICTED(statePermissions.minAge, statePermissions.name),
                 );
-            }else{
-                throw new HttpErrors.BadRequest(
-                    USER_MESSAGES.AGE_RESTRICTED_ROW(statePermissions.minAge),
-                );
+            } else {
+                throw new HttpErrors.BadRequest(USER_MESSAGES.AGE_RESTRICTED_ROW(statePermissions.minAge));
             }
         }
         //LOWER CASING THE EMAIL
@@ -127,9 +124,9 @@ export class UserController {
         }
 
         body.bonusPayoutProcessed = true;
-        if(body.promo){
+        if (body.promo) {
             const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
-            if(validCouponCode){
+            if (validCouponCode) {
                 body.bonusPayoutProcessed = false;
             }
         }
