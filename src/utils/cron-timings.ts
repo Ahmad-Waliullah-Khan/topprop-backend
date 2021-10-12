@@ -60,6 +60,7 @@ switch (cronEnv) {
         CRON_TIMING_ONGOING_GAMES_CRON = '0 */5 * * * *';
         CRON_TIMING_BONUS_PAYOUT = '0 */5 * * * *';
         CRON_TIMING_BONUS_PROCESSED = '0 */5 * * * *';
+        CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
 
         break;
     case 'production':
@@ -81,7 +82,7 @@ switch (cronEnv) {
         CRON_TIMING_ONGOING_GAMES_CRON = '0 */5 * * * *';
         CRON_TIMING_BONUS_PAYOUT = '0 0 */1 * * *';
         CRON_TIMING_BONUS_PROCESSED = '0 0 */1 * * *';
-
+        CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
         break;
 }
 
