@@ -3021,7 +3021,11 @@ export class CronService {
         if (users) {
             users.map(async user => {
                 if (user.verifiedAt) {
-                    const couponData = await this.couponCodeRepository.findOne({ where: { code: user.promo } });
+                    const pattern = new RegExp('^' + user.promo + '$', 'i');
+                    const couponData = await this.couponCodeRepository.findOne({
+                        where: { code: { regexp: pattern } },
+                    });
+                    
 
                     if (couponData) {
                         const bonusPayoutData = {
