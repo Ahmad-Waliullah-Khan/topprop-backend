@@ -80,3 +80,19 @@ export const FP_IGNORED_SLOT = {
     endHour: 5,
     endMinute: 0,
 };
+
+export const LOBBY_SPREAD_LIMIT = 6.5;
+
+export const PLAYER_POSITIONS = ['QB', 'RB', 'WR', 'TE', 'K'];
+
+export const TOP_PLAYERS = [
+    { name: 'Christian Mccaffrey', remoteId: 18877 },
+    { name: 'Dalvin Cook', remoteId: 18872 },
+    { name: 'Derrick Henry', remoteId: 17959 },
+    { name: 'Davante Adams', remoteId: 16470 },
+    { name: 'Ezekiel Elliott', remoteId: 17923 },
+    { name: 'Tyreek Hill', remoteId: 18082 },
+    { name: 'Patrick Mahomes', remoteId: 18890 },
+    { name: 'Josh Allen', remoteId: 19801 },
+    { name: 'Kyler Murray', remoteId: 20889 },
+];

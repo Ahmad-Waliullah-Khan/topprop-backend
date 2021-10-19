@@ -110,3 +110,4 @@ export interface IRemotePlayer {
     UsaTodayHeadshotUpdated: string;
     UsaTodayHeadshotNoBackgroundUpdated: string;
 }
+
