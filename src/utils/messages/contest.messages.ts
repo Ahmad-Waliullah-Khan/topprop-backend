@@ -5,4 +5,5 @@ export const CONTEST_MESSAGES = {
     CONTEST_ALREADY_MATCHED: `Contest already matched.`,
     INSUFFICIENT_BALANCE: `Insufficient Balance in Wallet.`,
     BALANCE_INSUFFICIENT: `Wallet Balance is Insufficient for this action.`,
+    SPREAD_TOO_LARGE: `Difference in projected fantasy points is too large. Please choose other players.`,
 };

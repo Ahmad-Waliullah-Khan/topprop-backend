@@ -458,6 +458,7 @@ export class PlayerController {
                     where: {
                         hasStarted: false,
                         isOver: false,
+                        position: { inq: PLAYER_POSITIONS },
                         remoteId: {
                             inq: [currentPlayer],
                         },
