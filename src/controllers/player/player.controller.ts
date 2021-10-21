@@ -11,7 +11,8 @@ import {
     CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
     EMAIL_TEMPLATES, LOBBY_SPREAD_LIMIT, PERMISSIONS, PLAYER_POSITIONS,
-    TOP_PLAYERS
+    TOP_PLAYERS,
+    TOP_PLAYER_POSITIONS
 } from '@src/utils/constants';
 import {ErrorHandler} from '@src/utils/helpers';
 import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
@@ -455,7 +456,7 @@ export class PlayerController {
                     where: {
                         hasStarted: false,
                         isOver: false,
-                        position: { inq: PLAYER_POSITIONS },
+                        position: { inq: TOP_PLAYER_POSITIONS },
                         remoteId: {
                             inq: [currentPlayer],
                         },
@@ -510,7 +511,7 @@ export class PlayerController {
         const projectedPointsUpperLimit = Number(currentPlayer?.projectedFantasyPoints) + LOBBY_SPREAD_LIMIT;
 
         // Different Position
-        const filteredFirstPlayerPosition = PLAYER_POSITIONS.filter(position => position != currentPlayer.position);
+        const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(position => position != currentPlayer.position);
         let firstPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
@@ -671,7 +672,7 @@ export class PlayerController {
             },
         });
 
-        // True random player (Except Kickers)
+        // True random player (any position)
         if(!randomPlayer) {
             randomPlayer = await this.playerRepository.findOne({
                 where: {
