@@ -83,7 +83,7 @@ export const FP_IGNORED_SLOT = {
 
 export const LOBBY_SPREAD_LIMIT = 6.5;
 
-export const PLAYER_POSITIONS = ['QB', 'RB', 'WR', 'TE', 'K'];
+export const PLAYER_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 
 export const TOP_PLAYERS = [
     { name: 'Christian Mccaffrey', remoteId: 18877 },

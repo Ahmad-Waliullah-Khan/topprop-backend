@@ -1,31 +1,28 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, param, post, HttpErrors, requestBody, Response, RestBindings } from '@loopback/rest';
-import { Player } from '@src/models';
-import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
-import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings} from '@loopback/rest';
+import {Player} from '@src/models';
+import {ContestRepository, PlayerRepository, TeamRepository} from '@src/repositories';
+import {EmailService, MultiPartyFormService, SportsDataService} from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
-    EMAIL_TEMPLATES,
-    PERMISSIONS,
-    LOBBY_SPREAD_LIMIT,
-    PLAYER_POSITIONS,
-    TOP_PLAYERS,
+    EMAIL_TEMPLATES, LOBBY_SPREAD_LIMIT, PERMISSIONS, PLAYER_POSITIONS,
+    TOP_PLAYERS
 } from '@src/utils/constants';
-import { PLAYER_MESSAGES } from '@src/utils/messages';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
-import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse, IImportedPlayer, IRemotePlayer} from '@src/utils/interfaces';
+import {PLAYER_MESSAGES} from '@src/utils/messages';
+import {IMPORTED_PLAYER_VALIDATORS} from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
-import { isEqual, isNumber, sortBy, values } from 'lodash';
+import {isEqual, isNumber, sortBy, values} from 'lodash';
 import moment from 'moment';
-import Schema, { SchemaDefinition } from 'validate';
+import Schema, {SchemaDefinition} from 'validate';
 
 export class PlayerController {
     constructor(
@@ -91,12 +88,12 @@ export class PlayerController {
         await this.playerRepository.updateAll({ available: false });
 
         for (let index = 0; index < body.data.length; index++) {
-            let row = index + 2;
+            const row = index + 2;
             const player = body.data[index];
             if (!player.available) continue;
             const validationErrors = validation.validate(player);
             if (validationErrors.length) {
-                let errorMapped = validationErrors.map((error: any) => `Error at row: ${row} - ${error.message}`);
+                const errorMapped = validationErrors.map((error: any) => `Error at row: ${row} - ${error.message}`);
                 errors = [...errors, ...errorMapped];
             } else {
                 try {
@@ -108,8 +105,8 @@ export class PlayerController {
         }
 
         //* IF ERRORS SEND EMAIL BUT CONTINUE THE FLOW
-        let template = EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE;
-        let locals = {
+        const template = EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE;
+        const locals = {
             targetResources: 'Players - Google Sheets',
             importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
             text: {
@@ -454,7 +451,7 @@ export class PlayerController {
         for (let i = 0; i < shuffledArray.length; i++) {
             if (topPlayer === null) {
                 const currentPlayer = shuffledArray[i];
-                let foundPlayer = await this.playerRepository.findOne({
+                const foundPlayer = await this.playerRepository.findOne({
                     where: {
                         hasStarted: false,
                         isOver: false,
@@ -513,12 +510,12 @@ export class PlayerController {
         const projectedPointsUpperLimit = Number(currentPlayer?.projectedFantasyPoints) + LOBBY_SPREAD_LIMIT;
 
         // Different Position
-        const filteresFirstPlayerPosition = PLAYER_POSITIONS.filter(position => position != currentPlayer.position);
+        const filteredFirstPlayerPosition = PLAYER_POSITIONS.filter(position => position != currentPlayer.position);
         let firstPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
                 isOver: false,
-                position: { inq: filteresFirstPlayerPosition },
+                position: { inq: filteredFirstPlayerPosition },
                 id: { nin: [currentPlayer.id] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
@@ -534,7 +531,7 @@ export class PlayerController {
             ]);
         }
 
-        // Same Game
+        // Same Team/Game
         let secondPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
@@ -654,12 +651,18 @@ export class PlayerController {
         projectedPointsUpperLimit: number,
         playerList: number[],
     ): Promise<any> {
-        const randomPlayer = await this.playerRepository.findOne({
+
+        const currentPlayer = await this.playerRepository.findById(playerList[0]);
+
+        if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
+
+        // Positioned random player
+        let randomPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
                 isOver: false,
                 id: { nin: playerList },
-                position: { inq: PLAYER_POSITIONS },
+                position: currentPlayer?.position,
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
                 },
@@ -667,6 +670,23 @@ export class PlayerController {
                 status: 'Active',
             },
         });
+
+        // True random player (Except Kickers)
+        if(!randomPlayer) {
+            randomPlayer = await this.playerRepository.findOne({
+                where: {
+                    hasStarted: false,
+                    isOver: false,
+                    id: { nin: playerList },
+                    position: { inq: PLAYER_POSITIONS },
+                    projectedFantasyPoints: {
+                        between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    },
+                    available: true,
+                    status: 'Active',
+                },
+            });
+        }
 
         return randomPlayer;
     }
