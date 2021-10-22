@@ -83,6 +83,9 @@ export const FP_IGNORED_SLOT = {
 
 export const LOBBY_SPREAD_LIMIT = 6.5;
 
+export const LOBBY_SPREAD_LOWER_LIMIT = 0.65;
+export const LOBBY_SPREAD_UPPER_LIMIT = 1.6;
+
 export const PLAYER_POSITIONS = ['QB', 'RB', 'WR', 'TE', 'K'];
 export const TOP_PLAYER_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 

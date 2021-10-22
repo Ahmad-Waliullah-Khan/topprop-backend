@@ -1,29 +1,33 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings} from '@loopback/rest';
-import {Player} from '@src/models';
-import {ContestRepository, PlayerRepository, TeamRepository} from '@src/repositories';
-import {EmailService, MultiPartyFormService, SportsDataService} from '@src/services';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
+import { Player } from '@src/models';
+import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
+import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
-    EMAIL_TEMPLATES, LOBBY_SPREAD_LIMIT, PERMISSIONS, PLAYER_POSITIONS,
+    EMAIL_TEMPLATES,
+    LOBBY_SPREAD_LOWER_LIMIT,
+    LOBBY_SPREAD_UPPER_LIMIT,
+    PERMISSIONS,
+    PLAYER_POSITIONS,
     TOP_PLAYERS,
-    TOP_PLAYER_POSITIONS
+    TOP_PLAYER_POSITIONS,
 } from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
-import {ICommonHttpResponse, IImportedPlayer, IRemotePlayer} from '@src/utils/interfaces';
-import {PLAYER_MESSAGES} from '@src/utils/messages';
-import {IMPORTED_PLAYER_VALIDATORS} from '@src/utils/validators';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
+import { PLAYER_MESSAGES } from '@src/utils/messages';
+import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
-import {isEqual, isNumber, sortBy, values} from 'lodash';
+import { isEqual, isNumber, sortBy, values } from 'lodash';
 import moment from 'moment';
-import Schema, {SchemaDefinition} from 'validate';
+import Schema, { SchemaDefinition } from 'validate';
 
 export class PlayerController {
     constructor(
@@ -507,8 +511,8 @@ export class PlayerController {
 
         if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
 
-        const projectedPointsLowerLimit = Number(currentPlayer?.projectedFantasyPoints) - LOBBY_SPREAD_LIMIT;
-        const projectedPointsUpperLimit = Number(currentPlayer?.projectedFantasyPoints) + LOBBY_SPREAD_LIMIT;
+        const projectedPointsLowerLimit = Number(currentPlayer?.projectedFantasyPoints) * LOBBY_SPREAD_LOWER_LIMIT;
+        const projectedPointsUpperLimit = Number(currentPlayer?.projectedFantasyPoints) * LOBBY_SPREAD_UPPER_LIMIT;
 
         // Different Position
         const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(position => position != currentPlayer.position);
@@ -652,7 +656,6 @@ export class PlayerController {
         projectedPointsUpperLimit: number,
         playerList: number[],
     ): Promise<any> {
-
         const currentPlayer = await this.playerRepository.findById(playerList[0]);
 
         if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
@@ -673,7 +676,7 @@ export class PlayerController {
         });
 
         // True random player (any position)
-        if(!randomPlayer) {
+        if (!randomPlayer) {
             randomPlayer = await this.playerRepository.findOne({
                 where: {
                     hasStarted: false,
