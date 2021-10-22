@@ -2,7 +2,7 @@ import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
 import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, param, post, HttpErrors, requestBody, Response, RestBindings } from '@loopback/rest';
+import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
 import { Player } from '@src/models';
 import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
 import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
@@ -11,15 +11,17 @@ import {
     CONTEST_STATUSES,
     DEFAULT_CSV_FILE_PLAYERS_HEADERS,
     EMAIL_TEMPLATES,
+    LOBBY_SPREAD_LOWER_LIMIT,
+    LOBBY_SPREAD_UPPER_LIMIT,
     PERMISSIONS,
-    LOBBY_SPREAD_LIMIT,
     PLAYER_POSITIONS,
     TOP_PLAYERS,
+    TOP_PLAYER_POSITIONS,
 } from '@src/utils/constants';
-import { PLAYER_MESSAGES } from '@src/utils/messages';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
+import { PLAYER_MESSAGES } from '@src/utils/messages';
 import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
@@ -91,12 +93,12 @@ export class PlayerController {
         await this.playerRepository.updateAll({ available: false });
 
         for (let index = 0; index < body.data.length; index++) {
-            let row = index + 2;
+            const row = index + 2;
             const player = body.data[index];
             if (!player.available) continue;
             const validationErrors = validation.validate(player);
             if (validationErrors.length) {
-                let errorMapped = validationErrors.map((error: any) => `Error at row: ${row} - ${error.message}`);
+                const errorMapped = validationErrors.map((error: any) => `Error at row: ${row} - ${error.message}`);
                 errors = [...errors, ...errorMapped];
             } else {
                 try {
@@ -108,8 +110,8 @@ export class PlayerController {
         }
 
         //* IF ERRORS SEND EMAIL BUT CONTINUE THE FLOW
-        let template = EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE;
-        let locals = {
+        const template = EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE;
+        const locals = {
             targetResources: 'Players - Google Sheets',
             importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
             text: {
@@ -454,16 +456,19 @@ export class PlayerController {
         for (let i = 0; i < shuffledArray.length; i++) {
             if (topPlayer === null) {
                 const currentPlayer = shuffledArray[i];
-                let foundPlayer = await this.playerRepository.findOne({
+                const foundPlayer = await this.playerRepository.findOne({
                     where: {
                         hasStarted: false,
                         isOver: false,
-                        position: { inq: PLAYER_POSITIONS },
+                        position: { inq: TOP_PLAYER_POSITIONS },
                         remoteId: {
                             inq: [currentPlayer],
                         },
                         available: true,
                         status: 'Active',
+                        projectedFantasyPoints: {
+                            neq: 0,
+                        },
                     },
                 });
 
@@ -480,6 +485,9 @@ export class PlayerController {
                     isOver: false,
                     available: true,
                     status: 'Active',
+                    projectedFantasyPoints: {
+                        neq: 0,
+                    },
                 },
                 order: ['projectedFantasyPoints DESC'],
             });
@@ -506,22 +514,30 @@ export class PlayerController {
     })
     async findRecommendationsById(@param.path.number('id') id: number): Promise<ICommonHttpResponse<any>> {
         const currentPlayer = await this.playerRepository.findById(id);
-
+        const currentPlayerProjectedFantasyPoints = Number(currentPlayer?.projectedFantasyPoints);
         if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
 
-        const projectedPointsLowerLimit = Number(currentPlayer?.projectedFantasyPoints) - LOBBY_SPREAD_LIMIT;
-        const projectedPointsUpperLimit = Number(currentPlayer?.projectedFantasyPoints) + LOBBY_SPREAD_LIMIT;
+        let projectedPointsLowerLimit = currentPlayerProjectedFantasyPoints * LOBBY_SPREAD_LOWER_LIMIT;
+        if (currentPlayerProjectedFantasyPoints - projectedPointsLowerLimit > 6.5) {
+            projectedPointsLowerLimit = currentPlayerProjectedFantasyPoints - 6.5;
+        }
+
+        let projectedPointsUpperLimit = currentPlayerProjectedFantasyPoints * LOBBY_SPREAD_UPPER_LIMIT;
+        if (projectedPointsUpperLimit - currentPlayerProjectedFantasyPoints > 6.5) {
+            projectedPointsUpperLimit = currentPlayerProjectedFantasyPoints + 6.5;
+        }
 
         // Different Position
-        const filteresFirstPlayerPosition = PLAYER_POSITIONS.filter(position => position != currentPlayer.position);
+        const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(position => position != currentPlayer.position || position != 'K');
         let firstPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
                 isOver: false,
-                position: { inq: filteresFirstPlayerPosition },
+                position: { inq: filteredFirstPlayerPosition },
                 id: { nin: [currentPlayer.id] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -534,7 +550,8 @@ export class PlayerController {
             ]);
         }
 
-        // Same Game
+
+        // Same Team/Game
         let secondPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
@@ -544,6 +561,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -566,6 +584,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0] },
                 projectedFantasyPoints: {
                     between: [currentPlayer?.projectedFantasyPoints, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -589,6 +608,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0, thirdPlayer?.id || 0] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, currentPlayer?.projectedFantasyPoints],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -621,6 +641,7 @@ export class PlayerController {
                 },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -654,19 +675,43 @@ export class PlayerController {
         projectedPointsUpperLimit: number,
         playerList: number[],
     ): Promise<any> {
-        const randomPlayer = await this.playerRepository.findOne({
+        const currentPlayer = await this.playerRepository.findById(playerList[0]);
+
+        if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
+
+        // Positioned random player
+        let randomPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
                 isOver: false,
                 id: { nin: playerList },
-                position: { inq: PLAYER_POSITIONS },
+                position: currentPlayer?.position,
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
             },
         });
+
+        // True random player (any position)
+        if (!randomPlayer) {
+            randomPlayer = await this.playerRepository.findOne({
+                where: {
+                    hasStarted: false,
+                    isOver: false,
+                    id: { nin: playerList },
+                    position: { inq: PLAYER_POSITIONS },
+                    projectedFantasyPoints: {
+                        between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                        neq: 0,
+                    },
+                    available: true,
+                    status: 'Active',
+                },
+            });
+        }
 
         return randomPlayer;
     }
