@@ -466,6 +466,9 @@ export class PlayerController {
                         },
                         available: true,
                         status: 'Active',
+                        projectedFantasyPoints: {
+                            neq: 0,
+                        },
                     },
                 });
 
@@ -482,6 +485,9 @@ export class PlayerController {
                     isOver: false,
                     available: true,
                     status: 'Active',
+                    projectedFantasyPoints: {
+                        neq: 0,
+                    },
                 },
                 order: ['projectedFantasyPoints DESC'],
             });
@@ -524,6 +530,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer.id] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -546,6 +553,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -568,6 +576,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0] },
                 projectedFantasyPoints: {
                     between: [currentPlayer?.projectedFantasyPoints, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -591,6 +600,7 @@ export class PlayerController {
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0, thirdPlayer?.id || 0] },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, currentPlayer?.projectedFantasyPoints],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -623,6 +633,7 @@ export class PlayerController {
                 },
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -669,6 +680,7 @@ export class PlayerController {
                 position: currentPlayer?.position,
                 projectedFantasyPoints: {
                     between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                    neq: 0,
                 },
                 available: true,
                 status: 'Active',
@@ -685,6 +697,7 @@ export class PlayerController {
                     position: { inq: PLAYER_POSITIONS },
                     projectedFantasyPoints: {
                         between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                        neq: 0,
                     },
                     available: true,
                     status: 'Active',
