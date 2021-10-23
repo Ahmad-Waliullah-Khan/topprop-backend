@@ -485,6 +485,7 @@ export class PlayerController {
                     isOver: false,
                     available: true,
                     status: 'Active',
+                    position: { inq: TOP_PLAYER_POSITIONS },
                     projectedFantasyPoints: {
                         neq: 0,
                     },

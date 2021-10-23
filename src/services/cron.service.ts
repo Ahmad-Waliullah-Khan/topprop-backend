@@ -2578,6 +2578,7 @@ export class CronService {
                 foundLocalPlayer.playerType = 1; // Regular Player
                 foundLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
                 foundLocalPlayer.isOver = false;
+                foundLocalPlayer.projectedFantasyPoints = 0;
                 if (records.some(record => record.PlayerID === `${foundLocalPlayer.remoteId}`)) {
                     const record = records.find(record => record.PlayerID === `${foundLocalPlayer.remoteId}`);
                     if (record.EspnPlayerID.trim() !== '') {
@@ -2602,6 +2603,7 @@ export class CronService {
                 newLocalPlayer.playerType = 1; // Regular Player
                 newLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
                 newLocalPlayer.isOver = false;
+                newLocalPlayer.projectedFantasyPoints = 0;
                 if (records.some(record => record.PlayerID === `${newLocalPlayer.remoteId}`)) {
                     const record = records.find(record => record.PlayerID === `${newLocalPlayer.remoteId}`);
                     if (record.EspnPlayerID.trim() !== '') {
@@ -2615,7 +2617,11 @@ export class CronService {
         if (localPlayers.length > 0) {
             const overPlayers = await this.playerRepository.find({ where: { isOver: true } });
             if (overPlayers.length > 0) {
-                this.playerRepository.updateAll({ isOver: false }, { isOver: true }, (err: any, info: any) => {});
+                this.playerRepository.updateAll(
+                    { isOver: false, projectedFantasyPoints: 0 },
+                    { id: { neq: undefined } },
+                    (err: any, info: any) => {},
+                );
             }
         }
 
@@ -3025,7 +3031,6 @@ export class CronService {
                     const couponData = await this.couponCodeRepository.findOne({
                         where: { code: { regexp: pattern } },
                     });
-                    
 
                     if (couponData) {
                         const bonusPayoutData = {
