@@ -1,36 +1,34 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, Contest } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, Contest} from '@src/models';
 import {
     BetRepository,
     ContestRepository,
     PlayerRepository,
     PlayerResultRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { ContestPayoutService, ContestService, PaymentGatewayService, UserService } from '@src/services';
+import {ContestPayoutService, ContestService, PaymentGatewayService, UserService} from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
-    EMAIL_TEMPLATES,
-    PERMISSIONS,
-    LOBBY_SPREAD_LIMIT,
+    EMAIL_TEMPLATES, LOBBY_SPREAD_LIMIT, PERMISSIONS
 } from '@src/utils/constants';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
-    ICustomUserProfile,
+    ICustomUserProfile
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
-import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
-import { isEmpty } from 'lodash';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES} from '@src/utils/messages';
+import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/validators';
+import {isEmpty} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -261,7 +259,7 @@ export class ContestController {
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
 
-        
+
 
 
         const contestId = body.contestId || 0;
@@ -341,7 +339,7 @@ export class ContestController {
             c2d: MiscHelpers.c2d,
             text: {
                 title: `${
-                    user ? user.fullName : ''
+                    creatorUser ? creatorUser.fullName : ''
                 }, your TopProp contest has been claimed and is officially cleared for takeoff!`,
                 subtitle: 'Good luck!',
             },
