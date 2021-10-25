@@ -260,12 +260,23 @@ export class ContestController {
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
+
+        
+
+
         const contestId = body.contestId || 0;
         const userId = body.claimerId || 0;
         const contestData = await this.contestRepository.findById(contestId);
         if (!contestData) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_NOT_FOUND);
 
         if (contestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
+
+        const isPlayerAvailable = await this.contestService.checkPlayerStatus(
+            contestData.creatorPlayerId ? contestData.creatorPlayerId : 0,
+            contestData.claimerPlayerId ? contestData.claimerPlayerId : 0,
+        );
+
+        if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
 
         const user = await this.userRepository.findById(userId);
 

@@ -17,3 +17,4 @@ export * from './timeframe.cron';
 export * from './win-criteria.cron';
 export * from './withdraw-funds.cron';
 export * from './yahoo-sync-leagues.cron';
+export * from './schedule.cron';

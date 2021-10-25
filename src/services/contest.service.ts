@@ -4,7 +4,8 @@ import { SpreadRepository, PlayerRepository, ContestRepository } from '@src/repo
 import { MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import moment from 'moment';
-import { CONTEST_STATUSES, BLOCKED_TIME_SLOTS } from '@src/utils/constants';
+import momenttz from 'moment-timezone';
+import { CONTEST_STATUSES, BLOCKED_TIME_SLOTS, TIMEZONE, SCHEDULE } from '@src/utils/constants';
 
 import { Contest } from '@src/models';
 
@@ -96,6 +97,37 @@ export class ContestService {
             console.log(chalk.redBright(`Player(s) not available for contest`));
             return false;
         }
+
+        const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
+        // const currentTime = momenttz.tz('2021-10-24T12:30:00', TIMEZONE).add(1, 'minute');
+        const currentDay = currentTime.day();
+        const clonedCurrentTime = currentTime.clone();
+        let startOfGameWeek = clonedCurrentTime.day(4).startOf('day');
+        if (currentDay < 3) {
+            startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
+        }
+
+        const sheduledGames = SCHEDULE.filter(scheduledGame => {
+            const gameDate = momenttz.tz(scheduledGame.dateTime, TIMEZONE);
+            return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
+        });
+
+        let teamList: string[] = [];
+
+        sheduledGames.forEach(scheduledGame => {
+            if (scheduledGame.awayTeam) {
+                teamList.push(scheduledGame.awayTeam);
+            }
+            if (scheduledGame.homeTeam) {
+                teamList.push(scheduledGame.homeTeam);
+            }
+        });
+        
+        if(teamList.includes(playerData.teamName) || teamList.includes(opponentData.teamName)){
+            console.log(chalk.redBright(`Player(s) not available for contest`));
+            return false;
+        }
+
 
         return true;
     }

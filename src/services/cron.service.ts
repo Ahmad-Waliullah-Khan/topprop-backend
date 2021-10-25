@@ -1,6 +1,17 @@
 import { BindingScope, injectable, service } from '@loopback/core';
 import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {
+    Bet,
+    Gain,
+    LeagueContest,
+    LeagueContestRelations,
+    Contest,
+    ContestRelations,
+    Player,
+    Timeframe,
+    TopUp,
+    User,
+} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -48,11 +59,14 @@ import {
     TIMEFRAMES,
     TIMEZONE,
     WITHDRAW_REQUEST_STATUSES,
+    SCHEDULE,
 } from '../utils/constants';
 import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import { IScheduledGame } from '../utils/interfaces/contest.interfaces';
+import { schedule } from 'node-cron';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -391,6 +405,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.SCHEDULE_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 2 minutes
+                        cronTiming = '0 */2 * * * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -439,6 +469,9 @@ export class CronService {
                 break;
             case CRON_JOBS.BONUS_PAYOUT_PROCESSED_CRON:
                 cronMessage = 'Bonus processed Cron';
+                break;
+            case CRON_JOBS.SCHEDULE_CRON:
+                cronMessage = 'Scheduled Games processed Cron';
                 break;
         }
 
@@ -550,6 +583,56 @@ export class CronService {
         }
 
         return playerPromises;
+    }
+
+    async processSchedulesGames() {
+        const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
+        // const currentTime = momenttz.tz('2021-10-24T12:30:00', TIMEZONE).add(1, 'minute');
+        const currentDay = currentTime.day();
+        const clonedCurrentTime = currentTime.clone();
+        let startOfGameWeek = clonedCurrentTime.day(4).startOf('day');
+        if (currentDay < 3) {
+            startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
+        }
+
+        const sheduledGames = SCHEDULE.filter(scheduledGame => {
+            const gameDate = momenttz.tz(scheduledGame.dateTime, TIMEZONE);
+            return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
+        });
+
+        let teamList: string[] = [];
+
+        sheduledGames.forEach(scheduledGame => {
+            if (scheduledGame.awayTeam) {
+                teamList.push(scheduledGame.awayTeam);
+            }
+            if (scheduledGame.homeTeam) {
+                teamList.push(scheduledGame.homeTeam);
+            }
+        });
+
+        const foundPlayers = await this.playerRepository.find({
+            fields: { id: true },
+            where: {
+                teamName: { inq: teamList },
+            },
+        });
+
+        const playerIdList = foundPlayers.map(player => player.id);
+
+        await this.playerRepository.updateAll({ hasStarted: true }, { id: { inq: playerIdList } });
+
+        const contests = await this.contestRepository.find({
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+                or: [{ creatorPlayerId: { inq: playerIdList } }, { claimerPlayerId: { inq: playerIdList } }],
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        });
+        this.closeContestsFromList(contests);
+
+        return contests;
     }
 
     async winCheck() {
@@ -2340,38 +2423,6 @@ export class CronService {
     // }
 
     async closeContests() {
-        const favorite = {
-            type: CONTEST_STAKEHOLDERS.PENDING,
-            gameWin: false,
-            coversSpread: false,
-            winBonus: false,
-            netEarnings: 0,
-            playerWinBonus: 0,
-            playerMaxWin: 0,
-            playerCover: 0,
-            playerSpread: 0,
-            playerId: 0,
-            userId: 0,
-            fantasyPoints: 0,
-            projectedFantasyPoints: 0,
-        };
-
-        const underdog = {
-            type: CONTEST_STAKEHOLDERS.PENDING,
-            gameWin: false,
-            coversSpread: false,
-            winBonus: false,
-            netEarnings: 0,
-            playerWinBonus: 0,
-            playerMaxWin: 0,
-            playerCover: 0,
-            playerSpread: 0,
-            playerId: 0,
-            userId: 0,
-            fantasyPoints: 0,
-            projectedFantasyPoints: 0,
-        };
-
         const contests = await this.contestRepository.find({
             where: {
                 // status: CONTEST_STATUSES.OPEN,
@@ -2380,7 +2431,45 @@ export class CronService {
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
 
+        this.closeContestsFromList(contests);
+
+        return contests;
+    }
+
+    async closeContestsFromList(contests: any[]) {
         contests.map(async contest => {
+            const favorite = {
+                type: CONTEST_STAKEHOLDERS.PENDING,
+                gameWin: false,
+                coversSpread: false,
+                winBonus: false,
+                netEarnings: 0,
+                playerWinBonus: 0,
+                playerMaxWin: 0,
+                playerCover: 0,
+                playerSpread: 0,
+                playerId: 0,
+                userId: 0,
+                fantasyPoints: 0,
+                projectedFantasyPoints: 0,
+            };
+
+            const underdog = {
+                type: CONTEST_STAKEHOLDERS.PENDING,
+                gameWin: false,
+                coversSpread: false,
+                winBonus: false,
+                netEarnings: 0,
+                playerWinBonus: 0,
+                playerMaxWin: 0,
+                playerCover: 0,
+                playerSpread: 0,
+                playerId: 0,
+                userId: 0,
+                fantasyPoints: 0,
+                projectedFantasyPoints: 0,
+            };
+
             const entryAmount = Number(contest.entryAmount);
 
             if (contest.claimerId === null) {
@@ -2410,7 +2499,7 @@ export class CronService {
                 const winnerUser = await this.userRepository.findById(contestData.creatorId);
                 const winnerPlayer = await this.playerRepository.findById(contestData.creatorPlayerId);
                 const loserUser = null;
-                const loserPlayer = null;
+                const loserPlayer = await this.playerRepository.findById(contestData.claimerPlayerId);
                 const winnerPlayerMaxWin = contestData.creatorPlayerMaxWin;
                 const clientHost = process.env.CLIENT_HOST;
                 const receiverUser = winnerUser;
@@ -2512,8 +2601,6 @@ export class CronService {
                 });
             }
         });
-
-        return contests;
     }
 
     async fetchTimeframes() {

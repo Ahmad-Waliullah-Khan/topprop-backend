@@ -41,3 +41,13 @@ export interface ICalculateRiskToMatchRequest {
     type: CONTEST_TYPES;
     initialRiskAmount: number;
 }
+
+export interface IScheduledGame {
+    gameKey: string | null;
+    season: number;
+    week: number;
+    date: string | null;
+    awayTeam: string;
+    homeTeam: string;
+    dateTime: string | null;
+}

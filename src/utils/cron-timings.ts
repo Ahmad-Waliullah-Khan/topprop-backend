@@ -18,6 +18,7 @@ let CRON_TIMING_ONGOING_GAMES_CRON = '';
 let CRON_TIMING_BONUS_PAYOUT = '';
 let CRON_TIMING_BONUS_PROCESSED = '';
 let CRON_TIMING_VERIFIED_BONUS_PAYOUT = '';
+let CRON_TIMING_SCHEDULE = '';
 
 switch (cronEnv) {
     case 'development':
@@ -40,6 +41,7 @@ switch (cronEnv) {
         CRON_TIMING_BONUS_PAYOUT = '0 */1 * * * *';
         CRON_TIMING_BONUS_PROCESSED = '0 */1 * * * *';
         CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
+        CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         break;
     case 'staging':
         CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
@@ -61,6 +63,7 @@ switch (cronEnv) {
         CRON_TIMING_BONUS_PAYOUT = '0 */5 * * * *';
         CRON_TIMING_BONUS_PROCESSED = '0 */5 * * * *';
         CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
+        CRON_TIMING_SCHEDULE = '0 */1 * * * *';
 
         break;
     case 'production':
@@ -83,6 +86,7 @@ switch (cronEnv) {
         CRON_TIMING_BONUS_PAYOUT = '0 0 */1 * * *';
         CRON_TIMING_BONUS_PROCESSED = '0 0 */1 * * *';
         CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
+        CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         break;
 }
 
@@ -104,3 +108,4 @@ export const SYNC_TEAMS_CRON_TIMING = CRON_TIMING_SYNC_TEAMS_CRON;
 export const PROMO_CRON_TIMING = CRON_TIMING_BONUS_PAYOUT;
 export const BONUS_PROCESSED_TIMING = CRON_TIMING_BONUS_PROCESSED;
 export const VERIFIED_BONUS_PAYOUT_TIMING = CRON_TIMING_VERIFIED_BONUS_PAYOUT;
+export const SCHEDULE_TIMING = CRON_TIMING_SCHEDULE;

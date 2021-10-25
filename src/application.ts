@@ -35,6 +35,7 @@ import {
     WinCriteriaCron,
     WithdrawFundsCron,
     YahooSyncLeaguesCron,
+    ScheduleCron,
 } from './cron-jobs';
 import { BonusPayoutCron } from './cron-jobs/bonus-payout.cron';
 import { BonusProcessedCron } from './cron-jobs/bonus-processed.cron';
@@ -191,10 +192,15 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const BonusPayoutCronBinding = createBindingFromClass(BonusPayoutCron);
         this.add(BonusPayoutCronBinding);
+
         const BonusProcessedCronBinding = createBindingFromClass(BonusProcessedCron);
         this.add(BonusProcessedCronBinding);
+
         const VerifiedBonusCronBinding = createBindingFromClass(VerifiedBonusCron);
         this.add(VerifiedBonusCronBinding);
+        
+        const ScheduleCronBinding = createBindingFromClass(ScheduleCron);
+        this.add(ScheduleCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);
