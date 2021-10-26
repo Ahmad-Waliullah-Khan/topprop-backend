@@ -147,28 +147,28 @@ export class CronService {
             case CRON_JOBS.PLAYERS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute at 10pm every Tuesday
-                        cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 0th minute at 10pm every Tuesday
-                        cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // 0th second of 0th minute at 10pm every Tuesday
-                        cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                 }
                 break;
             case CRON_JOBS.SPECIAL_TEAMS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute at 10am every tuesday
-                        cronTiming = '0 0 10 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of 0th minute at 10am every tuesday
-                        cronTiming = '0 0 10 * * 2';
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute of every hour of every day
@@ -227,8 +227,8 @@ export class CronService {
             case CRON_JOBS.TIMEFRAME_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 15th minute every wednesday
-                        cronTiming = '0 15 * * * 3';
+                        // 0th second of 0th minute every hour
+                        cronTiming = '0 0 */1 * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of 0th minute every hour
@@ -586,6 +586,10 @@ export class CronService {
     }
 
     async processSchedulesGames() {
+        const currentWeek = await this.sportsDataService.currentWeek();
+
+        const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
         // const currentTime = momenttz.tz('2021-10-24T12:30:00', TIMEZONE).add(1, 'minute');
         const currentDay = currentTime.day();
@@ -595,14 +599,14 @@ export class CronService {
             startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
         }
 
-        const sheduledGames = SCHEDULE.filter(scheduledGame => {
-            const gameDate = momenttz.tz(scheduledGame.dateTime, TIMEZONE);
+        const scheduledGames = weekGames.filter(game => {
+            const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
         let teamList: string[] = [];
 
-        sheduledGames.forEach(scheduledGame => {
+        scheduledGames.forEach(scheduledGame => {
             if (scheduledGame.awayTeam) {
                 teamList.push(scheduledGame.awayTeam);
             }
@@ -631,6 +635,29 @@ export class CronService {
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
         this.closeContestsFromList(contests);
+
+        const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
+        let byeTeamList: string[] = [];
+
+        byeGames.forEach(byeGame => {
+            if (byeGame.homeTeam) {
+                byeTeamList.push(byeGame.homeTeam);
+            }
+        });
+
+        const foundByePlayers = await this.playerRepository.find({
+            fields: { id: true },
+            where: {
+                teamName: { inq: byeTeamList },
+            },
+        });
+
+        const byePlayerIdList = foundByePlayers.map(player => player.id);
+
+        await this.playerRepository.updateAll(
+            { hasStarted: true, isOver: true, projectedFantasyPoints: 0 },
+            { id: { inq: byePlayerIdList } },
+        );
 
         return contests;
     }
@@ -2433,6 +2460,12 @@ export class CronService {
 
         this.closeContestsFromList(contests);
 
+        this.playerRepository.updateAll(
+            { isOver: true, hasStarted: true },
+            { isOver: false },
+            (err: any, info: any) => {},
+        );
+
         return contests;
     }
 
@@ -2705,8 +2738,8 @@ export class CronService {
             const overPlayers = await this.playerRepository.find({ where: { isOver: true } });
             if (overPlayers.length > 0) {
                 this.playerRepository.updateAll(
-                    { isOver: false, projectedFantasyPoints: 0 },
-                    { id: { neq: undefined } },
+                    { isOver: false, hasStarted: false, projectedFantasyPoints: 0 },
+                    { isOver: true },
                     (err: any, info: any) => {},
                 );
             }
