@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -47,12 +47,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -133,28 +133,28 @@ export class CronService {
             case CRON_JOBS.PLAYERS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute at 10pm every Tuesday
-                        cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 0th minute at 10pm every Tuesday
-                        cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // 0th second of 0th minute at 10pm every Tuesday
-                        cronTiming = '0 0 22 * * 2';
+                        // 0th second of 0th minute at 10am every Wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                 }
                 break;
             case CRON_JOBS.SPECIAL_TEAMS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute at 10am every tuesday
-                        cronTiming = '0 0 10 * * 2';
+                        // 0th second of 0th minute at 10am every wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of 0th minute at 10am every tuesday
-                        cronTiming = '0 0 10 * * 2';
+                        // 0th second of 0th minute at 10am every wednesday
+                        cronTiming = '0 0 10 * * 3';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of 0th minute of every hour of every day
@@ -2584,7 +2584,7 @@ export class CronService {
                         foundLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                return await this.playerRepository.save(foundLocalPlayer);
+                return this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
                 newLocalPlayer.remoteId = remotePlayer.PlayerID;
@@ -2608,7 +2608,7 @@ export class CronService {
                         newLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                return await this.playerRepository.create(newLocalPlayer);
+                return this.playerRepository.create(newLocalPlayer);
             }
         });
 
@@ -3025,7 +3025,7 @@ export class CronService {
                     const couponData = await this.couponCodeRepository.findOne({
                         where: { code: { regexp: pattern } },
                     });
-                    
+
 
                     if (couponData) {
                         const bonusPayoutData = {
@@ -3039,6 +3039,45 @@ export class CronService {
                             bonusPayoutProcessed: true,
                         });
                     }
+                }
+            });
+        }
+
+        // Bonus Payouts Manual
+
+        const readFile = util.promisify(fs.readFile);
+        // const filePath = 'src/seeders/bonus_payouts.csv';
+        const filePath = process.env.BONUS_PAYOUT_FILE_PATH;
+        let records: any[] = [];
+        if (filePath && fs.existsSync(filePath)) {
+            try {
+                const data = await readFile(filePath, 'utf8');
+                records = parse(data, {
+                    columns: true,
+                    skip_empty_lines: true,
+                });
+            } catch (err) {
+                logger.error(err);
+            }
+        }
+
+        records.forEach(async bonus => {
+            const user = await this.userRepository.findOne({ where: { email: bonus.Email } });
+            if (user) {
+                const bonusPayoutPayload = {
+                    amount: Number(bonus?.Amount) || 0,
+                    message: bonus?.Reason || 'Out of Band',
+                    status: BONUSSTATUS.PENDING,
+                    userId: user.id,
+                };
+                await this.bonusPayoutRepository.create(bonusPayoutPayload);
+            }
+        });
+
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlink(filePath, err => {
+                if (err) {
+                    console.log(err);
                 }
             });
         }

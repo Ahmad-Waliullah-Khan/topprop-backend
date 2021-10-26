@@ -64,8 +64,8 @@ switch (cronEnv) {
 
         break;
     case 'production':
-        CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
-        CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
+        CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
+        CRON_TIMING_SPECIAL_TEAMS_CRON = '0 0 10 * * 3';
         CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 0 */1 */1 * *';
         CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '0 */5 * * * *';
         CRON_TIMING_WIN_CHECK_CRON = '45 */5 * * * *';
