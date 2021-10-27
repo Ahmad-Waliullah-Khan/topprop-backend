@@ -467,7 +467,7 @@ export class PlayerController {
                         available: true,
                         status: 'Active',
                         projectedFantasyPoints: {
-                            gt: 2.9
+                            gt: 2.9,
                         },
                     },
                 });
@@ -487,7 +487,7 @@ export class PlayerController {
                     status: 'Active',
                     position: { inq: TOP_PLAYER_POSITIONS },
                     projectedFantasyPoints: {
-                        gt: 2.9
+                        gt: 2.9,
                     },
                 },
                 order: ['projectedFantasyPoints DESC'],
@@ -529,17 +529,19 @@ export class PlayerController {
         }
 
         // Different Position
-        const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(position => position != currentPlayer.position || position != 'K');
+        const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(
+            position => position != currentPlayer.position || position != 'K',
+        );
         let firstPlayer = await this.playerRepository.findOne({
             where: {
                 hasStarted: false,
                 isOver: false,
                 position: { inq: filteredFirstPlayerPosition },
                 id: { nin: [currentPlayer.id] },
-                projectedFantasyPoints: {
-                    between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
-                    gt: 2.9
-                },
+                and: [
+                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPoints: { gt: 2.9 } },
+                ],
                 available: true,
                 status: 'Active',
             },
@@ -551,7 +553,6 @@ export class PlayerController {
             ]);
         }
 
-
         // Same Team/Game
         let secondPlayer = await this.playerRepository.findOne({
             where: {
@@ -560,10 +561,10 @@ export class PlayerController {
                 teamName: currentPlayer?.opponentName,
                 position: { inq: PLAYER_POSITIONS },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0] },
-                projectedFantasyPoints: {
-                    between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
-                    gt: 2.9
-                },
+                and: [
+                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPoints: { gt: 2.9 } },
+                ],
                 available: true,
                 status: 'Active',
             },
@@ -583,10 +584,10 @@ export class PlayerController {
                 isOver: false,
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0] },
-                projectedFantasyPoints: {
-                    between: [currentPlayer?.projectedFantasyPoints, projectedPointsUpperLimit],
-                    gt: 2.9
-                },
+                and: [
+                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPoints: { gt: 2.9 } },
+                ],
                 available: true,
                 status: 'Active',
             },
@@ -607,10 +608,10 @@ export class PlayerController {
                 isOver: false,
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0, thirdPlayer?.id || 0] },
-                projectedFantasyPoints: {
-                    between: [projectedPointsLowerLimit, currentPlayer?.projectedFantasyPoints],
-                    gt: 2.9
-                },
+                and: [
+                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPoints: { gt: 2.9 } },
+                ],
                 available: true,
                 status: 'Active',
             },
@@ -640,10 +641,10 @@ export class PlayerController {
                         fourthPlayer?.id || 0,
                     ],
                 },
-                projectedFantasyPoints: {
-                    between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
-                    gt: 2.9
-                },
+                and: [
+                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPoints: { gt: 2.9 } },
+                ],
                 available: true,
                 status: 'Active',
             },
@@ -687,10 +688,10 @@ export class PlayerController {
                 isOver: false,
                 id: { nin: playerList },
                 position: currentPlayer?.position,
-                projectedFantasyPoints: {
-                    between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
-                    gt: 2.9
-                },
+                and: [
+                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPoints: { gt: 2.9 } },
+                ],
                 available: true,
                 status: 'Active',
             },
@@ -704,10 +705,10 @@ export class PlayerController {
                     isOver: false,
                     id: { nin: playerList },
                     position: { inq: PLAYER_POSITIONS },
-                    projectedFantasyPoints: {
-                        between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
-                        gt: 2.9
-                    },
+                    and: [
+                        { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                        { projectedFantasyPoints: { gt: 2.9 } },
+                    ],
                     available: true,
                     status: 'Active',
                 },
