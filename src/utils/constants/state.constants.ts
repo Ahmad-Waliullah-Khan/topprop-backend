@@ -301,7 +301,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 21,
         weeklyDepositLimit: 100000,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Michigan',
