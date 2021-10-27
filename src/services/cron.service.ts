@@ -179,12 +179,12 @@ export class CronService {
             case CRON_JOBS.PROJECTED_FANTASY_POINTS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 0th second of 0th minute of every hour of every day
-                        cronTiming = '0 0 */1 */1 * *';
+                        // 0th second of 15th minute
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th second of 15th minute every wednesday
-                        cronTiming = '0 0 3 * * 3';
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 5th minute from 0th minute to 40th minute
