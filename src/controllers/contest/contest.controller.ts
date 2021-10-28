@@ -1,34 +1,38 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
-import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {Bet, Contest} from '@src/models';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { Bet, Contest, Gain } from '@src/models';
 import {
     BetRepository,
     ContestRepository,
     PlayerRepository,
     PlayerResultRepository,
-    UserRepository
+    UserRepository,
+    GainRepository,
 } from '@src/repositories';
-import {ContestPayoutService, ContestService, PaymentGatewayService, UserService} from '@src/services';
+import { ContestPayoutService, ContestService, PaymentGatewayService, UserService } from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
-    EMAIL_TEMPLATES, LOBBY_SPREAD_LIMIT, PERMISSIONS
+    EMAIL_TEMPLATES,
+    LOBBY_SPREAD_LIMIT,
+    PERMISSIONS,
+    CONTEST_STAKEHOLDERS,
 } from '@src/utils/constants';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
-    ICustomUserProfile
+    ICustomUserProfile,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES} from '@src/utils/messages';
-import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/validators';
-import {isEmpty} from 'lodash';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
+import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
+import { isEmpty } from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -44,6 +48,7 @@ export class ContestController {
         public playerResultRepository: PlayerResultRepository,
         @repository(UserRepository)
         public userRepository: UserRepository,
+        @repository(GainRepository) private gainRepository: GainRepository,
         @service() private paymentGatewayService: PaymentGatewayService,
         @service() private contestPayoutService: ContestPayoutService,
         @service() private contestService: ContestService,
@@ -258,10 +263,6 @@ export class ContestController {
         const validationErrors = validation.validate(body);
         if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
 
-
-
-
-
         const contestId = body.contestId || 0;
         const userId = body.claimerId || 0;
         const contestData = await this.contestRepository.findById(contestId);
@@ -344,6 +345,110 @@ export class ContestController {
                 subtitle: 'Good luck!',
             },
         });
+
+        return {
+            message: CONTEST_MESSAGES.CLAIM_SUCCESS,
+            data: {
+                myContests: myContests,
+                contests: contests,
+            },
+        };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @post(API_ENDPOINTS.CONTESTS.CLOSE, {
+        responses: {
+            '200': {
+                description: 'Contest model instance',
+                content: {
+                    'application/json': {
+                        schema: {
+                            message: { type: 'string' },
+                            data: {
+                                myContests: { type: 'array', items: getModelSchemaRef(Contest) },
+                                contests: { type: 'array', items: getModelSchemaRef(Contest) },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async close(
+        @requestBody()
+        body: Partial<IContestClaimRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const userId = +currentUser[securityId];
+
+        const validationSchema = {
+            contestId: CONTEST_CLAIM_VALIDATOR.contestId,
+        };
+
+        const validation = new Schema(validationSchema, { strip: true });
+        const validationErrors = validation.validate(body);
+        if (validationErrors.length) throw new HttpErrors.BadRequest(ErrorHandler.formatError(validationErrors));
+
+        const contestId = body.contestId || 0;
+
+        const contestData = await this.contestRepository.findById(contestId);
+        if (!contestData) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_NOT_FOUND);
+
+        if (contestData.claimerId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.CONTEST_ALREADY_MATCHED);
+
+        if (contestData.creatorId !== userId) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.NOT_YOUR_CONTEST);
+
+        const constestUpdateData = {
+            topPropProfit: 0,
+            status: CONTEST_STATUSES.CLOSED,
+            ended: true,
+            endedAt: moment(),
+            winnerLabel: CONTEST_STAKEHOLDERS.UNMATCHED,
+            creatorWinAmount: 0,
+            claimerWinAmount: 0,
+        };
+        await this.contestRepository.updateById(contestId, constestUpdateData);
+
+        const entryAmount = Number(contestData.entryAmount);
+
+        const entryGain = new Gain();
+        entryGain.contestType = 'battleground';
+        entryGain.amount = Number(entryAmount);
+        entryGain.userId = contestData.creatorId;
+        // entryGain.contenderId = favorite.playerId;
+        entryGain.contestId = contestId;
+        await this.gainRepository.create(entryGain);
+
+        const myContestFilter = {
+            where: {
+                and: [
+                    { ended: false },
+                    { or: [{ creatorId: userId }, { claimerId: userId }] },
+                    {
+                        or: [
+                            { status: CONTEST_STATUSES.OPEN },
+                            { status: CONTEST_STATUSES.MATCHED },
+                            { status: CONTEST_STATUSES.UNMATCHED },
+                        ],
+                    },
+                ],
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        };
+
+        const contestFilter = {
+            where: {
+                status: CONTEST_STATUSES.OPEN,
+                ended: false,
+                creatorId: { neq: userId },
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        };
+        const myContests = await this.contestRepository.find(myContestFilter);
+        const contests = await this.contestRepository.find(contestFilter);
 
         return {
             message: CONTEST_MESSAGES.CLAIM_SUCCESS,
@@ -479,8 +584,8 @@ export class ContestController {
         if (!isPlayerAvailable) throw new HttpErrors.BadRequest(COMMON_MESSAGES.PLAYER_NOT_AVAILABLE);
 
         const spread = await this.contestService.calculateSpread(body.playerId, body.opponentId, body.type);
-        if(Math.abs(Number(spread))>LOBBY_SPREAD_LIMIT) throw new HttpErrors.BadRequest(CONTEST_MESSAGES.SPREAD_TOO_LARGE);
-
+        if (Math.abs(Number(spread)) > LOBBY_SPREAD_LIMIT)
+            throw new HttpErrors.BadRequest(CONTEST_MESSAGES.SPREAD_TOO_LARGE);
 
         const entryAmount = body.entry ? body.entry * 100 : 0;
         const coverWithBonus = await this.contestService.calculateCover(spread, entryAmount, true);

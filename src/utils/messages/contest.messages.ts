@@ -1,4 +1,5 @@
 export const CONTEST_MESSAGES = {
+    NOT_YOUR_CONTEST: `Cannot close this contest. It does not belong to you.`,
     CONTEST_NOT_FOUND: `Contest does not exist.`,
     CREATE_SUCCESS: `Contest created Successfully.`,
     CLAIM_SUCCESS: `Contest claimed Successfully.`,
