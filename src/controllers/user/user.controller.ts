@@ -85,7 +85,7 @@ export class UserController {
         // const validCountry = await this.userService.validCountry(body.signUpCountry || '');
         // if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
-        const statePermissions = await this.userService.statePermissions(body.signUpState);
+        const statePermissions = await this.userService.statePermissions(body.signUpState, body.signUpState);
         const dob = moment(body.dateOfBirth);
         const current = moment();
         const age = current.diff(dob, 'years');

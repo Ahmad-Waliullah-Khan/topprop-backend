@@ -264,8 +264,9 @@ export class WalletController {
             });
 
             const signUpState = user.signUpState || '';
+            const signInState = user.lastLoginState || '';
 
-            const statePermissions = await this.userService.statePermissions(signUpState);
+            const statePermissions = await this.userService.statePermissions(signUpState, signInState);
 
             const stateDepositLimit = statePermissions.weeklyDepositLimit;
 

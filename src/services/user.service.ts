@@ -104,7 +104,7 @@ export class UserService {
         // if (!(await this.validCountry(credentials.country)))
         //     throw new HttpErrors.BadRequest(`${credentials.country} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
-        const config = await this.statePermissions(foundUser.signUpState || '');
+        const config = await this.statePermissions(foundUser.signUpState || '', credentials.state || '');
 
         foundUser.lastLoginState = credentials.state;
         foundUser.invalidLoginCount = 0;
@@ -245,13 +245,25 @@ export class UserService {
         return isEqual(user.id, id);
     }
 
-    async statePermissions(state: string): Promise<any> {
+    async statePermissions(signupState: string, signinState: string): Promise<any> {
         let validStatePermissions = VALID_STATE_PERMISSIONS;
         if (isEqual(process.env.GEOTRACKING_ENV, 'development')) {
             validStatePermissions = [...VALID_STATE_PERMISSIONS, ...DEV_STATE_PERMISSIONS];
         }
-        const found = validStatePermissions.find(element => element.abbr === state);
-        return found || FALLBACK_PERMISSIONS;
+        const signUpPermissions =
+            validStatePermissions.find(element => element.abbr === signupState) || FALLBACK_PERMISSIONS;
+        const signInPermissions =
+            validStatePermissions.find(element => element.abbr === signinState) || FALLBACK_PERMISSIONS;
+
+        const permissions = {
+            ...signInPermissions,
+            minAge: signUpPermissions ? signUpPermissions.minAge : signInPermissions?.minAge,
+            weeklyDepositLimit: signUpPermissions
+                ? signUpPermissions.weeklyDepositLimit
+                : signInPermissions?.weeklyDepositLimit,
+        };
+
+        return permissions;
     }
 
     async validState(state: string): Promise<boolean> {
