@@ -28,20 +28,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository
+    WithdrawRequestRepository,
 } from '@src/repositories';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import {TRANSFER_TYPES} from '../services';
-import {LeagueService} from '../services/league.service';
-import {PaymentGatewayService} from '../services/payment-gateway.service';
-import {SportsDataService} from '../services/sports-data.service';
-import {UserService} from '../services/user.service';
+import { TRANSFER_TYPES } from '../services';
+import { LeagueService } from '../services/league.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -61,7 +61,7 @@ import {
     WITHDRAW_REQUEST_STATUSES,
     SCHEDULE,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
@@ -663,38 +663,6 @@ export class CronService {
     }
 
     async winCheck() {
-        const favorite = {
-            type: CONTEST_STAKEHOLDERS.PENDING,
-            gameWin: false,
-            coversSpread: false,
-            winBonus: false,
-            netEarnings: 0,
-            playerWinBonus: 0,
-            playerMaxWin: 0,
-            playerCover: 0,
-            playerSpread: 0,
-            playerId: 0,
-            userId: 0,
-            fantasyPoints: 0,
-            projectedFantasyPoints: 0,
-        };
-
-        const underdog = {
-            type: CONTEST_STAKEHOLDERS.PENDING,
-            gameWin: false,
-            coversSpread: false,
-            winBonus: false,
-            netEarnings: 0,
-            playerWinBonus: 0,
-            playerMaxWin: 0,
-            playerCover: 0,
-            playerSpread: 0,
-            playerId: 0,
-            userId: 0,
-            fantasyPoints: 0,
-            projectedFantasyPoints: 0,
-        };
-
         const contests = await this.contestRepository.find({
             where: {
                 status: CONTEST_STATUSES.MATCHED,
@@ -713,6 +681,38 @@ export class CronService {
         });
 
         filteredContests.map(async contest => {
+            const favorite = {
+                type: CONTEST_STAKEHOLDERS.PENDING,
+                gameWin: false,
+                coversSpread: false,
+                winBonus: false,
+                netEarnings: 0,
+                playerWinBonus: 0,
+                playerMaxWin: 0,
+                playerCover: 0,
+                playerSpread: 0,
+                playerId: 0,
+                userId: 0,
+                fantasyPoints: 0,
+                projectedFantasyPoints: 0,
+            };
+
+            const underdog = {
+                type: CONTEST_STAKEHOLDERS.PENDING,
+                gameWin: false,
+                coversSpread: false,
+                winBonus: false,
+                netEarnings: 0,
+                playerWinBonus: 0,
+                playerMaxWin: 0,
+                playerCover: 0,
+                playerSpread: 0,
+                playerId: 0,
+                userId: 0,
+                fantasyPoints: 0,
+                projectedFantasyPoints: 0,
+            };
+
             const entryAmount = Number(contest.entryAmount);
             const mlValue = Number(contest.mlValue);
             const spreadValue = Number(contest.spreadValue);
