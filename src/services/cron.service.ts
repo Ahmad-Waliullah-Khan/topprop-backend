@@ -797,9 +797,16 @@ export class CronService {
                 winner = 'underdog';
             } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
-                favorite.netEarnings = -entryAmount + Number(favorite.playerWinBonus) + mlValue;
-                underdog.netEarnings = favorite.playerCover - mlValue;
-                topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+
+                // Past spread based contest win logic for favorite win but did not cover spread
+                // favorite.netEarnings = -entryAmount + Number(favorite.playerWinBonus) + mlValue;
+                // underdog.netEarnings = favorite.playerCover - mlValue;
+                // topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+
+                favorite.netEarnings = -entryAmount;
+                underdog.netEarnings = underdog.playerMaxWin;
+                topPropProfit = entryAmount - underdog.playerMaxWin;
+
                 winner = 'underdog';
             } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
@@ -952,6 +959,7 @@ export class CronService {
                 // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
+
                 const clientHost = process.env.CLIENT_HOST;
 
                 if (winner === 'favorite') {
@@ -1389,9 +1397,15 @@ export class CronService {
                 winner = 'underdog';
             } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
-                favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
-                underdog.netEarnings = favorite.teamCover - mlValue;
-                topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+
+                // Past spread based contest win logic for favorite win but did not cover spread
+                // favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
+                // underdog.netEarnings = favorite.teamCover - mlValue;
+                // topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+
+                favorite.netEarnings = -entryAmount;
+                underdog.netEarnings = underdog.teamMaxWin;
+                topPropProfit = entryAmount - underdog.teamMaxWin;
                 winner = 'underdog';
             } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw
@@ -1969,9 +1983,9 @@ export class CronService {
                 winner = 'underdog';
             } else if (favorite.gameWin && !favorite.coversSpread) {
                 // Row 5 & 6 of wiki combination table
-                favorite.netEarnings = -entryAmount + Number(favorite.teamWinBonus) + mlValue;
-                underdog.netEarnings = favorite.teamCover - mlValue;
-                topPropProfit = -(underdog.netEarnings + favorite.netEarnings);
+                favorite.netEarnings = -entryAmount;
+                underdog.netEarnings = underdog.teamMaxWin;
+                topPropProfit = entryAmount - underdog.teamMaxWin;
                 winner = 'underdog';
             } else if (!favorite.coversSpread && !underdog.coversSpread) {
                 // Draw

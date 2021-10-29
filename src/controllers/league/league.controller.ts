@@ -1368,6 +1368,7 @@ export class LeagueController {
 
             // bet.contenderId = creatorTeamId;
             bet.userId = userId;
+            bet.contestType = 'League';
             bet.amount = entryAmount;
             bet.contestId = createdLeagueContest.id;
 
@@ -1476,6 +1477,7 @@ export class LeagueController {
 
         // bet.contenderId = leagueContestData.claimerTeamId;
         bet.userId = userId;
+        bet.contestType = 'League';
         bet.amount = leagueContestData.entryAmount;
         bet.contestId = leagueContestId;
 
