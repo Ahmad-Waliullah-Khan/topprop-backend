@@ -232,13 +232,13 @@ export class UserService {
             user = await userRepository.findById(user);
         }
 
-        this.emailService.sendEmail({
-            template,
-            message: {
-                to: customEmail ? customEmail : user.email,
-            },
-            locals,
-        });
+        // this.emailService.sendEmail({
+        //     template,
+        //     message: {
+        //         to: customEmail ? customEmail : user.email,
+        //     },
+        //     locals,
+        // });
     }
 
     async compareId(user: User, id: number): Promise<boolean> {
