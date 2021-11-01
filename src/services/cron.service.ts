@@ -314,7 +314,7 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // 0th minute every hour
-                        cronTiming = '0 0 */1 * * *';
+                        cronTiming = '0 0 */12 * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th minute every hour
@@ -408,6 +408,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.MISCELLANEOUS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 1st of Feb
+                        cronTiming = '* * * * 2 *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 1st of Feb
+                        cronTiming = '* * * * 2 *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 1st of Feb
+                        cronTiming = '* * * * 2 *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -459,6 +475,9 @@ export class CronService {
                 break;
             case CRON_JOBS.SCHEDULE_CRON:
                 cronMessage = 'Scheduled Games processed Cron';
+                break;
+            case CRON_JOBS.MISCELLANEOUS_CRON:
+                cronMessage = 'Miscellaneous functions Cron';
                 break;
         }
 

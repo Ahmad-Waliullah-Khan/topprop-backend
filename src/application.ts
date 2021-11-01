@@ -36,6 +36,7 @@ import {
     WithdrawFundsCron,
     YahooSyncLeaguesCron,
     ScheduleCron,
+    MiscellaneousCron,
 } from './cron-jobs';
 import { BonusPayoutCron } from './cron-jobs/bonus-payout.cron';
 import { BonusProcessedCron } from './cron-jobs/bonus-processed.cron';
@@ -142,6 +143,9 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         this.component(CronComponent);
 
+        const MiscellaneousCronBinding = createBindingFromClass(MiscellaneousCron);
+        this.add(MiscellaneousCronBinding);
+
         const PlayersCronBinding = createBindingFromClass(PlayersCron);
         this.add(PlayersCronBinding);
 
@@ -201,6 +205,7 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         
         const ScheduleCronBinding = createBindingFromClass(ScheduleCron);
         this.add(ScheduleCronBinding);
+
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);
