@@ -1,17 +1,6 @@
 import { BindingScope, injectable, service } from '@loopback/core';
 import { repository, Where } from '@loopback/repository';
-import {
-    Bet,
-    Gain,
-    LeagueContest,
-    LeagueContestRelations,
-    Contest,
-    ContestRelations,
-    Player,
-    Timeframe,
-    TopUp,
-    User,
-} from '@src/models';
+import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -55,18 +44,16 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
+    SCHEDULE,
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
     WITHDRAW_REQUEST_STATUSES,
-    SCHEDULE,
 } from '../utils/constants';
 import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
 import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
-import { IScheduledGame } from '../utils/interfaces/contest.interfaces';
-import { schedule } from 'node-cron';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -604,7 +591,7 @@ export class CronService {
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
-        let teamList: string[] = [];
+        const teamList: string[] = [];
 
         scheduledGames.forEach(scheduledGame => {
             if (scheduledGame.awayTeam) {
@@ -637,7 +624,7 @@ export class CronService {
         this.closeContestsFromList(contests);
 
         const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
-        let byeTeamList: string[] = [];
+        const byeTeamList: string[] = [];
 
         byeGames.forEach(byeGame => {
             if (byeGame.homeTeam) {
@@ -695,6 +682,7 @@ export class CronService {
                 userId: 0,
                 fantasyPoints: 0,
                 projectedFantasyPoints: 0,
+                fantasyPointsHalfPpr: 0,
             };
 
             const underdog = {
@@ -711,6 +699,7 @@ export class CronService {
                 userId: 0,
                 fantasyPoints: 0,
                 projectedFantasyPoints: 0,
+                fantasyPointsHalfPpr: 0,
             };
 
             const entryAmount = Number(contest.entryAmount);
@@ -728,20 +717,26 @@ export class CronService {
                 favorite.userId = contest.creatorId;
                 favorite.playerId = contest.creatorPlayerId;
                 favorite.fantasyPoints = contest.creatorPlayer ? Number(contest.creatorPlayer.fantasyPoints) : 0;
+                favorite.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 favorite.projectedFantasyPoints = contest.creatorPlayer
                     ? Number(contest.creatorPlayer.projectedFantasyPoints)
                     : 0;
 
                 underdog.type = CONTEST_STAKEHOLDERS.CLAIMER;
-                underdog.playerWinBonus =  Number(contest.claimerPlayerWinBonus);
-                underdog.playerMaxWin =  Number(contest.claimerPlayerMaxWin);
-                underdog.playerCover =  Number(contest.claimerPlayerCover);
-                underdog.playerSpread =  Number(contest.claimerPlayerSpread);
+                underdog.playerWinBonus = Number(contest.claimerPlayerWinBonus);
+                underdog.playerMaxWin = Number(contest.claimerPlayerMaxWin);
+                underdog.playerCover = Number(contest.claimerPlayerCover);
+                underdog.playerSpread = Number(contest.claimerPlayerSpread);
                 underdog.userId = contest.claimerId;
                 underdog.playerId = contest.claimerPlayerId;
-                underdog.fantasyPoints = contest.claimerPlayer ?  Number(contest.claimerPlayer.fantasyPoints) : 0;
+                underdog.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
+                underdog.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 underdog.projectedFantasyPoints = contest.claimerPlayer
-                    ?  Number(contest.claimerPlayer.projectedFantasyPoints)
+                    ? Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
             } else {
                 underdog.type = CONTEST_STAKEHOLDERS.CREATOR;
@@ -752,6 +747,9 @@ export class CronService {
                 underdog.userId = contest.creatorId;
                 underdog.playerId = contest.creatorPlayerId;
                 underdog.fantasyPoints = contest.creatorPlayer ? Number(contest.creatorPlayer.fantasyPoints) : 0;
+                underdog.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 underdog.projectedFantasyPoints = contest.creatorPlayer
                     ? Number(contest.creatorPlayer.projectedFantasyPoints)
                     : 0;
@@ -764,6 +762,9 @@ export class CronService {
                 favorite.userId = contest.claimerId;
                 favorite.playerId = contest.claimerPlayerId;
                 favorite.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
+                favorite.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 favorite.projectedFantasyPoints = contest.claimerPlayer
                     ? Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
@@ -774,8 +775,8 @@ export class CronService {
             // underdog.fantasyPoints = 2;
             // TEST BENCH END
 
-            favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
-            underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
+            favorite.gameWin = favorite.fantasyPointsHalfPpr > underdog.fantasyPointsHalfPpr;
+            underdog.gameWin = underdog.fantasyPointsHalfPpr >= favorite.fantasyPointsHalfPpr;
 
             favorite.coversSpread = favorite.fantasyPoints - Number(underdog.playerSpread) > underdog.fantasyPoints;
             underdog.coversSpread = underdog.fantasyPoints + Number(underdog.playerSpread) > favorite.fantasyPoints;
@@ -822,7 +823,6 @@ export class CronService {
                 winner = 'push';
             }
 
-        
             if (winner === 'push') {
                 const constestData = {
                     topPropProfit: topPropProfit,
@@ -930,7 +930,7 @@ export class CronService {
                     creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
                     claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
                 };
-                
+
                 await this.contestRepository.updateById(contest.id, constestData);
 
                 const contestDataForEmail = await this.contestRepository.findById(contest.id);
@@ -2720,7 +2720,7 @@ export class CronService {
                         foundLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                return await this.playerRepository.save(foundLocalPlayer);
+                return this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
                 newLocalPlayer.remoteId = remotePlayer.PlayerID;
@@ -2745,7 +2745,7 @@ export class CronService {
                         newLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                return await this.playerRepository.create(newLocalPlayer);
+                return this.playerRepository.create(newLocalPlayer);
             }
         });
 
