@@ -1,17 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import {
-    Bet,
-    Gain,
-    LeagueContest,
-    LeagueContestRelations,
-    Contest,
-    ContestRelations,
-    Player,
-    Timeframe,
-    TopUp,
-    User,
-} from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -28,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -55,18 +44,16 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
+    SCHEDULE,
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
-    SCHEDULE,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
-import { IScheduledGame } from '../utils/interfaces/contest.interfaces';
-import { schedule } from 'node-cron';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -623,7 +610,7 @@ export class CronService {
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
-        let teamList: string[] = [];
+        const teamList: string[] = [];
 
         scheduledGames.forEach(scheduledGame => {
             if (scheduledGame.awayTeam) {
@@ -656,7 +643,7 @@ export class CronService {
         this.closeContestsFromList(contests);
 
         const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
-        let byeTeamList: string[] = [];
+        const byeTeamList: string[] = [];
 
         byeGames.forEach(byeGame => {
             if (byeGame.homeTeam) {
@@ -714,6 +701,7 @@ export class CronService {
                 userId: 0,
                 fantasyPoints: 0,
                 projectedFantasyPoints: 0,
+                fantasyPointsHalfPpr: 0,
             };
 
             const underdog = {
@@ -730,6 +718,7 @@ export class CronService {
                 userId: 0,
                 fantasyPoints: 0,
                 projectedFantasyPoints: 0,
+                fantasyPointsHalfPpr: 0,
             };
 
             const entryAmount = Number(contest.entryAmount);
@@ -747,6 +736,9 @@ export class CronService {
                 favorite.userId = contest.creatorId;
                 favorite.playerId = contest.creatorPlayerId;
                 favorite.fantasyPoints = contest.creatorPlayer ? Number(contest.creatorPlayer.fantasyPoints) : 0;
+                favorite.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 favorite.projectedFantasyPoints = contest.creatorPlayer
                     ? Number(contest.creatorPlayer.projectedFantasyPoints)
                     : 0;
@@ -759,6 +751,9 @@ export class CronService {
                 underdog.userId = contest.claimerId;
                 underdog.playerId = contest.claimerPlayerId;
                 underdog.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
+                underdog.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 underdog.projectedFantasyPoints = contest.claimerPlayer
                     ? Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
@@ -771,6 +766,9 @@ export class CronService {
                 underdog.userId = contest.creatorId;
                 underdog.playerId = contest.creatorPlayerId;
                 underdog.fantasyPoints = contest.creatorPlayer ? Number(contest.creatorPlayer.fantasyPoints) : 0;
+                underdog.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 underdog.projectedFantasyPoints = contest.creatorPlayer
                     ? Number(contest.creatorPlayer.projectedFantasyPoints)
                     : 0;
@@ -783,6 +781,9 @@ export class CronService {
                 favorite.userId = contest.claimerId;
                 favorite.playerId = contest.claimerPlayerId;
                 favorite.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
+                favorite.fantasyPointsHalfPpr = contest.creatorPlayer
+                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                    : 0;
                 favorite.projectedFantasyPoints = contest.claimerPlayer
                     ? Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
@@ -793,14 +794,14 @@ export class CronService {
             // underdog.fantasyPoints = 2;
             // TEST BENCH END
 
-            favorite.gameWin = favorite.fantasyPoints > underdog.fantasyPoints;
-            underdog.gameWin = underdog.fantasyPoints >= favorite.fantasyPoints;
+            favorite.gameWin = favorite.fantasyPointsHalfPpr > underdog.fantasyPointsHalfPpr;
+            underdog.gameWin = underdog.fantasyPointsHalfPpr >= favorite.fantasyPointsHalfPpr;
 
-            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.playerSpread) > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.playerSpread) > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPointsHalfPpr - Number(underdog.playerSpread) > underdog.fantasyPointsHalfPpr;
+            underdog.coversSpread = underdog.fantasyPointsHalfPpr + Number(underdog.playerSpread) > favorite.fantasyPointsHalfPpr;
 
             favorite.winBonus = favorite.playerWinBonus > 0;
-            underdog.winBonus = underdog.fantasyPoints > 0;
+            underdog.winBonus = underdog.fantasyPointsHalfPpr > 0;
 
             if (favorite.gameWin && favorite.coversSpread) {
                 // Row 1 & 2 of wiki combination table
@@ -850,8 +851,8 @@ export class CronService {
                     winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
                     creatorWinAmount: 0,
                     claimerWinAmount: 0,
-                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
-                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
+                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPointsHalfPpr : 0,
+                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPointsHalfPpr : 0,
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
@@ -945,8 +946,8 @@ export class CronService {
                     claimerWinAmount: claimerWinAmount,
                     creatorMaxWin: creatorMaxWin,
                     claimerMaxWin: claimerMaxWin,
-                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
-                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
+                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPointsHalfPpr : 0,
+                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPointsHalfPpr : 0,
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
@@ -2491,9 +2492,9 @@ export class CronService {
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
 
-        this.closeContestsFromList(contests);
+        await this.closeContestsFromList(contests);
 
-        this.playerRepository.updateAll(
+        await this.playerRepository.updateAll(
             { isOver: true, hasStarted: true },
             { isOver: false },
             (err: any, info: any) => {},
@@ -2738,7 +2739,7 @@ export class CronService {
                         foundLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                return await this.playerRepository.save(foundLocalPlayer);
+                return this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
                 newLocalPlayer.remoteId = remotePlayer.PlayerID;
@@ -2763,7 +2764,7 @@ export class CronService {
                         newLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
-                return await this.playerRepository.create(newLocalPlayer);
+                return this.playerRepository.create(newLocalPlayer);
             }
         });
 

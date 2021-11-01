@@ -24,7 +24,7 @@
     "eslint.run": "onSave",
     "eslint.nodePath": "./node_modules",
     "eslint.validate": ["javascript", "typescript"],
-    "files.autoSave": "onFocusChange",
+    "files.autoSave": "off",
     "workbench.colorCustomizations": {
         "activityBar.background": "#ffcc60",
         "titleBar.activeBackground": "#ffbc2d",
