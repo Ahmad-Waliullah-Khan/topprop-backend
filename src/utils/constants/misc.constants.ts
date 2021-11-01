@@ -30,6 +30,7 @@ export enum CRON_JOBS {
 
     VERIFIED_BONUS_PAYPUT_CRON = 'verified-bonus-payput',
     SCHEDULE_CRON = 'scheduled-games',
+    MISCELLANEOUS_CRON = 'miscellaneous',
 }
 
 export const sportApiDateFormat = 'YYYY-MMM-DD';

@@ -421,6 +421,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.MISCELLANEOUS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // 1st of Feb
+                        cronTiming = '* * * * 2 *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // 1st of Feb
+                        cronTiming = '* * * * 2 *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // 1st of Feb
+                        cronTiming = '* * * * 2 *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -472,6 +488,9 @@ export class CronService {
                 break;
             case CRON_JOBS.SCHEDULE_CRON:
                 cronMessage = 'Scheduled Games processed Cron';
+                break;
+            case CRON_JOBS.MISCELLANEOUS_CRON:
+                cronMessage = 'Miscellaneous functions Cron';
                 break;
         }
 
@@ -733,15 +752,15 @@ export class CronService {
                     : 0;
 
                 underdog.type = CONTEST_STAKEHOLDERS.CLAIMER;
-                underdog.playerWinBonus =  Number(contest.claimerPlayerWinBonus);
-                underdog.playerMaxWin =  Number(contest.claimerPlayerMaxWin);
-                underdog.playerCover =  Number(contest.claimerPlayerCover);
-                underdog.playerSpread =  Number(contest.claimerPlayerSpread);
+                underdog.playerWinBonus = Number(contest.claimerPlayerWinBonus);
+                underdog.playerMaxWin = Number(contest.claimerPlayerMaxWin);
+                underdog.playerCover = Number(contest.claimerPlayerCover);
+                underdog.playerSpread = Number(contest.claimerPlayerSpread);
                 underdog.userId = contest.claimerId;
                 underdog.playerId = contest.claimerPlayerId;
-                underdog.fantasyPoints = contest.claimerPlayer ?  Number(contest.claimerPlayer.fantasyPoints) : 0;
+                underdog.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
                 underdog.projectedFantasyPoints = contest.claimerPlayer
-                    ?  Number(contest.claimerPlayer.projectedFantasyPoints)
+                    ? Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
             } else {
                 underdog.type = CONTEST_STAKEHOLDERS.CREATOR;
@@ -822,7 +841,6 @@ export class CronService {
                 winner = 'push';
             }
 
-        
             if (winner === 'push') {
                 const constestData = {
                     topPropProfit: topPropProfit,
@@ -930,7 +948,7 @@ export class CronService {
                     creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
                     claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
                 };
-                
+
                 await this.contestRepository.updateById(contest.id, constestData);
 
                 const contestDataForEmail = await this.contestRepository.findById(contest.id);
