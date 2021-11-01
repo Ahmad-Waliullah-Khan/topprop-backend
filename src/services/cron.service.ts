@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -48,12 +48,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -778,11 +778,11 @@ export class CronService {
             favorite.gameWin = favorite.fantasyPointsHalfPpr > underdog.fantasyPointsHalfPpr;
             underdog.gameWin = underdog.fantasyPointsHalfPpr >= favorite.fantasyPointsHalfPpr;
 
-            favorite.coversSpread = favorite.fantasyPoints - Number(underdog.playerSpread) > underdog.fantasyPoints;
-            underdog.coversSpread = underdog.fantasyPoints + Number(underdog.playerSpread) > favorite.fantasyPoints;
+            favorite.coversSpread = favorite.fantasyPointsHalfPpr - Number(underdog.playerSpread) > underdog.fantasyPointsHalfPpr;
+            underdog.coversSpread = underdog.fantasyPointsHalfPpr + Number(underdog.playerSpread) > favorite.fantasyPointsHalfPpr;
 
             favorite.winBonus = favorite.playerWinBonus > 0;
-            underdog.winBonus = underdog.fantasyPoints > 0;
+            underdog.winBonus = underdog.fantasyPointsHalfPpr > 0;
 
             if (favorite.gameWin && favorite.coversSpread) {
                 // Row 1 & 2 of wiki combination table
@@ -832,8 +832,8 @@ export class CronService {
                     winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
                     creatorWinAmount: 0,
                     claimerWinAmount: 0,
-                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
-                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
+                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPointsHalfPpr : 0,
+                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPointsHalfPpr : 0,
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
@@ -927,8 +927,8 @@ export class CronService {
                     claimerWinAmount: claimerWinAmount,
                     creatorMaxWin: creatorMaxWin,
                     claimerMaxWin: claimerMaxWin,
-                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
-                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
+                    creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPointsHalfPpr : 0,
+                    claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPointsHalfPpr : 0,
                 };
 
                 await this.contestRepository.updateById(contest.id, constestData);
@@ -2473,9 +2473,9 @@ export class CronService {
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
 
-        this.closeContestsFromList(contests);
+        await this.closeContestsFromList(contests);
 
-        this.playerRepository.updateAll(
+        await this.playerRepository.updateAll(
             { isOver: true, hasStarted: true },
             { isOver: false },
             (err: any, info: any) => {},
