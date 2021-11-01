@@ -327,7 +327,7 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // 0th minute every hour
-                        cronTiming = '0 0 */1 * * *';
+                        cronTiming = '0 0 */12 * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th minute every hour

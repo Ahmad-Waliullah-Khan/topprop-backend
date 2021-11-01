@@ -16,10 +16,8 @@ export class MiscellaneousCron extends CronJob {
             start: true,
             onTick: async () => {
                 try {
-                    const contestPromises = await this.miscellaneousService.resetIncorrectlyGradedContests();
-
-                    // Promise.all(contestPromises);
-                    this.cronService.cronLogger(CRON_JOBS.MISCELLANEOUS_CRON);
+                    // await this.miscellaneousService.resetIncorrectlyGradedContests();
+                    // this.cronService.cronLogger(CRON_JOBS.MISCELLANEOUS_CRON);
 
                     const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.MISCELLANEOUS_CRON);
                     const updatedCronTime = new cron.CronTime(updatedCronTiming);
