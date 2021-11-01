@@ -721,51 +721,51 @@ export class CronService {
 
             if (contest.creatorPlayerSpread < contest.claimerPlayerSpread) {
                 favorite.type = CONTEST_STAKEHOLDERS.CREATOR;
-                favorite.playerWinBonus = contest.creatorPlayerWinBonus;
-                favorite.playerMaxWin = contest.creatorPlayerMaxWin;
-                favorite.playerCover = contest.creatorPlayerCover;
-                favorite.playerSpread = contest.creatorPlayerSpread;
+                favorite.playerWinBonus = Number(contest.creatorPlayerWinBonus);
+                favorite.playerMaxWin = Number(contest.creatorPlayerMaxWin);
+                favorite.playerCover = Number(contest.creatorPlayerCover);
+                favorite.playerSpread = Number(contest.creatorPlayerSpread);
                 favorite.userId = contest.creatorId;
                 favorite.playerId = contest.creatorPlayerId;
-                favorite.fantasyPoints = contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0;
+                favorite.fantasyPoints = contest.creatorPlayer ? Number(contest.creatorPlayer.fantasyPoints) : 0;
                 favorite.projectedFantasyPoints = contest.creatorPlayer
-                    ? contest.creatorPlayer.projectedFantasyPoints
+                    ? Number(contest.creatorPlayer.projectedFantasyPoints)
                     : 0;
 
                 underdog.type = CONTEST_STAKEHOLDERS.CLAIMER;
-                underdog.playerWinBonus = contest.claimerPlayerWinBonus;
-                underdog.playerMaxWin = contest.claimerPlayerMaxWin;
-                underdog.playerCover = contest.claimerPlayerCover;
-                underdog.playerSpread = contest.claimerPlayerSpread;
+                underdog.playerWinBonus =  Number(contest.claimerPlayerWinBonus);
+                underdog.playerMaxWin =  Number(contest.claimerPlayerMaxWin);
+                underdog.playerCover =  Number(contest.claimerPlayerCover);
+                underdog.playerSpread =  Number(contest.claimerPlayerSpread);
                 underdog.userId = contest.claimerId;
                 underdog.playerId = contest.claimerPlayerId;
-                underdog.fantasyPoints = contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0;
+                underdog.fantasyPoints = contest.claimerPlayer ?  Number(contest.claimerPlayer.fantasyPoints) : 0;
                 underdog.projectedFantasyPoints = contest.claimerPlayer
-                    ? contest.claimerPlayer.projectedFantasyPoints
+                    ?  Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
             } else {
                 underdog.type = CONTEST_STAKEHOLDERS.CREATOR;
-                underdog.playerWinBonus = contest.creatorPlayerWinBonus;
-                underdog.playerMaxWin = contest.creatorPlayerMaxWin;
-                underdog.playerCover = contest.creatorPlayerCover;
-                underdog.playerSpread = contest.creatorPlayerSpread;
+                underdog.playerWinBonus = Number(contest.creatorPlayerWinBonus);
+                underdog.playerMaxWin = Number(contest.creatorPlayerMaxWin);
+                underdog.playerCover = Number(contest.creatorPlayerCover);
+                underdog.playerSpread = Number(contest.creatorPlayerSpread);
                 underdog.userId = contest.creatorId;
                 underdog.playerId = contest.creatorPlayerId;
-                underdog.fantasyPoints = contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0;
+                underdog.fantasyPoints = contest.creatorPlayer ? Number(contest.creatorPlayer.fantasyPoints) : 0;
                 underdog.projectedFantasyPoints = contest.creatorPlayer
-                    ? contest.creatorPlayer.projectedFantasyPoints
+                    ? Number(contest.creatorPlayer.projectedFantasyPoints)
                     : 0;
 
                 favorite.type = CONTEST_STAKEHOLDERS.CLAIMER;
-                favorite.playerWinBonus = contest.claimerPlayerWinBonus;
-                favorite.playerMaxWin = contest.claimerPlayerMaxWin;
-                favorite.playerCover = contest.claimerPlayerCover;
-                favorite.playerSpread = contest.claimerPlayerSpread;
+                favorite.playerWinBonus = Number(contest.claimerPlayerWinBonus);
+                favorite.playerMaxWin = Number(contest.claimerPlayerMaxWin);
+                favorite.playerCover = Number(contest.claimerPlayerCover);
+                favorite.playerSpread = Number(contest.claimerPlayerSpread);
                 favorite.userId = contest.claimerId;
                 favorite.playerId = contest.claimerPlayerId;
-                favorite.fantasyPoints = contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0;
+                favorite.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
                 favorite.projectedFantasyPoints = contest.claimerPlayer
-                    ? contest.claimerPlayer.projectedFantasyPoints
+                    ? Number(contest.claimerPlayer.projectedFantasyPoints)
                     : 0;
             }
 
@@ -822,6 +822,7 @@ export class CronService {
                 winner = 'push';
             }
 
+        
             if (winner === 'push') {
                 const constestData = {
                     topPropProfit: topPropProfit,
@@ -929,7 +930,7 @@ export class CronService {
                     creatorPlayerFantasyPoints: contest.creatorPlayer ? contest.creatorPlayer.fantasyPoints : 0,
                     claimerPlayerFantasyPoints: contest.claimerPlayer ? contest.claimerPlayer.fantasyPoints : 0,
                 };
-
+                
                 await this.contestRepository.updateById(contest.id, constestData);
 
                 const contestDataForEmail = await this.contestRepository.findById(contest.id);
