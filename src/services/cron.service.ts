@@ -751,8 +751,8 @@ export class CronService {
                 underdog.userId = contest.claimerId;
                 underdog.playerId = contest.claimerPlayerId;
                 underdog.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
-                underdog.fantasyPointsHalfPpr = contest.creatorPlayer
-                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                underdog.fantasyPointsHalfPpr = contest.claimerPlayer
+                    ? Number(contest.claimerPlayer.fantasyPointsHalfPpr)
                     : 0;
                 underdog.projectedFantasyPoints = contest.claimerPlayer
                     ? Number(contest.claimerPlayer.projectedFantasyPoints)
@@ -781,8 +781,8 @@ export class CronService {
                 favorite.userId = contest.claimerId;
                 favorite.playerId = contest.claimerPlayerId;
                 favorite.fantasyPoints = contest.claimerPlayer ? Number(contest.claimerPlayer.fantasyPoints) : 0;
-                favorite.fantasyPointsHalfPpr = contest.creatorPlayer
-                    ? Number(contest.creatorPlayer.fantasyPointsHalfPpr)
+                favorite.fantasyPointsHalfPpr = contest.claimerPlayer
+                    ? Number(contest.claimerPlayer.fantasyPointsHalfPpr)
                     : 0;
                 favorite.projectedFantasyPoints = contest.claimerPlayer
                     ? Number(contest.claimerPlayer.projectedFantasyPoints)
