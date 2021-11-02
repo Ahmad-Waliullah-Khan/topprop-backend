@@ -35,8 +35,52 @@ export class MiscellaneousService {
             // const gains = await this.gainRepository.find({
             //     where: {
             //         contestId: { inq: contestIds },
-                    
+
             //     },
+            // });
+
+            await this.gainRepository.deleteAll({
+                contestId: { inq: contestIds },
+                contestType: 'battleground',
+            });
+
+            const constestData = {
+                winnerId: null,
+                topPropProfit: 0,
+                status: CONTEST_STATUSES.MATCHED,
+                ended: false,
+                endedAt: null,
+                winnerLabel: null,
+                creatorWinAmount: null,
+                claimerWinAmount: null,
+                creatorPlayerFantasyPoints: 0,
+                claimerPlayerFantasyPoints: 0,
+            };
+
+            // @ts-ignore
+            await this.contestRepository.updateAll(constestData, { id: { inq: contestIds } });
+        }
+    }
+
+    async resetNoPPRGradedContests() {
+        /* 
+        Date: 1-10-2021
+        Description: This was run to reset contests that were 
+        graded according to noPPR logic instead of halfPPR */
+
+        const sql =
+            "select id from contest where ended=true and claimerid is not null and createdat > '2021-10-27 00:00:00'";
+
+        const contests = await this.contestRepository.execute(sql, null, null);
+        
+
+        const contestIds = contests.map((contest: { id: number }) => contest.id);
+
+        if (contestIds.length > 0) {
+            logger.info(chalk.redBright(`Contests that were graded incorrectly are `, contestIds));
+
+            // const gains = await this.gainRepository.find({
+            //     where: { contestId: { inq: contestIds }, contestType: 'battleground' },
             // });
 
             await this.gainRepository.deleteAll({
