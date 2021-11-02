@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository, Where} from '@loopback/repository';
-import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository, Where } from '@loopback/repository';
+import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository
+    WithdrawRequestRepository,
 } from '@src/repositories';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import {TRANSFER_TYPES} from '../services';
-import {LeagueService} from '../services/league.service';
-import {PaymentGatewayService} from '../services/payment-gateway.service';
-import {SportsDataService} from '../services/sports-data.service';
-import {UserService} from '../services/user.service';
+import { TRANSFER_TYPES } from '../services';
+import { LeagueService } from '../services/league.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -48,12 +48,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES
+    WITHDRAW_REQUEST_STATUSES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
+import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -797,8 +797,10 @@ export class CronService {
             favorite.gameWin = favorite.fantasyPointsHalfPpr > underdog.fantasyPointsHalfPpr;
             underdog.gameWin = underdog.fantasyPointsHalfPpr >= favorite.fantasyPointsHalfPpr;
 
-            favorite.coversSpread = favorite.fantasyPointsHalfPpr - Number(underdog.playerSpread) > underdog.fantasyPointsHalfPpr;
-            underdog.coversSpread = underdog.fantasyPointsHalfPpr + Number(underdog.playerSpread) > favorite.fantasyPointsHalfPpr;
+            favorite.coversSpread =
+                favorite.fantasyPointsHalfPpr - Number(underdog.playerSpread) > underdog.fantasyPointsHalfPpr;
+            underdog.coversSpread =
+                underdog.fantasyPointsHalfPpr + Number(underdog.playerSpread) > favorite.fantasyPointsHalfPpr;
 
             favorite.winBonus = favorite.playerWinBonus > 0;
             underdog.winBonus = underdog.fantasyPointsHalfPpr > 0;
@@ -1075,6 +1077,8 @@ export class CronService {
                         loserWinAmount,
                         winnerMaxWin,
                         loserMaxWin,
+                        winnerSpread,
+                        loserSpread,
                         winAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD',
@@ -1100,6 +1104,8 @@ export class CronService {
                         loserWinAmount,
                         winnerMaxWin,
                         loserMaxWin,
+                        winnerSpread,
+                        loserSpread,
                         c2d: MiscHelpers.c2d,
                         lostAmount: `${new Intl.NumberFormat('en-US', {
                             style: 'currency',
@@ -2496,7 +2502,7 @@ export class CronService {
 
         await this.playerRepository.updateAll(
             { isOver: true, hasStarted: true },
-            { isOver: false },
+            { id: { gt: 0 } },
             (err: any, info: any) => {},
         );
 
@@ -2769,14 +2775,11 @@ export class CronService {
         });
 
         if (localPlayers.length > 0) {
-            const overPlayers = await this.playerRepository.find({ where: { isOver: true } });
-            if (overPlayers.length > 0) {
-                this.playerRepository.updateAll(
-                    { isOver: false, hasStarted: false, projectedFantasyPoints: 0 },
-                    { isOver: true },
-                    (err: any, info: any) => {},
-                );
-            }
+            this.playerRepository.updateAll(
+                { isOver: false, hasStarted: false, projectedFantasyPoints: 0 },
+                { id: { gt: 0 } },
+                (err: any, info: any) => {},
+            );
         }
 
         return playerPromises;

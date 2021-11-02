@@ -115,7 +115,7 @@ export class CronController {
         if (RUN_TYPE === CRON_RUN_TYPES.PRINCIPLE)
             throw new HttpErrors.BadRequest(CRON_MESSAGES.API_NOT_AVAILABLE_PROD);
         try {
-            const filteredContests = await this.cronService.closeContests();
+            const filteredContests = this.cronService.closeContests();
             this.cronService.cronLogger(CRON_JOBS.CLOSE_CONTEST_CRON);
 
             return { data: filteredContests };
