@@ -9,7 +9,10 @@ import logger from '../utils/logger';
 
 @cronJob()
 export class MiscellaneousCron extends CronJob {
-    constructor(@service() private cronService: CronService, @service() private miscellaneousService: MiscellaneousService) {
+    constructor(
+        @service() private cronService: CronService,
+        @service() private miscellaneousService: MiscellaneousService,
+    ) {
         super({
             cronTime: MISCELLANEOUS_TIMING,
             name: CRON_JOBS.MISCELLANEOUS_CRON,
@@ -18,7 +21,7 @@ export class MiscellaneousCron extends CronJob {
                 try {
                     // await this.miscellaneousService.resetNoPPRGradedContests();
                     // this.cronService.cronLogger(CRON_JOBS.MISCELLANEOUS_CRON);
-
+                    await this.miscellaneousService.addPromoCode();
                     const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.MISCELLANEOUS_CRON);
                     const updatedCronTime = new cron.CronTime(updatedCronTiming);
                     this.setTime(updatedCronTime);
