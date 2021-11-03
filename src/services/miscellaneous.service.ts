@@ -1,8 +1,9 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { ContestRepository, CouponCodeRepository, GainRepository, PlayerRepository } from '@src/repositories';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {ContestRepository, CouponCodeRepository, GainRepository, PlayerRepository, UserRepository} from '@src/repositories';
 import chalk from 'chalk';
-import { CONTEST_STATUSES } from '../utils/constants';
+import moment from 'moment';
+import {CONTEST_STATUSES} from '../utils/constants';
 import logger from '../utils/logger';
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -12,6 +13,7 @@ export class MiscellaneousService {
         @repository(GainRepository) private gainRepository: GainRepository,
         @repository(ContestRepository) private contestRepository: ContestRepository,
         @repository('CouponCodeRepository') private couponCodeRepository: CouponCodeRepository,
+        @repository('UserRepository') private userRepository: UserRepository,
     ) {}
 
     async resetIncorrectlyGradedContests() {
@@ -139,5 +141,24 @@ export class MiscellaneousService {
                 await this.couponCodeRepository.create(promoData);
             }
         });
+}
+
+    async updateDOB() {
+        /*
+        Date: 4-11-2021
+        Description: Updates the DOB of parker@carbonfoxdesigns.com to 9/11/1984 */
+
+        const dob =  new Date("1984-9-11 00:00:00");
+        const formattedDob = moment(dob).format("YYYY-MM-DD HH:mm:ss");
+
+        const user = await this.userRepository.findOne({
+            where: {
+                email: 'parker@carbonfoxdesigns.com',
+            }
+        })
+
+        if(user) {
+            await this.userRepository.updateById(user?.id, { dateOfBirth: formattedDob });
+        }
     }
 }
