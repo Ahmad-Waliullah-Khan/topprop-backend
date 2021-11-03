@@ -141,7 +141,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: true,
+        battlegroundEnabled: false,
     },
     {
         name: 'Connecticut',
