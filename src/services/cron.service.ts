@@ -321,8 +321,8 @@ export class CronService {
                         cronTiming = '0 0 */1 * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // Every 15 minutes
-                        cronTiming = '0 */15 * * * *';
+                        // Every 12 hours - twice a day
+                        cronTiming = '0 0 */12 * * *';
                         break;
                 }
                 break;
