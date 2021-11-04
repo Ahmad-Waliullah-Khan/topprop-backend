@@ -6,7 +6,7 @@ import {TopUpRepository, UserRepository, WithdrawRequestRepository} from '@src/r
 import {PaymentGatewayEventRepository} from '@src/repositories/payment-gateway-event.repository';
 import {API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile} from '@src/utils/constants';
 import {ErrorHandler} from '@src/utils/helpers';
-import {sleep} from '@src/utils/sleep';
+import sleep from '@src/utils/sleep';
 import Dwolla from 'dwolla-v2';
 import FormData from 'form-data';
 import {createReadStream} from 'fs-extra';
@@ -298,7 +298,7 @@ export class PaymentGatewayService {
 
             if (isEqual(type, TRANSFER_TYPES.WITHDRAW) || isEqual(type, TRANSFER_TYPES.TOP_UP)) {
                 //TRANSFER FROM TOP PROP'S WALLET (DWOLLA) to BANK ACCOUNT OR FROM BANK ACCOUNT TO TOP PROP WALLET
-                let isTopUp = isEqual(type, TRANSFER_TYPES.TOP_UP);
+                const isTopUp = isEqual(type, TRANSFER_TYPES.TOP_UP);
 
                 const sourceOrDestinationFundingSource = await this.getFundingSource(fundingSourceId);
                 if (!sourceOrDestinationFundingSource)
@@ -406,8 +406,8 @@ export class PaymentGatewayService {
     async syncMissingTransactions() {
         const userRepo = await this.userRepoGetter();
         const users = await userRepo.find();
-        let today = new Date();
-        let yesterday = new Date();
+        const today = new Date();
+        const yesterday = new Date();
         yesterday.setDate(today.getDate() - 1);
 
         await Promise.all(
