@@ -661,7 +661,14 @@ export class CronService {
         const byePlayerIdList = foundByePlayers.map(player => player.id);
 
         await this.playerRepository.updateAll(
-            { hasStarted: true, isOver: true, projectedFantasyPoints: 0 },
+            {
+                hasStarted: true,
+                isOver: true,
+                projectedFantasyPoints: 0,
+                fantasyPoints: 0,
+                fantasyPointsHalfPpr: 0,
+                fantasyPointsFullPpr: 0,
+            },
             { id: { inq: byePlayerIdList } },
         );
 
