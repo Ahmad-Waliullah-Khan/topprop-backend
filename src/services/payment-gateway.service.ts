@@ -1,19 +1,19 @@
-import { /* inject, */ BindingScope, Getter, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
-import { TopUp, User } from '@src/models';
-import { TopUpRepository, UserRepository, WithdrawRequestRepository } from '@src/repositories';
-import { PaymentGatewayEventRepository } from '@src/repositories/payment-gateway-event.repository';
-import { API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { sleep } from '@src/utils/sleep';
+import { /* inject, */ BindingScope, Getter, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
+import {TopUp, User} from '@src/models';
+import {TopUpRepository, UserRepository, WithdrawRequestRepository} from '@src/repositories';
+import {PaymentGatewayEventRepository} from '@src/repositories/payment-gateway-event.repository';
+import {API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {sleep} from '@src/utils/sleep';
 import Dwolla from 'dwolla-v2';
 import FormData from 'form-data';
-import { createReadStream } from 'fs-extra';
-import { find, isEqual, startsWith } from 'lodash';
+import {createReadStream} from 'fs-extra';
+import {find, isEqual, startsWith} from 'lodash';
 import moment from 'moment';
 import logger from '../utils/logger';
-import { UserService } from './user.service';
+import {UserService} from './user.service';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class PaymentGatewayService {
@@ -298,7 +298,7 @@ export class PaymentGatewayService {
 
             if (isEqual(type, TRANSFER_TYPES.WITHDRAW) || isEqual(type, TRANSFER_TYPES.TOP_UP)) {
                 //TRANSFER FROM TOP PROP'S WALLET (DWOLLA) to BANK ACCOUNT OR FROM BANK ACCOUNT TO TOP PROP WALLET
-                const isTopUp = isEqual(type, TRANSFER_TYPES.TOP_UP);
+                let isTopUp = isEqual(type, TRANSFER_TYPES.TOP_UP);
 
                 const sourceOrDestinationFundingSource = await this.getFundingSource(fundingSourceId);
                 if (!sourceOrDestinationFundingSource)
@@ -406,8 +406,8 @@ export class PaymentGatewayService {
     async syncMissingTransactions() {
         const userRepo = await this.userRepoGetter();
         const users = await userRepo.find();
-        const today = new Date();
-        const yesterday = new Date();
+        let today = new Date();
+        let yesterday = new Date();
         yesterday.setDate(today.getDate() - 1);
 
         await Promise.all(
@@ -451,8 +451,6 @@ export class PaymentGatewayService {
                                                     moment().format('DD-MM-YYYY hh:mm:ss a'),
                                             );
                                         }
-                                        // delay 2s
-                                        await sleep(2000);
                                     } else if (
                                         transfer._links &&
                                         (transfer.status === 'cancelled' || transfer.status === 'failed')
@@ -523,9 +521,9 @@ export class PaymentGatewayService {
                                                 moment().format('DD-MM-YYYY hh:mm:ss a'),
                                         );
                                     }
-                                    // delay 2s
-                                    await sleep(2000);
                                 }
+                                // delay 2s
+                                await sleep(2000);
                             });
                     } catch (error) {
                         error.message = ErrorHandler.formatError(error);
