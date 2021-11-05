@@ -551,7 +551,7 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const currentSeason = await this.fetchSeason();
 
-        const currentWeek = currentDate.week();
+        const currentWeek = await this.sportsDataService.currentWeek();
 
         const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
 
@@ -596,6 +596,7 @@ export class CronService {
         const remotePlayersHalfPpr = await this.sportsDataService.projectedHalfPprFantasyPointsByWeeek(
             currentSeason, currentWeek,
         );
+
         const playerHalfPprProjectionPromises = remotePlayersHalfPpr.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {

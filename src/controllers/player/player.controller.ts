@@ -1,11 +1,11 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
-import { Player } from '@src/models';
-import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
-import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings} from '@loopback/rest';
+import {Player} from '@src/models';
+import {ContestRepository, PlayerRepository, TeamRepository} from '@src/repositories';
+import {EmailService, MultiPartyFormService, SportsDataService} from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -16,18 +16,18 @@ import {
     PERMISSIONS,
     PLAYER_POSITIONS,
     TOP_PLAYERS,
-    TOP_PLAYER_POSITIONS,
+    TOP_PLAYER_POSITIONS
 } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
-import { PLAYER_MESSAGES } from '@src/utils/messages';
-import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse, IImportedPlayer, IRemotePlayer} from '@src/utils/interfaces';
+import {PLAYER_MESSAGES} from '@src/utils/messages';
+import {IMPORTED_PLAYER_VALIDATORS} from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
-import { isEqual, isNumber, sortBy, values } from 'lodash';
+import {isEqual, isNumber, sortBy, values} from 'lodash';
 import moment from 'moment';
-import Schema, { SchemaDefinition } from 'validate';
+import Schema, {SchemaDefinition} from 'validate';
 
 export class PlayerController {
     constructor(
@@ -466,7 +466,7 @@ export class PlayerController {
                         },
                         available: true,
                         status: 'Active',
-                        projectedFantasyPoints: {
+                        projectedFantasyPointsHalfPpr: {
                             gt: 2.9,
                         },
                     },
@@ -486,11 +486,11 @@ export class PlayerController {
                     available: true,
                     status: 'Active',
                     position: { inq: TOP_PLAYER_POSITIONS },
-                    projectedFantasyPoints: {
+                    projectedFantasyPointsHalfPpr: {
                         gt: 2.9,
                     },
                 },
-                order: ['projectedFantasyPoints DESC'],
+                order: ['projectedFantasyPointsHalfPpr DESC'],
             });
         }
 
@@ -515,7 +515,7 @@ export class PlayerController {
     })
     async findRecommendationsById(@param.path.number('id') id: number): Promise<ICommonHttpResponse<any>> {
         const currentPlayer = await this.playerRepository.findById(id);
-        const currentPlayerProjectedFantasyPoints = Number(currentPlayer?.projectedFantasyPoints);
+        const currentPlayerProjectedFantasyPoints = Number(currentPlayer?.projectedFantasyPointsHalfPpr);
         if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
 
         let projectedPointsLowerLimit = currentPlayerProjectedFantasyPoints * LOBBY_SPREAD_LOWER_LIMIT;
@@ -539,8 +539,8 @@ export class PlayerController {
                 position: { inq: filteredFirstPlayerPosition },
                 id: { nin: [currentPlayer.id] },
                 and: [
-                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                    { projectedFantasyPoints: { gt: 2.9 } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
@@ -562,8 +562,8 @@ export class PlayerController {
                 position: { inq: PLAYER_POSITIONS },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                    { projectedFantasyPoints: { gt: 2.9 } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
@@ -585,8 +585,8 @@ export class PlayerController {
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                    { projectedFantasyPoints: { gt: 2.9 } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
@@ -609,8 +609,8 @@ export class PlayerController {
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0, thirdPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                    { projectedFantasyPoints: { gt: 2.9 } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
@@ -642,8 +642,8 @@ export class PlayerController {
                     ],
                 },
                 and: [
-                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                    { projectedFantasyPoints: { gt: 2.9 } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
@@ -689,8 +689,8 @@ export class PlayerController {
                 id: { nin: playerList },
                 position: currentPlayer?.position,
                 and: [
-                    { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                    { projectedFantasyPoints: { gt: 2.9 } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
@@ -706,8 +706,8 @@ export class PlayerController {
                     id: { nin: playerList },
                     position: { inq: PLAYER_POSITIONS },
                     and: [
-                        { projectedFantasyPoints: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
-                        { projectedFantasyPoints: { gt: 2.9 } },
+                        { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                        { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                     ],
                     available: true,
                     status: 'Active',
