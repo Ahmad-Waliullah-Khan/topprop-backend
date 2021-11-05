@@ -599,20 +599,8 @@ export class CronService {
         const playerHalfPprProjectionPromises = remotePlayersHalfPpr.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
-                switch (RUN_TYPE) {
-                    case CRON_RUN_TYPES.PRINCIPLE:
-                        foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
-                        await this.playerRepository.save(foundLocalPlayer);
-                        break;
-                    case CRON_RUN_TYPES.STAGING:
-                        foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
-                        await this.playerRepository.save(foundLocalPlayer);
-                        break;
-                    case CRON_RUN_TYPES.PROXY:
-                        foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
-                        await this.playerRepository.save(foundLocalPlayer);
-                        break;
-                }
+                foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
+                await this.playerRepository.save(foundLocalPlayer);
             }
         });
 
