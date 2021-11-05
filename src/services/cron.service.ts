@@ -551,11 +551,7 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const currentSeason = await this.fetchSeason();
 
-        //TODO: uncomment this on prod
-        // const currentWeek = currentDate.week();
-
-        //TODO: comment out this on prod
-        const currentWeek = 2;
+        const currentWeek = currentDate.week();
 
         const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
 
