@@ -1,10 +1,10 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, IsolationLevel, repository } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, IsolationLevel, repository} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, ContestRoster, ContestTeam, Invite, League, LeagueContest, Member} from '@src/models';
 import {
     BetRepository,
     ConfigRepository,
@@ -18,10 +18,10 @@ import {
     PlayerRepository,
     RosterRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { ContestService, LeagueService, PaymentGatewayService } from '@src/services';
-import { UserService } from '@src/services/user.service';
+import {ContestService, LeagueService, PaymentGatewayService} from '@src/services';
+import {UserService} from '@src/services/user.service';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -29,10 +29,10 @@ import {
     EMAIL_TEMPLATES,
     PERMISSIONS,
     SCORING_TYPE,
-    SPREAD_TYPE,
+    SPREAD_TYPE
 } from '@src/utils/constants';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -42,13 +42,13 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
-    ILeagueResync,
+    ILeagueResync
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES } from '@src/utils/messages';
-import { INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR } from '@src/utils/validators';
-import { find, isEmpty } from 'lodash';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
+import {INVITE_VALIDATOR, LEAGUE_CONTEST_CLAIM_VALIDATOR, LEAGUE_CONTEST_VALIDATOR} from '@src/utils/validators';
+import {find, isEmpty} from 'lodash';
 import moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import Schema from 'validate';
 import logger from '../../utils/logger';
 // const YahooFantasy = require('yahoo-fantasy');
@@ -1517,6 +1517,17 @@ export class LeagueController {
         const claimerUser = await this.userRepository.findById(leagueContestData.claimerId);
         // const league = await this.leagueRepository.findById(leagueContestData.leagueId);
 
+        let isCreatorTeamSvgLogo = false;
+        let isClaimerTeamSvgLogo = false;
+
+        if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+            isCreatorTeamSvgLogo = true;
+        }
+
+        if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+            isClaimerTeamSvgLogo = true;
+        }
+
         await this.userService.sendEmail(creatorUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLAIMED_BY_CLAIMER, {
             creatorUser,
             user,
@@ -1524,6 +1535,8 @@ export class LeagueController {
             creatorTeam,
             claimerUser,
             leagueContestData,
+            isCreatorTeamSvgLogo,
+            isClaimerTeamSvgLogo,
             moment: moment,
             c2d: MiscHelpers.c2d,
             text: {
