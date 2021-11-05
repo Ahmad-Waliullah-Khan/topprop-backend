@@ -69,6 +69,23 @@ head
     background:#0b317e!important;
     border-color:#0b317e!important;
     }
+    //- fallback
+    .imgContainer{
+    min-width: 125px;
+    min-height: 125px;
+    background-position: center center; // fallback for older browsers
+    background-size: cover;
+    background-repeat: no-repeat;
+    }
+    .fallback{
+    background-image: url(process.env.PUBLIC_URL+'/images/email/image-8.png');
+    display: inline-block; /*to ensure it wraps correctly around the image, even if it is a a or span tag*/
+    min-width: 125px;
+    min-height: 125px;
+    background-position: center center; // fallback for older browsers
+    background-size: cover;
+    background-repeat: no-repeat;
+    }
     [data-ogsb] .es-button {
     border-width:0!important;
     padding:10px 20px 10px 20px!important;
@@ -113,9 +130,9 @@ head
                             tr
                               td(valign='top' align='center' style='padding:0;Margin:0;width:280px')
                                 table(width='100%' cellspacing='0' cellpadding='0' style='mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:separate;border-spacing:0px;border-radius:13px' role='presentation')
-                                  tr
+                                  tr(class='fallback')
                                     td(align='center' style='padding:0;Margin:0;padding-left:10px;padding-right:10px;padding-bottom:15px;font-size:0px')
-                                      img(src=`${claimerTeam.logoUrl}` alt=`${claimerTeam.name}` title=`${claimerTeam.name}` width='125' height='125' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
+                                      img(src=`${claimerTeam.logoUrl}` alt=`${claimerTeam.name}` title=`${claimerTeam.name}` width='125' height='125' class='imgContainer' style='display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;border-radius:10px')
                                   tr
                                     td(align='center' style='padding:0;Margin:0;padding-top:10px;padding-bottom:10px')
                                       h3(style="Margin:0;line-height:24px;mso-line-height-rule:exactly;font-family: 'Alegreya Sans SC', 'helvetica neue', helvetica, arial, sans-serif;font-size:20px;font-style:normal;font-weight:normal;color:#666666") #{claimerTeam.name}
