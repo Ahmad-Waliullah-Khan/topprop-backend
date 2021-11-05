@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -48,12 +48,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -1275,6 +1275,8 @@ export class CronService {
             });
 
             return validContest;
+            //TODO: Uncomment this to force run win check on every league contest
+            // return true;
         });
 
         filteredContests.map(async contest => {
@@ -1502,12 +1504,25 @@ export class CronService {
                 const favoriteTeamFantasyPoints = favorite.fantasyPoints;
                 const underdogTeamFantasyPoints = underdog.fantasyPoints;
 
+                let isFavoriteTeamSvgLogo = false;
+                let isUnderdogTeamSvgLogo = false;
+
+                if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isFavoriteTeamSvgLogo = true;
+                }
+
+                if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isUnderdogTeamSvgLogo = true;
+                }
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                     contestData,
                     favoriteUser,
                     underdogUser,
                     favoriteTeam,
                     underdogTeam,
+                    isFavoriteTeamSvgLogo,
+                    isUnderdogTeamSvgLogo,
                     receiverUser,
                     clientHost,
                     favoriteTeamFantasyPoints,
@@ -1527,6 +1542,8 @@ export class CronService {
                     underdogUser,
                     favoriteTeam,
                     underdogTeam,
+                    isFavoriteTeamSvgLogo,
+                    isUnderdogTeamSvgLogo,
                     receiverUser,
                     clientHost,
                     favoriteTeamFantasyPoints,
@@ -1600,6 +1617,18 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(favorite.teamId);
                     const loserUser = await this.userRepository.findById(underdog.userId);
                     const loserTeam = await this.teamRepository.findById(underdog.teamId);
+
+                    let isWinnerTeamSvgLogo = false;
+                    let isLoserTeamSvgLogo = false;
+
+                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isWinnerTeamSvgLogo = true;
+                    }
+
+                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isLoserTeamSvgLogo = true;
+                    }
+
                     const winnerTeamFantasyPoints =
                         favorite.type === CONTEST_STAKEHOLDERS.CREATOR
                             ? contestData.creatorTeamFantasyPoints
@@ -1614,6 +1643,8 @@ export class CronService {
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -1640,6 +1671,8 @@ export class CronService {
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -1664,6 +1697,18 @@ export class CronService {
                     const winnerTeam = await this.teamRepository.findById(underdog.teamId);
                     const loserUser = await this.userRepository.findById(favorite.userId);
                     const loserTeam = await this.teamRepository.findById(favorite.teamId);
+
+                    let isWinnerTeamSvgLogo = false;
+                    let isLoserTeamSvgLogo = false;
+
+                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isWinnerTeamSvgLogo = true;
+                    }
+
+                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isLoserTeamSvgLogo = true;
+                    }
+
                     const winnerTeamFantasyPoints =
                         underdog.type === CONTEST_STAKEHOLDERS.CREATOR
                             ? contestData.creatorTeamFantasyPoints
@@ -1678,6 +1723,8 @@ export class CronService {
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -1704,6 +1751,8 @@ export class CronService {
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -1740,11 +1789,24 @@ export class CronService {
                             ? contestData.claimerTeamFantasyPoints
                             : contestData.creatorTeamFantasyPoints;
 
+                    let isFavoriteTeamSvgLogo = false;
+                    let isUnderdogTeamSvgLogo = false;
+
+                    if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isFavoriteTeamSvgLogo = true;
+                    }
+
+                    if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isUnderdogTeamSvgLogo = true;
+                    }
+
                     await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
                         underdogTeam,
+                        isFavoriteTeamSvgLogo,
+                        isUnderdogTeamSvgLogo,
                         contestData,
                         favoriteTeamFantasyPoints,
                         underdogTeamFantasyPoints,
@@ -1768,6 +1830,8 @@ export class CronService {
                         underdogUser,
                         favoriteTeam,
                         underdogTeam,
+                        isFavoriteTeamSvgLogo,
+                        isUnderdogTeamSvgLogo,
                         contestData,
                         favoriteTeamFantasyPoints,
                         underdogTeamFantasyPoints,
@@ -2079,12 +2143,25 @@ export class CronService {
                 const favoriteTeamFantasyPoints = favorite.fantasyPoints;
                 const underdogTeamFantasyPoints = underdog.fantasyPoints;
 
+                let isFavoriteTeamSvgLogo = false;
+                let isUnderdogTeamSvgLogo = false;
+
+                if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isFavoriteTeamSvgLogo = true;
+                }
+
+                if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isUnderdogTeamSvgLogo = true;
+                }
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                     contestData,
                     favoriteUser,
                     underdogUser,
                     favoriteTeam,
                     underdogTeam,
+                    isFavoriteTeamSvgLogo,
+                    isUnderdogTeamSvgLogo,
                     receiverUser,
                     clientHost,
                     favoriteTeamFantasyPoints,
@@ -2104,6 +2181,8 @@ export class CronService {
                     underdogUser,
                     favoriteTeam,
                     underdogTeam,
+                    isFavoriteTeamSvgLogo,
+                    isUnderdogTeamSvgLogo,
                     receiverUser,
                     clientHost,
                     favoriteTeamFantasyPoints,
@@ -2175,11 +2254,25 @@ export class CronService {
                     const winnerTeamFantasyPoints = favorite.fantasyPoints;
                     const loserTeamFantasyPoints = underdog.fantasyPoints;
 
+                    let isWinnerTeamSvgLogo = false;
+                    let isLoserTeamSvgLogo = false;
+
+                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isWinnerTeamSvgLogo = true;
+                    }
+
+                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isLoserTeamSvgLogo = true;
+                    }
+
+
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -2204,6 +2297,8 @@ export class CronService {
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -2232,11 +2327,25 @@ export class CronService {
                     const winnerTeamFantasyPoints = underdog.fantasyPoints;
                     const loserTeamFantasyPoints = favorite.fantasyPoints;
 
+                    let isWinnerTeamSvgLogo = false;
+                    let isLoserTeamSvgLogo = false;
+
+                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isWinnerTeamSvgLogo = true;
+                    }
+
+                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isLoserTeamSvgLogo = true;
+                    }
+
+
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -2261,6 +2370,8 @@ export class CronService {
                         loserUser,
                         winnerTeam,
                         loserTeam,
+                        isWinnerTeamSvgLogo,
+                        isLoserTeamSvgLogo,
                         contestData,
                         winnerTeamFantasyPoints,
                         loserTeamFantasyPoints,
@@ -2291,11 +2402,24 @@ export class CronService {
                     const favoriteTeamFantasyPoints = favorite.fantasyPoints;
                     const underdogTeamFantasyPoints = underdog.fantasyPoints;
 
+                    let isFavoriteTeamSvgLogo = false;
+                    let isUnderdogTeamSvgLogo = false;
+
+                    if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isFavoriteTeamSvgLogo = true;
+                    }
+
+                    if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                        isUnderdogTeamSvgLogo = true;
+                    }
+
                     await this.userService.sendEmail(favoriteUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_DRAW_FAVORITE, {
                         favoriteUser,
                         underdogUser,
                         favoriteTeam,
                         underdogTeam,
+                        isFavoriteTeamSvgLogo,
+                        isUnderdogTeamSvgLogo,
                         contestData,
                         clientHost,
                         favoriteTeamFantasyPoints,
@@ -2319,6 +2443,8 @@ export class CronService {
                         underdogUser,
                         favoriteTeam,
                         underdogTeam,
+                        isFavoriteTeamSvgLogo,
+                        isUnderdogTeamSvgLogo,
                         contestData,
                         clientHost,
                         favoriteTeamFantasyPoints,
@@ -2890,12 +3016,26 @@ export class CronService {
                 const receiverUser = creatorUser;
                 const user = creatorUser;
                 const clientHost = process.env.CLIENT_HOST;
+
+                let isCreatorTeamSvgLogo = false;
+                let isClaimerTeamSvgLogo = false;
+
+                if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isCreatorTeamSvgLogo = true;
+                }
+
+                if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isClaimerTeamSvgLogo = true;
+                }
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
                     claimerUser,
                     creatorTeam,
                     claimerTeam,
+                    isCreatorTeamSvgLogo,
+                    isClaimerTeamSvgLogo,
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
                     user,
@@ -3000,12 +3140,26 @@ export class CronService {
                 const receiverUser = creatorUser;
                 const user = creatorUser;
                 const clientHost = process.env.CLIENT_HOST;
+
+                let isCreatorTeamSvgLogo = false;
+                let isClaimerTeamSvgLogo = false;
+
+                if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isCreatorTeamSvgLogo = true;
+                }
+
+                if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isClaimerTeamSvgLogo = true;
+                }
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
                     claimerUser,
                     creatorTeam,
                     claimerTeam,
+                    isCreatorTeamSvgLogo,
+                    isClaimerTeamSvgLogo,
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
                     user,
@@ -3058,12 +3212,26 @@ export class CronService {
                 const clientHost = process.env.CLIENT_HOST;
                 let receiverUser = creatorUser;
                 let user = creatorUser;
+
+                let isCreatorTeamSvgLogo = false;
+                let isClaimerTeamSvgLogo = false;
+
+                if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isCreatorTeamSvgLogo = true;
+                }
+
+                if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    isClaimerTeamSvgLogo = true;
+                }
+
                 await this.userService.sendEmail(receiverUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_CLOSED, {
                     contestData,
                     creatorUser,
                     claimerUser,
                     creatorTeam,
                     claimerTeam,
+                    isCreatorTeamSvgLogo,
+                    isClaimerTeamSvgLogo,
                     receiverUser,
                     maxWin: contestData.creatorTeamMaxWin,
                     user,
@@ -3086,6 +3254,8 @@ export class CronService {
                     claimerUser,
                     creatorTeam,
                     claimerTeam,
+                    isCreatorTeamSvgLogo,
+                    isClaimerTeamSvgLogo,
                     receiverUser,
                     maxWin: contestData.claimerTeamMaxWin,
                     user,
