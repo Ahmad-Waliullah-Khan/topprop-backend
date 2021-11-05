@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -48,12 +48,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -549,7 +549,16 @@ export class CronService {
 
     async processProjectedFantasyPoints() {
         const currentDate = await this.fetchDate();
+        const currentSeason = await this.fetchSeason();
+
+        //TODO: uncomment this on prod
+        // const currentWeek = currentDate.week();
+
+        //TODO: comment out this on prod
+        const currentWeek = 2;
+
         const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
+
         const localPlayers = await this.playerRepository.find();
         const ruledOutPlayer: number[] = [];
         const playerPromises = remotePlayers.map(async remotePlayer => {
@@ -587,6 +596,29 @@ export class CronService {
         if (ruledOutPlayer.length > 0) {
             await this.leagueVoidContests(ruledOutPlayer);
         }
+
+        const remotePlayersHalfPpr = await this.sportsDataService.projectedHalfPprFantasyPointsByWeeek(
+            currentSeason, currentWeek,
+        );
+        const playerHalfPprProjectionPromises = remotePlayersHalfPpr.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
+                        await this.playerRepository.save(foundLocalPlayer);
+                        break;
+                }
+            }
+        });
 
         return playerPromises;
     }
