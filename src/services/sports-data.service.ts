@@ -1,23 +1,21 @@
-import { BindingScope, injectable } from '@loopback/core';
-import { sportApiDateFormat } from '@src/utils/constants';
+import {BindingScope, injectable} from '@loopback/core';
+import {sportApiDateFormat} from '@src/utils/constants';
 import {
-    IDailyFantasyPointsData,
-    IDailyFantasyPlayerData,
-    IRemoteGame,
+    IDailyFantasyPlayerData, IDailyFantasyPointsData, IProjectedHalfPprPlayerData, IRemoteGame,
     IRemotePlayer,
     IRemoteScore,
     IRemoteTeam,
-    ITimeFrame,
+    ITimeFrame
 } from '@src/utils/interfaces';
 //@ts-ignore
 import fdClientModule from 'fantasydata-node-client';
-import { isEqual, isNull } from 'lodash';
+import {isEqual, isNull} from 'lodash';
 import moment from 'moment';
 
 const keys = {
     NFLv3ScoresClient: process.env.NFL_SCORES_API_KEY as string,
     NFLv3StatsClient: process.env.NFL_STATS_API_KEY as string,
-    NFLv3ProjectionsClient: process.env.NFL_STATS_API_KEY as string,
+    NFLv3ProjectionsClient: process.env.NFL_PROJECTIONS_API_KEY as string,
 };
 
 @injectable({ scope: BindingScope.SINGLETON })
@@ -59,6 +57,12 @@ export class SportsDataService {
             await this.sportDataClient.NFLv3StatsClient.getDailyFantasyPlayersPromise(
                 momentInst.format(sportApiDateFormat),
             ),
+        );
+    }
+
+    async projectedHalfPprFantasyPointsByWeeek(season: number, week: number): Promise<IProjectedHalfPprPlayerData[]> {
+        return JSON.parse(
+            await this.sportDataClient.NFLv3ProjectionsClient.getProjectedPlayerGameStatsByWeekPromise(season, week),
         );
     }
 
