@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository, Where} from '@loopback/repository';
-import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository, Where } from '@loopback/repository';
+import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,21 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository
+    WithdrawRequestRepository,
 } from '@src/repositories';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
+import { isEqual, isNull } from 'lodash';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import {TRANSFER_TYPES} from '../services';
-import {LeagueService} from '../services/league.service';
-import {PaymentGatewayService} from '../services/payment-gateway.service';
-import {SportsDataService} from '../services/sports-data.service';
-import {UserService} from '../services/user.service';
+import { TRANSFER_TYPES } from '../services';
+import { LeagueService } from '../services/league.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -44,16 +45,15 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
-    SCHEDULE,
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES
+    WITHDRAW_REQUEST_STATUSES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
+import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -424,6 +424,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Once a week
+                        cronTiming = '0 * * */1 * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -591,10 +607,29 @@ export class CronService {
         return playerPromises;
     }
 
-    async processSchedulesGames() {
-        const currentWeek = await this.sportsDataService.currentWeek();
+    // FETCH WEEKLY SCHEDULE
+    async fetchWeeklySchedule() {
+        const [currentTimeFrame] = await this.sportsDataService.timeFrames(TIMEFRAMES.CURRENT);
 
-        const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+        const seasonSchedule = await this.sportsDataService.scheduleBySeason(currentTimeFrame.ApiSeason);
+
+        const weekScheduleGames = seasonSchedule.filter(
+            game => !isNull(game.Status) && isEqual(game.Week, +currentTimeFrame.ApiWeek),
+        );
+
+        // write JSON file
+        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(weekScheduleGames), 'utf8');
+
+        return;
+    }
+
+    async processSchedulesGames() {
+        // const currentWeek = await this.sportsDataService.currentWeek();
+
+        // const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+
+        const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
+        const weeklyGames = JSON.parse(rawData);
 
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
         // const currentTime = momenttz.tz('2021-10-24T12:30:00', TIMEZONE).add(1, 'minute');
@@ -605,19 +640,19 @@ export class CronService {
             startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
         }
 
-        const scheduledGames = weekGames.filter(game => {
-            const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
+        const scheduledGames = weeklyGames.filter((game: { DateTime: number }) => {
+            const gameDate = momenttz.tz(game.DateTime, TIMEZONE);
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
         const teamList: string[] = [];
 
-        scheduledGames.forEach(scheduledGame => {
-            if (scheduledGame.awayTeam) {
-                teamList.push(scheduledGame.awayTeam);
+        scheduledGames.forEach((scheduledGame: { AwayTeam: string; HomeTeam: string }) => {
+            if (scheduledGame.AwayTeam) {
+                teamList.push(scheduledGame.AwayTeam);
             }
-            if (scheduledGame.homeTeam) {
-                teamList.push(scheduledGame.homeTeam);
+            if (scheduledGame.HomeTeam) {
+                teamList.push(scheduledGame.HomeTeam);
             }
         });
 
@@ -640,14 +675,14 @@ export class CronService {
             },
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
-        this.closeContestsFromList(contests);
+        await this.closeContestsFromList(contests);
 
-        const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
+        const byeGames = weeklyGames.filter((game: { AwayTeam: string }) => game.AwayTeam === 'BYE');
         const byeTeamList: string[] = [];
 
-        byeGames.forEach(byeGame => {
-            if (byeGame.homeTeam) {
-                byeTeamList.push(byeGame.homeTeam);
+        byeGames.forEach((byeGame: { HomeTeam: string }) => {
+            if (byeGame.HomeTeam) {
+                byeTeamList.push(byeGame.HomeTeam);
             }
         });
 
@@ -1507,11 +1542,11 @@ export class CronService {
                 let isFavoriteTeamSvgLogo = false;
                 let isUnderdogTeamSvgLogo = false;
 
-                if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (favoriteTeam.logoUrl.includes('.svg') || favoriteTeam.logoUrl.slice(length - 4) === '.svg') {
                     isFavoriteTeamSvgLogo = true;
                 }
 
-                if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (underdogTeam.logoUrl.includes('.svg') || underdogTeam.logoUrl.slice(length - 4) === '.svg') {
                     isUnderdogTeamSvgLogo = true;
                 }
 
@@ -1621,11 +1656,11 @@ export class CronService {
                     let isWinnerTeamSvgLogo = false;
                     let isLoserTeamSvgLogo = false;
 
-                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (winnerTeam.logoUrl.includes('.svg') || winnerTeam.logoUrl.slice(length - 4) === '.svg') {
                         isWinnerTeamSvgLogo = true;
                     }
 
-                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (loserTeam.logoUrl.includes('.svg') || loserTeam.logoUrl.slice(length - 4) === '.svg') {
                         isLoserTeamSvgLogo = true;
                     }
 
@@ -1701,11 +1736,11 @@ export class CronService {
                     let isWinnerTeamSvgLogo = false;
                     let isLoserTeamSvgLogo = false;
 
-                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (winnerTeam.logoUrl.includes('.svg') || winnerTeam.logoUrl.slice(length - 4) === '.svg') {
                         isWinnerTeamSvgLogo = true;
                     }
 
-                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (loserTeam.logoUrl.includes('.svg') || loserTeam.logoUrl.slice(length - 4) === '.svg') {
                         isLoserTeamSvgLogo = true;
                     }
 
@@ -1792,11 +1827,11 @@ export class CronService {
                     let isFavoriteTeamSvgLogo = false;
                     let isUnderdogTeamSvgLogo = false;
 
-                    if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (favoriteTeam.logoUrl.includes('.svg') || favoriteTeam.logoUrl.slice(length - 4) === '.svg') {
                         isFavoriteTeamSvgLogo = true;
                     }
 
-                    if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (underdogTeam.logoUrl.includes('.svg') || underdogTeam.logoUrl.slice(length - 4) === '.svg') {
                         isUnderdogTeamSvgLogo = true;
                     }
 
@@ -2146,11 +2181,11 @@ export class CronService {
                 let isFavoriteTeamSvgLogo = false;
                 let isUnderdogTeamSvgLogo = false;
 
-                if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (favoriteTeam.logoUrl.includes('.svg') || favoriteTeam.logoUrl.slice(length - 4) === '.svg') {
                     isFavoriteTeamSvgLogo = true;
                 }
 
-                if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (underdogTeam.logoUrl.includes('.svg') || underdogTeam.logoUrl.slice(length - 4) === '.svg') {
                     isUnderdogTeamSvgLogo = true;
                 }
 
@@ -2257,14 +2292,13 @@ export class CronService {
                     let isWinnerTeamSvgLogo = false;
                     let isLoserTeamSvgLogo = false;
 
-                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (winnerTeam.logoUrl.includes('.svg') || winnerTeam.logoUrl.slice(length - 4) === '.svg') {
                         isWinnerTeamSvgLogo = true;
                     }
 
-                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (loserTeam.logoUrl.includes('.svg') || loserTeam.logoUrl.slice(length - 4) === '.svg') {
                         isLoserTeamSvgLogo = true;
                     }
-
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
@@ -2330,14 +2364,13 @@ export class CronService {
                     let isWinnerTeamSvgLogo = false;
                     let isLoserTeamSvgLogo = false;
 
-                    if (winnerTeam.logoUrl.includes(".svg") || winnerTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (winnerTeam.logoUrl.includes('.svg') || winnerTeam.logoUrl.slice(length - 4) === '.svg') {
                         isWinnerTeamSvgLogo = true;
                     }
 
-                    if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (loserTeam.logoUrl.includes('.svg') || loserTeam.logoUrl.slice(length - 4) === '.svg') {
                         isLoserTeamSvgLogo = true;
                     }
-
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
@@ -2405,11 +2438,11 @@ export class CronService {
                     let isFavoriteTeamSvgLogo = false;
                     let isUnderdogTeamSvgLogo = false;
 
-                    if (favoriteTeam.logoUrl.includes(".svg") || favoriteTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (favoriteTeam.logoUrl.includes('.svg') || favoriteTeam.logoUrl.slice(length - 4) === '.svg') {
                         isFavoriteTeamSvgLogo = true;
                     }
 
-                    if (underdogTeam.logoUrl.includes(".svg") || underdogTeam.logoUrl.slice(length - 4) === ".svg") {
+                    if (underdogTeam.logoUrl.includes('.svg') || underdogTeam.logoUrl.slice(length - 4) === '.svg') {
                         isUnderdogTeamSvgLogo = true;
                     }
 
@@ -3020,11 +3053,11 @@ export class CronService {
                 let isCreatorTeamSvgLogo = false;
                 let isClaimerTeamSvgLogo = false;
 
-                if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (creatorTeam.logoUrl.includes('.svg') || creatorTeam.logoUrl.slice(length - 4) === '.svg') {
                     isCreatorTeamSvgLogo = true;
                 }
 
-                if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (claimerTeam.logoUrl.includes('.svg') || claimerTeam.logoUrl.slice(length - 4) === '.svg') {
                     isClaimerTeamSvgLogo = true;
                 }
 
@@ -3144,11 +3177,11 @@ export class CronService {
                 let isCreatorTeamSvgLogo = false;
                 let isClaimerTeamSvgLogo = false;
 
-                if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (creatorTeam.logoUrl.includes('.svg') || creatorTeam.logoUrl.slice(length - 4) === '.svg') {
                     isCreatorTeamSvgLogo = true;
                 }
 
-                if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (claimerTeam.logoUrl.includes('.svg') || claimerTeam.logoUrl.slice(length - 4) === '.svg') {
                     isClaimerTeamSvgLogo = true;
                 }
 
@@ -3216,11 +3249,11 @@ export class CronService {
                 let isCreatorTeamSvgLogo = false;
                 let isClaimerTeamSvgLogo = false;
 
-                if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (creatorTeam.logoUrl.includes('.svg') || creatorTeam.logoUrl.slice(length - 4) === '.svg') {
                     isCreatorTeamSvgLogo = true;
                 }
 
-                if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+                if (claimerTeam.logoUrl.includes('.svg') || claimerTeam.logoUrl.slice(length - 4) === '.svg') {
                     isClaimerTeamSvgLogo = true;
                 }
 

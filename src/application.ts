@@ -23,11 +23,14 @@ import {
 import {
     CloseContestsCron,
     EspnSyncLeaguesCron,
+    FetchScheduleCron,
     LeagueWinCriteriaCron,
+    MiscellaneousCron,
     OngoingGamesCron,
     PlayerFantasyPointsCron,
     PlayersCron,
     ProjectedFantasyPointsCron,
+    ScheduleCron,
     SpecialTeamsCron,
     SyncGamesCron,
     syncTransactionsCron,
@@ -35,8 +38,6 @@ import {
     WinCriteriaCron,
     WithdrawFundsCron,
     YahooSyncLeaguesCron,
-    ScheduleCron,
-    MiscellaneousCron,
 } from './cron-jobs';
 import { BonusPayoutCron } from './cron-jobs/bonus-payout.cron';
 import { BonusProcessedCron } from './cron-jobs/bonus-processed.cron';
@@ -202,10 +203,12 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const VerifiedBonusCronBinding = createBindingFromClass(VerifiedBonusCron);
         this.add(VerifiedBonusCronBinding);
-        
+
         const ScheduleCronBinding = createBindingFromClass(ScheduleCron);
         this.add(ScheduleCronBinding);
 
+        const FetchScheduleCronBinding = createBindingFromClass(FetchScheduleCron);
+        this.add(FetchScheduleCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);
