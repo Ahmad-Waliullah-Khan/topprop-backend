@@ -1520,11 +1520,11 @@ export class LeagueController {
         let isCreatorTeamSvgLogo = false;
         let isClaimerTeamSvgLogo = false;
 
-        if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(length - 4) === ".svg") {
+        if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(creatorTeam.logoUrl.length - 4) === ".svg") {
             isCreatorTeamSvgLogo = true;
         }
 
-        if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(length - 4) === ".svg") {
+        if (claimerTeam.logoUrl.includes(".svg") || claimerTeam.logoUrl.slice(claimerTeam.logoUrl.length - 4) === ".svg") {
             isClaimerTeamSvgLogo = true;
         }
 
