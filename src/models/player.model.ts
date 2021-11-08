@@ -1,7 +1,7 @@
-import { belongsTo, hasMany, model, property } from '@loopback/repository';
-import { Base } from '.';
-import { PlayerResult } from './player-result.model';
-import { Team } from './team.model';
+import {belongsTo, hasMany, model, property} from '@loopback/repository';
+import {Base} from '.';
+import {PlayerResult} from './player-result.model';
+import {Team} from './team.model';
 
 @model()
 export class Player extends Base {
@@ -142,6 +142,15 @@ export class Player extends Base {
     })
     projectedFantasyPoints: number;
 
+    @property({
+        type: 'number',
+        required: false,
+        default: 0,
+        postgresql: {
+            dataType: 'decimal',
+        },
+    })
+    projectedFantasyPointsHalfPpr: number;
 
     @property({
         type: 'number',
