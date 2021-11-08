@@ -25,7 +25,7 @@ export class FetchScheduleCron extends CronJob {
                     this.setTime(updatedCronTime);
                     this.start();
                 } catch (error) {
-                    logger.error(chalk.redBright(`Error on scheduled games cron job. Error: `, error));
+                    logger.error(chalk.redBright(`Error on Fetch scheduled games cron job. Error: `, error));
                 }
             },
         });

@@ -23,7 +23,6 @@ import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
-import { isEqual, isNull } from 'lodash';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
@@ -428,11 +427,11 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // Every hour
-                        cronTiming = '0 */5 * * * *';
+                        cronTiming = '0 * * */1 * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // Every 5 minutes
-                        cronTiming = '0 */5 * * * *';
+                        cronTiming = '0 * * */1 * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // Once a week
@@ -613,12 +612,12 @@ export class CronService {
 
         const seasonSchedule = await this.sportsDataService.scheduleBySeason(currentTimeFrame.ApiSeason);
 
-        const weekScheduleGames = seasonSchedule.filter(
-            game => !isNull(game.Status) && isEqual(game.Week, +currentTimeFrame.ApiWeek),
-        );
+        // const weekScheduleGames = seasonSchedule.filter(
+        //     game =>  isEqual(game.Week, +currentTimeFrame.ApiWeek),
+        // );
 
         // write JSON file
-        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(weekScheduleGames), 'utf8');
+        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(seasonSchedule), 'utf8');
 
         return;
     }
