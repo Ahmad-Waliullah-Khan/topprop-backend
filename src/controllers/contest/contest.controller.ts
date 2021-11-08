@@ -1,38 +1,34 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, Contest, Gain } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, Contest, Gain} from '@src/models';
 import {
     BetRepository,
-    ContestRepository,
-    PlayerRepository,
+    ContestRepository, GainRepository, PlayerRepository,
     PlayerResultRepository,
-    UserRepository,
-    GainRepository,
+    UserRepository
 } from '@src/repositories';
-import { ContestPayoutService, ContestService, PaymentGatewayService, UserService } from '@src/services';
+import {ContestPayoutService, ContestService, PaymentGatewayService, UserService} from '@src/services';
 import {
-    API_ENDPOINTS,
-    CONTEST_STATUSES,
+    API_ENDPOINTS, CONTEST_STAKEHOLDERS, CONTEST_STATUSES,
     EMAIL_TEMPLATES,
     LOBBY_SPREAD_LIMIT,
-    PERMISSIONS,
-    CONTEST_STAKEHOLDERS,
+    PERMISSIONS
 } from '@src/utils/constants';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
-    ICustomUserProfile,
+    ICustomUserProfile
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
-import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
-import { isEmpty } from 'lodash';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES} from '@src/utils/messages';
+import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/validators';
+import {isEmpty} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -146,8 +142,8 @@ export class ContestController {
             ? await this.contestService.calculateWinBonus(claimerPlayerSpread, entryAmount)
             : 0;
 
-        const creatorPlayerProjFantasyPoints = creatorPlayerData ? creatorPlayerData.projectedFantasyPoints : 0;
-        const claimerPlayerProjFantasyPoints = claimerPlayerData ? claimerPlayerData.projectedFantasyPoints : 0;
+        const creatorPlayerProjFantasyPoints = creatorPlayerData ? creatorPlayerData.projectedFantasyPointsHalfPpr : 0;
+        const claimerPlayerProjFantasyPoints = claimerPlayerData ? claimerPlayerData.projectedFantasyPointsHalfPpr : 0;
 
         const creatorPlayerMaxWin = Number(creatorPlayerCover) + Number(creatorPlayerWinBonus);
         const claimerPlayerMaxWin = Number(claimerPlayerCover) + Number(claimerPlayerWinBonus);

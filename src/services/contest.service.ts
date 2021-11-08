@@ -1,13 +1,12 @@
-import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { SpreadRepository, PlayerRepository, ContestRepository } from '@src/repositories';
-import { MiscHelpers } from '@src/utils/helpers';
+import {bind, /* inject, */ BindingScope, Getter} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {PlayerRepository, SpreadRepository} from '@src/repositories';
+import {SCHEDULE, TIMEZONE} from '@src/utils/constants';
+import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
-import { CONTEST_STATUSES, BLOCKED_TIME_SLOTS, TIMEZONE, SCHEDULE } from '@src/utils/constants';
 
-import { Contest } from '@src/models';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class ContestService {
@@ -37,8 +36,8 @@ export class ContestService {
             console.log(chalk.redBright(`Opponent with id: ${opponentId} not found`));
         }
 
-        const playerProjectedPoints = playerData ? playerData.projectedFantasyPoints : 0;
-        const opponentProjectedPoints = opponentData ? opponentData.projectedFantasyPoints : 0;
+        const playerProjectedPoints = playerData ? playerData.projectedFantasyPointsHalfPpr : 0;
+        const opponentProjectedPoints = opponentData ? opponentData.projectedFantasyPointsHalfPpr : 0;
         if (type === 'creator') {
             spread = MiscHelpers.roundValue(opponentProjectedPoints - playerProjectedPoints, 0.5);
         } else {
@@ -112,7 +111,7 @@ export class ContestService {
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
-        let teamList: string[] = [];
+        const teamList: string[] = [];
 
         sheduledGames.forEach(scheduledGame => {
             if (scheduledGame.awayTeam) {
@@ -122,7 +121,7 @@ export class ContestService {
                 teamList.push(scheduledGame.homeTeam);
             }
         });
-        
+
         if(teamList.includes(playerData.teamName) || teamList.includes(opponentData.teamName)){
             console.log(chalk.redBright(`Player(s) not available for contest`));
             return false;

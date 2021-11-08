@@ -564,7 +564,12 @@ export class CronService {
 
     async processProjectedFantasyPoints() {
         const currentDate = await this.fetchDate();
+        const currentSeason = await this.fetchSeason();
+
+        const currentWeek = await this.sportsDataService.currentWeek();
+
         const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
+
         const localPlayers = await this.playerRepository.find();
         const ruledOutPlayer: number[] = [];
         const playerPromises = remotePlayers.map(async remotePlayer => {
@@ -602,6 +607,18 @@ export class CronService {
         if (ruledOutPlayer.length > 0) {
             await this.leagueVoidContests(ruledOutPlayer);
         }
+
+        const remotePlayersHalfPpr = await this.sportsDataService.projectedHalfPprFantasyPointsByWeeek(
+            currentSeason, currentWeek,
+        );
+
+        const playerHalfPprProjectionPromises = remotePlayersHalfPpr.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
+                await this.playerRepository.save(foundLocalPlayer);
+            }
+        });
 
         return playerPromises;
     }
