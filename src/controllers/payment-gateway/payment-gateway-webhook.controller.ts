@@ -1,22 +1,22 @@
-import { Getter, inject, service } from '@loopback/core';
-import { param, post, requestBody } from '@loopback/openapi-v3';
-import { repository, Where } from '@loopback/repository';
-import { Response, RestBindings } from '@loopback/rest';
-import { Bet, Gain, TopUp, User, WithdrawRequest } from '@src/models';
+import {Getter, inject, service} from '@loopback/core';
+import {param, post, requestBody} from '@loopback/openapi-v3';
+import {repository, Where} from '@loopback/repository';
+import {Response, RestBindings} from '@loopback/rest';
+import {Bet, Gain, TopUp, User, WithdrawRequest} from '@src/models';
 import {
     BetRepository,
     GainRepository,
     PaymentGatewayEventRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { DwollaWebhookEventPayload, PaymentGatewayService, UserService } from '@src/services';
-import { API_ENDPOINTS, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, WITHDRAW_REQUEST_STATUSES } from '@src/utils/constants';
-import { IRawRequest } from '@src/utils/interfaces';
-import { Buffer } from 'buffer';
-import { createHmac, timingSafeEqual } from 'crypto';
-import { isEqual, lastIndexOf } from 'lodash';
+import {DwollaWebhookEventPayload, PaymentGatewayService, UserService} from '@src/services';
+import {API_ENDPOINTS, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, WITHDRAW_REQUEST_STATUSES} from '@src/utils/constants';
+import {IRawRequest} from '@src/utils/interfaces';
+import {Buffer} from 'buffer';
+import {createHmac, timingSafeEqual} from 'crypto';
+import {isEqual, lastIndexOf} from 'lodash';
 import moment from 'moment';
 // const tslib_1 = require("tslib");
 // const moment_1 = tslib_1.__importDefault(require("moment"));
@@ -179,13 +179,6 @@ export class PaymentGatewayWebhookController {
     private async handleCustomerVerificationUpdate(customerId: string, details: string, idVerificationFailed = false) {
         const user = await this.fetchUserFromCustomer(customerId);
         if (user) {
-            this.userService.sendEmail(user, EMAIL_TEMPLATES.VERIFICATION_UPDATED, {
-                user,
-                text: {
-                    title: `Verification Update`,
-                    subtitle: details,
-                },
-            });
             if (idVerificationFailed) {
                 const userRepo = await this.userRepositoryGetter();
                 await userRepo.updateById(user.id, { verificationFileName: null, verificationFileUploaded: false });
@@ -199,14 +192,6 @@ export class PaymentGatewayWebhookController {
 
     private async handleFundingSourceVerificationUpdate(customerId: string, details: string) {
         const user = await this.fetchUserFromCustomer(customerId);
-        user &&
-            this.userService.sendEmail(user, EMAIL_TEMPLATES.FUNDING_SOURCE_VERIFICATION_UPDATED, {
-                user,
-                text: {
-                    title: `Verification Update`,
-                    subtitle: details,
-                },
-            });
     }
 
     private async handleTransfer(body: DwollaWebhookEventPayload) {
@@ -243,7 +228,7 @@ export class PaymentGatewayWebhookController {
             let title = '';
             let subtitle = '';
             let template: EMAIL_TEMPLATES | null = null;
-            let sendEmail = true;
+            let sendEmail = false;
 
             const betRepo = await this.betRepositoryGetter();
             const gainRepo = await this.gainRepositoryGetter();
