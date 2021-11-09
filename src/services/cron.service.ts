@@ -2984,6 +2984,10 @@ export class CronService {
     }
 
     async leagueCloseContests() {
+
+        let isCreatorTeamSvgLogo = false;
+        let isClaimerTeamSvgLogo = false;
+
         const includes = await this.leagueService.fetchLeagueContestInclude();
 
         const contestsUnclaimed = await this.leagueContestRepository.find({
@@ -3033,9 +3037,6 @@ export class CronService {
                 const receiverUser = creatorUser;
                 const user = creatorUser;
                 const clientHost = process.env.CLIENT_HOST;
-
-                let isCreatorTeamSvgLogo = false;
-                let isClaimerTeamSvgLogo = false;
 
                 if (creatorTeam.logoUrl.includes(".svg") || creatorTeam.logoUrl.slice(creatorTeam.logoUrl.length - 4) === ".svg") {
                     isCreatorTeamSvgLogo = true;
