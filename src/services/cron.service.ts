@@ -424,6 +424,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.PLAYERS_STATUS_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -478,6 +494,9 @@ export class CronService {
                 break;
             case CRON_JOBS.MISCELLANEOUS_CRON:
                 cronMessage = 'Miscellaneous functions Cron';
+                break;
+            case CRON_JOBS.PLAYERS_STATUS_CRON:
+                cronMessage = 'Players Status';
                 break;
         }
 
@@ -3657,5 +3676,25 @@ export class CronService {
                 });
             }
         }
+    }
+
+    async updatePlayerStatus() {
+
+        const remotePlayers = await this.sportsDataService.availablePlayers();
+        const localPlayers = await this.playerRepository.find();
+        const playerPromises = remotePlayers.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                if(foundLocalPlayer.status !== remotePlayer.Status) {
+                    foundLocalPlayer.status = remotePlayer.Status;
+                }
+                if(foundLocalPlayer.available !== remotePlayer.Active) {
+                    foundLocalPlayer.available = remotePlayer.Active;
+                }
+                return this.playerRepository.save(foundLocalPlayer);
+            }
+        });
+
+        return playerPromises;
     }
 }

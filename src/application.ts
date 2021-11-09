@@ -1,60 +1,57 @@
 import {
     AuthenticationBindings,
     AuthenticationComponent,
-    registerAuthenticationStrategy,
+    registerAuthenticationStrategy
 } from '@loopback/authentication';
-import { AuthorizationComponent } from '@loopback/authorization';
-import { BootMixin } from '@loopback/boot';
-import { addExtension, ApplicationConfig, createBindingFromClass } from '@loopback/core';
-import { CronComponent } from '@loopback/cron';
-import { RepositoryMixin } from '@loopback/repository';
-import { RequestBodyParserOptions, RestApplication, RestBindings } from '@loopback/rest';
-import { CrudRestComponent } from '@loopback/rest-crud';
-import { ServiceMixin } from '@loopback/service-proxy';
-import { isEqual } from 'lodash';
+import {AuthorizationComponent} from '@loopback/authorization';
+import {BootMixin} from '@loopback/boot';
+import {addExtension, ApplicationConfig, createBindingFromClass} from '@loopback/core';
+import {CronComponent} from '@loopback/cron';
+import {RepositoryMixin} from '@loopback/repository';
+import {RequestBodyParserOptions, RestApplication, RestBindings} from '@loopback/rest';
+import {CrudRestComponent} from '@loopback/rest-crud';
+import {ServiceMixin} from '@loopback/service-proxy';
+import {isEqual} from 'lodash';
 import morgan from 'morgan';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import {join} from 'path';
+import {v4 as uuidv4} from 'uuid';
 import {
     JWTAuthenticationStrategy,
     PassportFacebookTokenAuthProvider,
-    PassportGoogleTokenAuthProvider,
+    PassportGoogleTokenAuthProvider
 } from './authentication-strategies';
 import {
     CloseContestsCron,
     EspnSyncLeaguesCron,
-    LeagueWinCriteriaCron,
-    OngoingGamesCron,
+    LeagueWinCriteriaCron, MiscellaneousCron, OngoingGamesCron,
     PlayerFantasyPointsCron,
     PlayersCron,
-    ProjectedFantasyPointsCron,
-    SpecialTeamsCron,
+    PlayersStatusCron,
+    ProjectedFantasyPointsCron, ScheduleCron, SpecialTeamsCron,
     SyncGamesCron,
     syncTransactionsCron,
     TimeframeCron,
     WinCriteriaCron,
     WithdrawFundsCron,
-    YahooSyncLeaguesCron,
-    ScheduleCron,
-    MiscellaneousCron,
+    YahooSyncLeaguesCron
 } from './cron-jobs';
-import { BonusPayoutCron } from './cron-jobs/bonus-payout.cron';
-import { BonusProcessedCron } from './cron-jobs/bonus-processed.cron';
-import { VerifiedBonusCron } from './cron-jobs/verified-bonus-cron';
+import {BonusPayoutCron} from './cron-jobs/bonus-payout.cron';
+import {BonusProcessedCron} from './cron-jobs/bonus-processed.cron';
+import {VerifiedBonusCron} from './cron-jobs/verified-bonus-cron';
 import {
     ConfigRepository,
     ImportSourceRepository,
     LeagueRepository,
     ScoringTypeRepository,
     SpreadRepository,
-    UserRepository,
+    UserRepository
 } from './repositories';
-import { ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder } from './seeders';
-import { MySequence } from './sequence';
-import { ApplicationHelpers } from './utils/helpers';
-import { IRawRequest } from './utils/interfaces';
+import {ConfigSeeder, ImportSourceSeeder, ScoringTypeSeeder, SpreadSeeder} from './seeders';
+import {MySequence} from './sequence';
+import {ApplicationHelpers} from './utils/helpers';
+import {IRawRequest} from './utils/interfaces';
 
-export { ApplicationConfig };
+export {ApplicationConfig};
 
 export class TopPropBackendApplication extends BootMixin(ServiceMixin(RepositoryMixin(RestApplication))) {
     constructor(options: ApplicationConfig = {}) {
@@ -202,9 +199,12 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
 
         const VerifiedBonusCronBinding = createBindingFromClass(VerifiedBonusCron);
         this.add(VerifiedBonusCronBinding);
-        
+
         const ScheduleCronBinding = createBindingFromClass(ScheduleCron);
         this.add(ScheduleCronBinding);
+
+        const PlayersStatusCronBinding = createBindingFromClass(PlayersStatusCron);
+        this.add(PlayersStatusCronBinding);
 
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
