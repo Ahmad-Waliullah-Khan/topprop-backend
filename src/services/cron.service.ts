@@ -48,6 +48,7 @@ import {
     TIMEFRAMES,
     TIMEZONE,
     WITHDRAW_REQUEST_STATUSES,
+    SCHEDULE,
 } from '../utils/constants';
 import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
@@ -427,15 +428,15 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // Every hour
-                        cronTiming = '0 * * */1 * *';
+                        cronTiming = '0 0 0 */1 * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // Every 5 minutes
-                        cronTiming = '0 * * */1 * *';
+                        cronTiming = '0 0 0 */1 * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // Once a week
-                        cronTiming = '0 * * */1 * *';
+                        cronTiming = '0 0 0 */1 * *';
                         break;
                 }
                 break;
@@ -641,15 +642,15 @@ export class CronService {
     }
 
     async processSchedulesGames() {
-        // const currentWeek = await this.sportsDataService.currentWeek();
+        const currentWeek = await this.sportsDataService.currentWeek();
 
-        // const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+        const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
 
-        const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
-        const weeklyGames = JSON.parse(rawData);
+        // const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
+        // const weeklyGames = JSON.parse(rawData);
 
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
-        // const currentTime = momenttz.tz('2021-10-24T12:30:00', TIMEZONE).add(1, 'minute');
+        // const currentTime = momenttz.tz('2021-11-13T12:30:00', TIMEZONE).add(1, 'minute');
         const currentDay = currentTime.day();
         const clonedCurrentTime = currentTime.clone();
         let startOfGameWeek = clonedCurrentTime.day(4).startOf('day');
@@ -657,22 +658,26 @@ export class CronService {
             startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
         }
 
-        const scheduledGames = weeklyGames.filter((game: { DateTime: number }) => {
-            const gameDate = momenttz.tz(game.DateTime, TIMEZONE);
+        // const scheduledGames = weekGames.filter(game => {
+        //     const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
+
+        const scheduledGames = weekGames.filter(game => {
+            const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
         const teamList: string[] = [];
 
-        scheduledGames.forEach((scheduledGame: { AwayTeam: string; HomeTeam: string }) => {
-            if (scheduledGame.AwayTeam) {
-                teamList.push(scheduledGame.AwayTeam);
+        scheduledGames.forEach(scheduledGame => {
+            if (scheduledGame.awayTeam) {
+                teamList.push(scheduledGame.awayTeam);
             }
-            if (scheduledGame.HomeTeam) {
-                teamList.push(scheduledGame.HomeTeam);
+            if (scheduledGame.homeTeam) {
+                teamList.push(scheduledGame.homeTeam);
             }
         });
 
+        
         const foundPlayers = await this.playerRepository.find({
             fields: { id: true },
             where: {
@@ -694,12 +699,13 @@ export class CronService {
         });
         await this.closeContestsFromList(contests);
 
-        const byeGames = weeklyGames.filter((game: { AwayTeam: string }) => game.AwayTeam === 'BYE');
+        // const byeGames = weekGames.filter((game: { AwayTeam: string }) => game.AwayTeam === 'BYE');
+        const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
         const byeTeamList: string[] = [];
 
-        byeGames.forEach((byeGame: { HomeTeam: string }) => {
-            if (byeGame.HomeTeam) {
-                byeTeamList.push(byeGame.HomeTeam);
+        byeGames.forEach(byeGame => {
+            if (byeGame.homeTeam) {
+                byeTeamList.push(byeGame.homeTeam);
             }
         });
 
