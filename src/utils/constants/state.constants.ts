@@ -377,11 +377,11 @@ export const US_STATE_PERMISSIONS = [
         name: 'New Hampshire',
         abbr: 'NH',
         appAccess: true,
-        paidContests: false,
+        paidContests: true,
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'New Jersey',
