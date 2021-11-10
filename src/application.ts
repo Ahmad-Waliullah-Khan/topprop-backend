@@ -23,6 +23,7 @@ import {
 import {
     CloseContestsCron,
     EspnSyncLeaguesCron,
+    FetchScheduleCron,
     LeagueWinCriteriaCron, MiscellaneousCron, OngoingGamesCron,
     PlayerFantasyPointsCron,
     PlayersCron,
@@ -206,6 +207,8 @@ export class TopPropBackendApplication extends BootMixin(ServiceMixin(Repository
         const PlayersStatusCronBinding = createBindingFromClass(PlayersStatusCron);
         this.add(PlayersStatusCronBinding);
 
+        const FetchScheduleCronBinding = createBindingFromClass(FetchScheduleCron);
+        this.add(FetchScheduleCronBinding);
 
         // const playerResultsCronBinding = createBindingFromClass(PlayerResultsCron);
         // this.add(playerResultsCronBinding);

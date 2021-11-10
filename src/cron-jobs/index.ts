@@ -3,6 +3,7 @@ export * from './bonus-payout.cron';
 export * from './bonus-processed.cron';
 export * from './close-contests.cron';
 export * from './espn-sync-leagues.cron';
+export * from './fetch-schedule.cron';
 export * from './league-win-criteria.cron';
 export * from './miscellaneous.cron';
 export * from './ongoing-games.cron';
