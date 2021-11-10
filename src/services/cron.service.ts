@@ -44,7 +44,6 @@ import {
     PROXY_MONTH,
     PROXY_YEAR,
     RUN_TYPE,
-    SCHEDULE,
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
@@ -424,6 +423,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 * * */1 * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 * * */1 * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Once a week
+                        cronTiming = '0 * * */1 * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -608,10 +623,29 @@ export class CronService {
         return playerPromises;
     }
 
-    async processSchedulesGames() {
-        const currentWeek = await this.sportsDataService.currentWeek();
+    // FETCH WEEKLY SCHEDULE
+    async fetchWeeklySchedule() {
+        const [currentTimeFrame] = await this.sportsDataService.timeFrames(TIMEFRAMES.CURRENT);
 
-        const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+        const seasonSchedule = await this.sportsDataService.scheduleBySeason(currentTimeFrame.ApiSeason);
+
+        // const weekScheduleGames = seasonSchedule.filter(
+        //     game =>  isEqual(game.Week, +currentTimeFrame.ApiWeek),
+        // );
+
+        // write JSON file
+        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(seasonSchedule), 'utf8');
+
+        return;
+    }
+
+    async processSchedulesGames() {
+        // const currentWeek = await this.sportsDataService.currentWeek();
+
+        // const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+
+        const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
+        const weeklyGames = JSON.parse(rawData);
 
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
         // const currentTime = momenttz.tz('2021-10-24T12:30:00', TIMEZONE).add(1, 'minute');
@@ -622,19 +656,19 @@ export class CronService {
             startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
         }
 
-        const scheduledGames = weekGames.filter(game => {
-            const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
+        const scheduledGames = weeklyGames.filter((game: { DateTime: number }) => {
+            const gameDate = momenttz.tz(game.DateTime, TIMEZONE);
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
 
         const teamList: string[] = [];
 
-        scheduledGames.forEach(scheduledGame => {
-            if (scheduledGame.awayTeam) {
-                teamList.push(scheduledGame.awayTeam);
+        scheduledGames.forEach((scheduledGame: { AwayTeam: string; HomeTeam: string }) => {
+            if (scheduledGame.AwayTeam) {
+                teamList.push(scheduledGame.AwayTeam);
             }
-            if (scheduledGame.homeTeam) {
-                teamList.push(scheduledGame.homeTeam);
+            if (scheduledGame.HomeTeam) {
+                teamList.push(scheduledGame.HomeTeam);
             }
         });
 
@@ -657,14 +691,14 @@ export class CronService {
             },
             include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
         });
-        this.closeContestsFromList(contests);
+        await this.closeContestsFromList(contests);
 
-        const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
+        const byeGames = weeklyGames.filter((game: { AwayTeam: string }) => game.AwayTeam === 'BYE');
         const byeTeamList: string[] = [];
 
-        byeGames.forEach(byeGame => {
-            if (byeGame.homeTeam) {
-                byeTeamList.push(byeGame.homeTeam);
+        byeGames.forEach((byeGame: { HomeTeam: string }) => {
+            if (byeGame.HomeTeam) {
+                byeTeamList.push(byeGame.HomeTeam);
             }
         });
 
@@ -2282,7 +2316,6 @@ export class CronService {
                         isLoserTeamSvgLogo = true;
                     }
 
-
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
                         loserUser,
@@ -2354,7 +2387,6 @@ export class CronService {
                     if (loserTeam.logoUrl.includes(".svg") || loserTeam.logoUrl.slice(loserTeam.logoUrl.length - 4) === ".svg") {
                         isLoserTeamSvgLogo = true;
                     }
-
 
                     await this.userService.sendEmail(winnerUser, EMAIL_TEMPLATES.LEAGUE_CONTEST_WON, {
                         winnerUser,
