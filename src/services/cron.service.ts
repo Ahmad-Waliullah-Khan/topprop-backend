@@ -629,12 +629,17 @@ export class CronService {
 
         const seasonSchedule = await this.sportsDataService.scheduleBySeason(currentTimeFrame.ApiSeason);
 
+        const currentWeek = await this.sportsDataService.currentWeek();
+        const
+
+        filteredSeasonSchedule =  seasonSchedule.filter(scheduledGame => scheduledGame.Week === currentWeek && scheduledGame.Week === currentWeek-1 && scheduledGame.Week === currentWeek+1 );
+
         // const weekScheduleGames = seasonSchedule.filter(
         //     game =>  isEqual(game.Week, +currentTimeFrame.ApiWeek),
         // );
 
         // write JSON file
-        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(seasonSchedule), 'utf8');
+        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(filteredSeasonSchedule), 'utf8');
 
         return;
     }
