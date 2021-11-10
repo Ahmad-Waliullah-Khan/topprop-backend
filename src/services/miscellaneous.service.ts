@@ -152,4 +152,16 @@ export class MiscellaneousService {
             await this.userRepository.updateById(user?.id, { dateOfBirth: formattedDob });
         }
     }
+
+    async resetAllPlayers() {
+        /*
+        Date: 10-11-2021
+        Description: Resets all player info. Recreates the logic used in fetch player reset functionality
+        */
+        this.playerRepository.updateAll(
+            { isOver: false, hasStarted: false, projectedFantasyPoints: 0, projectedFantasyPointsHalfPpr: 0 },
+            { id: { gt: 0 } },
+            (err: any, info: any) => {},
+        );
+    }
 }
