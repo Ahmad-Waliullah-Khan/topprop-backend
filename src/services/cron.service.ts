@@ -3790,11 +3790,14 @@ export class CronService {
             if (foundLocalPlayer) {
                 if(foundLocalPlayer.status !== remotePlayer.Status) {
                     foundLocalPlayer.status = remotePlayer.Status;
+                    logger.info(`Player status for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Status}`);
+                    await this.playerRepository.save(foundLocalPlayer);
                 }
                 if(foundLocalPlayer.available !== remotePlayer.Active) {
                     foundLocalPlayer.available = remotePlayer.Active;
+                    logger.info(`Player availability for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Active}`);
+                    await this.playerRepository.save(foundLocalPlayer);
                 }
-                return this.playerRepository.save(foundLocalPlayer);
             }
         });
 
