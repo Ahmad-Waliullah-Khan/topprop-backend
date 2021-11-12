@@ -694,7 +694,6 @@ export class CronService {
             }
         });
 
-
         const foundPlayers = await this.playerRepository.find({
             fields: { id: true },
             where: {
