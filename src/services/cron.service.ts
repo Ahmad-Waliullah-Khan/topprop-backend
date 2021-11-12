@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -43,17 +43,15 @@ import {
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
-    RUN_TYPE,
-    SCORING_TYPE,
+    RUN_TYPE, SCHEDULE, SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
-    SCHEDULE,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -424,22 +422,38 @@ export class CronService {
                         break;
                 }
                 break;
-            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+            case CRON_JOBS.PLAYERS_STATUS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // Every hour
-                        cronTiming = '0 0 0 */1 * *';
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // Every 5 minutes
-                        cronTiming = '0 0 0 */1 * *';
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // Once a week
-                        cronTiming = '0 0 0 */1 * *';
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
                         break;
                 }
                 break;
+            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+            switch (RUN_TYPE) {
+                case CRON_RUN_TYPES.PRINCIPLE:
+                    // Every hour
+                    cronTiming = '0 0 0 */1 * *';
+                    break;
+                case CRON_RUN_TYPES.STAGING:
+                    // Every 5 minutes
+                    cronTiming = '0 0 0 */1 * *';
+                    break;
+                case CRON_RUN_TYPES.PROXY:
+                    // Once a week
+                    cronTiming = '0 0 0 */1 * *';
+                    break;
+            }
+            break;
         }
         return cronTiming;
     }
@@ -494,6 +508,9 @@ export class CronService {
                 break;
             case CRON_JOBS.MISCELLANEOUS_CRON:
                 cronMessage = 'Miscellaneous functions Cron';
+                break;
+            case CRON_JOBS.PLAYERS_STATUS_CRON:
+                cronMessage = 'Players Status';
                 break;
         }
 
@@ -677,7 +694,7 @@ export class CronService {
             }
         });
 
-        
+
         const foundPlayers = await this.playerRepository.find({
             fields: { id: true },
             where: {
@@ -3762,5 +3779,28 @@ export class CronService {
                 });
             }
         }
+    }
+
+    async updatePlayerStatus() {
+
+        const remotePlayers = await this.sportsDataService.availablePlayers();
+        const localPlayers = await this.playerRepository.find();
+        const playerPromises = remotePlayers.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                if(foundLocalPlayer.status !== remotePlayer.Status) {
+                    foundLocalPlayer.status = remotePlayer.Status;
+                    logger.info(`Player status for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Status}`);
+                    await this.playerRepository.save(foundLocalPlayer);
+                }
+                if(foundLocalPlayer.available !== remotePlayer.Active) {
+                    foundLocalPlayer.available = remotePlayer.Active;
+                    logger.info(`Player availability for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Active}`);
+                    await this.playerRepository.save(foundLocalPlayer);
+                }
+            }
+        });
+
+        return playerPromises;
     }
 }

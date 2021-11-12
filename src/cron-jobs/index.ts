@@ -8,6 +8,7 @@ export * from './league-win-criteria.cron';
 export * from './miscellaneous.cron';
 export * from './ongoing-games.cron';
 export * from './player-fantasy-points.cron';
+export * from './players-status.cron';
 export * from './players.cron';
 export * from './projected-fantasy-points.cron';
 export * from './schedule.cron';
@@ -20,3 +21,4 @@ export * from './timeframe.cron';
 export * from './win-criteria.cron';
 export * from './withdraw-funds.cron';
 export * from './yahoo-sync-leagues.cron';
+

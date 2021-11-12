@@ -71,3 +71,6 @@ typings/
 
 # Bonus Payout CSV
 /src/seeders/bonus_payouts.csv
+
+# Schedule Json
+/src/utils/constants/schedule.week.json
