@@ -1,6 +1,7 @@
 const cronEnv = process.env.NODE_ENV ? process.env.NODE_ENV : 'production';
 
 let CRON_TIMING_PLAYERS_CRON = '';
+let CRON_TIMING_PLAYERS_STATUS_CRON = '';
 let CRON_TIMING_SPECIAL_TEAMS_CRON = '';
 let CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '';
 let CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '';
@@ -25,6 +26,7 @@ let CRON_TIMING_FETCH_SCHEDULE = '';
 switch (cronEnv) {
     case 'development':
         CRON_TIMING_PLAYERS_CRON = '0 */1 * * * *';
+        CRON_TIMING_PLAYERS_STATUS_CRON = '0 */1 * * * *';
         CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
         CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */1 * * * *';
         CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '0 */1 * * * *';
@@ -48,7 +50,8 @@ switch (cronEnv) {
         CRON_TIMING_FETCH_SCHEDULE = '0 */1 * * * *';
         break;
     case 'staging':
-        CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
+        CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
+        CRON_TIMING_PLAYERS_STATUS_CRON = '0 */15 * * * *';
         CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
         CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */1 * * * *';
         CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '0 */5 * * * *';
@@ -73,7 +76,8 @@ switch (cronEnv) {
 
         break;
     case 'production':
-        CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
+        CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
+        CRON_TIMING_PLAYERS_STATUS_CRON = '0 */15 * * * *';
         CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
         CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */15 * * * *';
         CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '0 */5 * * * *';
@@ -118,4 +122,5 @@ export const BONUS_PROCESSED_TIMING = CRON_TIMING_BONUS_PROCESSED;
 export const VERIFIED_BONUS_PAYOUT_TIMING = CRON_TIMING_VERIFIED_BONUS_PAYOUT;
 export const SCHEDULE_TIMING = CRON_TIMING_SCHEDULE;
 export const MISCELLANEOUS_TIMING = CRON_TIMING_MISCELLANEOUS;
+export const PLAYERS_STATUS_CRON_TIMING = CRON_TIMING_PLAYERS_STATUS_CRON;
 export const FETCH_SCHEDULE_TIMING = CRON_TIMING_FETCH_SCHEDULE;

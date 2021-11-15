@@ -43,8 +43,7 @@ import {
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
-    RUN_TYPE,
-    SCORING_TYPE,
+    RUN_TYPE, SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
     WITHDRAW_REQUEST_STATUSES
@@ -423,22 +422,38 @@ export class CronService {
                         break;
                 }
                 break;
-            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+            case CRON_JOBS.PLAYERS_STATUS_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // Every hour
-                        cronTiming = '0 0 0 */1 * *';
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // Every 5 minutes
-                        cronTiming = '0 0 0 */1 * *';
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
-                        // Once a week
-                        cronTiming = '0 0 0 */1 * *';
+                        // Every 15 minutes
+                        cronTiming = '0 */15 * * * *';
                         break;
                 }
                 break;
+            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+            switch (RUN_TYPE) {
+                case CRON_RUN_TYPES.PRINCIPLE:
+                    // Every hour
+                    cronTiming = '0 0 0 */1 * *';
+                    break;
+                case CRON_RUN_TYPES.STAGING:
+                    // Every 5 minutes
+                    cronTiming = '0 0 0 */1 * *';
+                    break;
+                case CRON_RUN_TYPES.PROXY:
+                    // Once a week
+                    cronTiming = '0 0 0 */1 * *';
+                    break;
+            }
+            break;
         }
         return cronTiming;
     }
@@ -493,6 +508,9 @@ export class CronService {
                 break;
             case CRON_JOBS.MISCELLANEOUS_CRON:
                 cronMessage = 'Miscellaneous functions Cron';
+                break;
+            case CRON_JOBS.PLAYERS_STATUS_CRON:
+                cronMessage = 'Players Status';
                 break;
         }
 
@@ -680,7 +698,6 @@ export class CronService {
                 teamList.push(scheduledGame.HomeTeam);
             }
         });
-
 
         const foundPlayers = await this.playerRepository.find({
             fields: { id: true },
@@ -3765,5 +3782,33 @@ export class CronService {
                 });
             }
         }
+    }
+
+    async updatePlayerStatus() {
+
+        const remotePlayers = await this.sportsDataService.availablePlayers();
+        const localPlayers = await this.playerRepository.find();
+        const playerPromises = remotePlayers.map(async remotePlayer => {
+            const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
+            if (foundLocalPlayer) {
+                if(foundLocalPlayer.status !== remotePlayer.Status) {
+                    foundLocalPlayer.status = remotePlayer.Status;
+                    logger.info(`Player status for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Status}`);
+                    await this.playerRepository.save(foundLocalPlayer);
+                }
+                if(foundLocalPlayer.available !== remotePlayer.Active) {
+                    foundLocalPlayer.available = remotePlayer.Active;
+                    logger.info(`Player availability for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Active}`);
+                    await this.playerRepository.save(foundLocalPlayer);
+                }
+                if(foundLocalPlayer.teamName !== remotePlayer.Team) {
+                    foundLocalPlayer.teamName = remotePlayer.Team;
+                    logger.info(`Player team for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Team}`);
+                    await this.playerRepository.save(foundLocalPlayer);
+                }
+            }
+        });
+
+        return playerPromises;
     }
 }
