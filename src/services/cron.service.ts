@@ -3797,6 +3797,11 @@ export class CronService {
                     logger.info(`Player availability for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Active}`);
                     await this.playerRepository.save(foundLocalPlayer);
                 }
+                if(foundLocalPlayer.teamName !== remotePlayer.Team) {
+                    foundLocalPlayer.teamName = remotePlayer.Team;
+                    logger.info(`Player team for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Team}`);
+                    await this.playerRepository.save(foundLocalPlayer);
+                }
             }
         });
 
