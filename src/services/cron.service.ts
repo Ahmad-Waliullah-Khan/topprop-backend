@@ -651,7 +651,7 @@ export class CronService {
         const currentWeek = await this.sportsDataService.currentWeek();
         const
 
-        filteredSeasonSchedule =  seasonSchedule.filter(scheduledGame => scheduledGame.Week === currentWeek && scheduledGame.Week === currentWeek-1 && scheduledGame.Week === currentWeek+1 );
+        filteredSeasonSchedule =  seasonSchedule.filter(scheduledGame => scheduledGame.Week === currentWeek || scheduledGame.Week === currentWeek-1 || scheduledGame.Week === currentWeek+1 );
 
         // const weekScheduleGames = seasonSchedule.filter(
         //     game =>  isEqual(game.Week, +currentTimeFrame.ApiWeek),
@@ -706,6 +706,8 @@ export class CronService {
             },
         });
 
+        console.log('found players: ..................', foundPlayers);
+
         const playerIdList = foundPlayers.map(player => player.id);
 
         await this.playerRepository.updateAll({ hasStarted: true }, { id: { inq: playerIdList } });
@@ -735,6 +737,8 @@ export class CronService {
                 teamName: { inq: byeTeamList },
             },
         });
+
+        console.log('found BYE players: ..................', foundByePlayers);
 
         const byePlayerIdList = foundByePlayers.map(player => player.id);
 
