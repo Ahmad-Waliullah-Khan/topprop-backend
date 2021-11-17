@@ -5,10 +5,10 @@ import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } f
 import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
 import { SecurityBindings, securityId } from '@loopback/security';
 import { User } from '@src/models';
-import { UserRepository } from '@src/repositories';
+import { BonusPayoutRepository, CouponCodeRepository, UserRepository } from '@src/repositories';
 import { CouponCodeService, JwtService } from '@src/services';
 import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
+import { API_ENDPOINTS, BONUSSTATUS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
@@ -29,6 +29,10 @@ export class UserController {
     constructor(
         @repository(UserRepository)
         public userRepository: UserRepository,
+        @repository(CouponCodeRepository)
+        public couponCodeRepository: CouponCodeRepository,
+        @repository(BonusPayoutRepository)
+        public bonusPayoutRepository: BonusPayoutRepository,
         @service() protected userService: UserService,
         @service() protected couponCodeService: CouponCodeService,
         @service() protected jwtService: JwtService,
@@ -83,9 +87,11 @@ export class UserController {
         }
 
         // const validCountry = await this.userService.validCountry(body.signUpCountry || '');
+        // console.log(validCountry)
         // if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
         const statePermissions = await this.userService.statePermissions(body.signUpState, body.signUpState);
+
         const dob = moment(body.dateOfBirth);
         const current = moment();
         const age = current.diff(dob, 'years');
@@ -124,17 +130,17 @@ export class UserController {
         }
 
         body.bonusPayoutProcessed = true;
-        if (body.promo) {
-            const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
-            if (validCouponCode) {
-                body.bonusPayoutProcessed = false;
-            }
-        }
+        // if (body.promo) {
+        //     const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
+        //     if (validCouponCode) {
+        //         body.bonusPayoutProcessed = false;
+        //     }
+        // }
 
         delete body.password;
         delete body.confirmPassword;
         delete body.signUpCountry;
-        delete body.couponCode;
+        // delete body.couponCode;
         const user = await this.userRepository.create(body);
         const token = await this.jwtService.generateToken({
             id: user.id,
@@ -144,7 +150,40 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
-        this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, {
+        // Bonus payout for paid contests
+        if (body.promo) {
+            const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
+            if (validCouponCode) {
+                const couponData = await this.couponCodeRepository.findOne({
+                    where: {
+                        code: body.promo,
+                    },
+                });
+
+                const paidContestPermission = statePermissions?.paidContests;
+                if (paidContestPermission) {
+                    const bonusPayoutData = {
+                        amount: couponData?.value,
+                        message: couponData?.code,
+                        status: BONUSSTATUS.PENDING,
+                        userId: user.id,
+                    };
+                    await this.bonusPayoutRepository.create(bonusPayoutData);
+                    await this.userRepository.updateById(user.id, {
+                        bonusPayoutProcessed: true,
+                    });
+                } else {
+                    await this.userRepository.updateById(user.id, {
+                        bonusPayoutProcessed: false,
+                    });
+                }
+            }
+        }
+
+        // delete coupon code
+        delete body.couponCode;
+
+        await this.userService.sendEmail(user, EMAIL_TEMPLATES.WELCOME, {
             user,
             text: {
                 title: `Welcome to TopProp!`,
