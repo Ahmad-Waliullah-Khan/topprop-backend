@@ -1,6 +1,6 @@
-import {BindingScope, injectable, service} from '@loopback/core';
-import {repository, Where} from '@loopback/repository';
-import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
+import { BindingScope, injectable, service } from '@loopback/core';
+import { repository, Where } from '@loopback/repository';
+import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository
+    WithdrawRequestRepository,
 } from '@src/repositories';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import {TRANSFER_TYPES} from '../services';
-import {LeagueService} from '../services/league.service';
-import {PaymentGatewayService} from '../services/payment-gateway.service';
-import {SportsDataService} from '../services/sports-data.service';
-import {UserService} from '../services/user.service';
+import { TRANSFER_TYPES } from '../services';
+import { LeagueService } from '../services/league.service';
+import { PaymentGatewayService } from '../services/payment-gateway.service';
+import { SportsDataService } from '../services/sports-data.service';
+import { UserService } from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -43,15 +43,16 @@ import {
     PROXY_DAY_OFFSET,
     PROXY_MONTH,
     PROXY_YEAR,
-    RUN_TYPE, SCHEDULE, SCORING_TYPE,
+    RUN_TYPE,
+    SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES
+    WITHDRAW_REQUEST_STATUSES,
 } from '../utils/constants';
-import {DST_IDS} from '../utils/constants/dst.constants';
+import { DST_IDS } from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
+import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -439,21 +440,21 @@ export class CronService {
                 }
                 break;
             case CRON_JOBS.FETCH_SCHEDULE_CRON:
-            switch (RUN_TYPE) {
-                case CRON_RUN_TYPES.PRINCIPLE:
-                    // Every hour
-                    cronTiming = '0 0 0 */1 * *';
-                    break;
-                case CRON_RUN_TYPES.STAGING:
-                    // Every 5 minutes
-                    cronTiming = '0 0 0 */1 * *';
-                    break;
-                case CRON_RUN_TYPES.PROXY:
-                    // Once a week
-                    cronTiming = '0 0 0 */1 * *';
-                    break;
-            }
-            break;
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 0 0 */1 * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every 5 minutes
+                        cronTiming = '0 0 0 */1 * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Once a week
+                        cronTiming = '0 0 0 */1 * *';
+                        break;
+                }
+                break;
         }
         return cronTiming;
     }
@@ -648,49 +649,56 @@ export class CronService {
 
         const seasonSchedule = await this.sportsDataService.scheduleBySeason(currentTimeFrame.ApiSeason);
 
+        const currentWeek = await this.sportsDataService.currentWeek();
+        const filteredSeasonSchedule = seasonSchedule.filter(
+            scheduledGame =>
+                scheduledGame.Week === currentWeek ||
+                scheduledGame.Week === currentWeek - 1 ||
+                scheduledGame.Week === currentWeek + 1,
+        );
+
         // const weekScheduleGames = seasonSchedule.filter(
         //     game =>  isEqual(game.Week, +currentTimeFrame.ApiWeek),
         // );
 
         // write JSON file
-        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(seasonSchedule), 'utf8');
+        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(filteredSeasonSchedule), 'utf8');
 
         return;
     }
 
     async processSchedulesGames() {
-        const currentWeek = await this.sportsDataService.currentWeek();
-
-        const weekGames = SCHEDULE.filter(scheduledGame => scheduledGame.week === currentWeek);
+        const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
+        const weeklyGames = JSON.parse(rawData);
 
         // const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
         // const weeklyGames = JSON.parse(rawData);
 
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
-        // const currentTime = momenttz.tz('2021-11-13T12:30:00', TIMEZONE).add(1, 'minute');
+        // const currentTime = momenttz.tz('2021-11-18T21:30:00', TIMEZONE).add(1, 'minute');
+       
         const currentDay = currentTime.day();
         const clonedCurrentTime = currentTime.clone();
         let startOfGameWeek = clonedCurrentTime.day(4).startOf('day');
+        
         if (currentDay < 3) {
             startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
         }
 
-        // const scheduledGames = weekGames.filter(game => {
-        //     const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
-
-        const scheduledGames = weekGames.filter(game => {
-            const gameDate = momenttz.tz(game.dateTime, TIMEZONE);
+        const scheduledGames = weeklyGames.filter((game: { DateTime: number }) => {
+            const gameDate = momenttz.tz(game.DateTime, TIMEZONE);
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
+       
 
         const teamList: string[] = [];
-
-        scheduledGames.forEach(scheduledGame => {
-            if (scheduledGame.awayTeam) {
-                teamList.push(scheduledGame.awayTeam);
+        
+        scheduledGames.forEach((scheduledGame: { AwayTeam: string; HomeTeam: string }) => {
+            if (scheduledGame.AwayTeam) {
+                teamList.push(scheduledGame.AwayTeam);
             }
-            if (scheduledGame.homeTeam) {
-                teamList.push(scheduledGame.homeTeam);
+            if (scheduledGame.HomeTeam) {
+                teamList.push(scheduledGame.HomeTeam);
             }
         });
 
@@ -702,7 +710,7 @@ export class CronService {
         });
 
         const playerIdList = foundPlayers.map(player => player.id);
-
+        
         await this.playerRepository.updateAll({ hasStarted: true }, { id: { inq: playerIdList } });
 
         const contests = await this.contestRepository.find({
@@ -715,13 +723,14 @@ export class CronService {
         });
         await this.closeContestsFromList(contests);
 
-        // const byeGames = weekGames.filter((game: { AwayTeam: string }) => game.AwayTeam === 'BYE');
-        const byeGames = weekGames.filter(game => game.awayTeam === 'BYE');
+        const currentWeek = scheduledGames[0]?.Week || 0;
+        const weekGames = weeklyGames.filter((game: { Week: number }) => game.Week === currentWeek);
+        const byeGames = weekGames.filter((game: { AwayTeam: string }) => game.AwayTeam === 'BYE');
         const byeTeamList: string[] = [];
 
-        byeGames.forEach(byeGame => {
-            if (byeGame.homeTeam) {
-                byeTeamList.push(byeGame.homeTeam);
+        byeGames.forEach((byeGame: { HomeTeam: string }) => {
+            if (byeGame.HomeTeam) {
+                byeTeamList.push(byeGame.HomeTeam);
             }
         });
 
@@ -731,6 +740,8 @@ export class CronService {
                 teamName: { inq: byeTeamList },
             },
         });
+
+        // console.log('found BYE players: ..................', foundByePlayers);
 
         const byePlayerIdList = foundByePlayers.map(player => player.id);
 
@@ -3781,23 +3792,24 @@ export class CronService {
     }
 
     async updatePlayerStatus() {
-
         const remotePlayers = await this.sportsDataService.availablePlayers();
         const localPlayers = await this.playerRepository.find();
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
-                if(foundLocalPlayer.status !== remotePlayer.Status) {
+                if (foundLocalPlayer.status !== remotePlayer.Status) {
                     foundLocalPlayer.status = remotePlayer.Status;
                     logger.info(`Player status for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Status}`);
                     await this.playerRepository.save(foundLocalPlayer);
                 }
-                if(foundLocalPlayer.available !== remotePlayer.Active) {
+                if (foundLocalPlayer.available !== remotePlayer.Active) {
                     foundLocalPlayer.available = remotePlayer.Active;
-                    logger.info(`Player availability for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Active}`);
+                    logger.info(
+                        `Player availability for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Active}`,
+                    );
                     await this.playerRepository.save(foundLocalPlayer);
                 }
-                if(foundLocalPlayer.teamName !== remotePlayer.Team) {
+                if (foundLocalPlayer.teamName !== remotePlayer.Team) {
                     foundLocalPlayer.teamName = remotePlayer.Team;
                     logger.info(`Player team for ${foundLocalPlayer.fullName}, changed to: ${remotePlayer.Team}`);
                     await this.playerRepository.save(foundLocalPlayer);
