@@ -50,7 +50,7 @@ switch (cronEnv) {
         CRON_TIMING_FETCH_SCHEDULE = '0 */1 * * * *';
         break;
     case 'staging':
-        CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
+        CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
         CRON_TIMING_PLAYERS_STATUS_CRON = '0 */15 * * * *';
         CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
         CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */1 * * * *';
@@ -76,7 +76,7 @@ switch (cronEnv) {
 
         break;
     case 'production':
-        CRON_TIMING_PLAYERS_CRON = '0 0 22 * * 2';
+        CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
         CRON_TIMING_PLAYERS_STATUS_CRON = '0 */15 * * * *';
         CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
         CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */15 * * * *';

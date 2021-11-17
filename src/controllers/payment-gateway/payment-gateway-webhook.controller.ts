@@ -63,10 +63,7 @@ export class PaymentGatewayWebhookController {
         @requestBody()
         body: DwollaWebhookEventPayload,
     ): Promise<void> {
-        console.log(
-            '🚀 ~ file: payment-gateway-webhook.controller.ts ~ line 61 ~ PaymentGatewayWebhookController ~ body',
-            body.topic,
-        );
+        
         //EARLY REPLY
         res.send(200);
 
