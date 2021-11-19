@@ -1,27 +1,27 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
-import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {User} from '@src/models';
-import {BonusPayoutRepository, CouponCodeRepository, TopUpRepository, UserRepository} from '@src/repositories';
-import {CouponCodeService, JwtService} from '@src/services';
-import {UserService} from '@src/services/user.service';
-import {API_ENDPOINTS, BONUSSTATUS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE} from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { User } from '@src/models';
+import { BonusPayoutRepository, CouponCodeRepository, TopUpRepository, UserRepository } from '@src/repositories';
+import { CouponCodeService, JwtService } from '@src/services';
+import { UserService } from '@src/services/user.service';
+import { API_ENDPOINTS, BONUSSTATUS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     EmailRequest,
     ICommonHttpResponse,
     ICustomUserProfile,
     LoginCredentials,
     ResetPasswordRequest,
-    SignupUserRequest
+    SignupUserRequest,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, USER_MESSAGES} from '@src/utils/messages';
-import {USER_VALIDATORS} from '@src/utils/validators';
-import {isEmpty, isEqual} from 'lodash';
+import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
+import { USER_VALIDATORS } from '@src/utils/validators';
+import { isEmpty, isEqual } from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -131,7 +131,7 @@ export class UserController {
             body.accountConfirmedAt = moment().toDate();
         }
 
-        body.bonusPayoutProcessed = true;
+        body.bonusPayoutProcessed = false;
         // if (body.promo) {
         //     const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
         //     if (validCouponCode) {
@@ -155,15 +155,15 @@ export class UserController {
         // Bonus payout for paid contests
         if (body.promo) {
             const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
-            if (validCouponCode) {
-                const couponData = await this.couponCodeRepository.findOne({
-                    where: {
-                        code: body.promo,
-                    },
-                });
 
-                const paidContestPermission = statePermissions?.paidContests;
-                if (paidContestPermission) {
+            const paidContestPermission = statePermissions?.paidContests;
+            if (paidContestPermission) {
+                if (validCouponCode) {
+                    const couponData = await this.couponCodeRepository.findOne({
+                        where: {
+                            code: { ilike: body.promo },
+                        },
+                    });
                     const topupData = {
                         userId: user.id,
                         grossAmount: couponData?.value,
@@ -179,10 +179,6 @@ export class UserController {
                     await this.bonusPayoutRepository.create(bonusPayoutData);
                     await this.userRepository.updateById(user.id, {
                         bonusPayoutProcessed: true,
-                    });
-                } else {
-                    await this.userRepository.updateById(user.id, {
-                        bonusPayoutProcessed: false,
                     });
                 }
             }

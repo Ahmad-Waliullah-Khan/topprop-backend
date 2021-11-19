@@ -12,7 +12,7 @@ export class CouponCodeService {
     async validCouponCode(couponCode: string): Promise<boolean> {
         const couponCodeRepository = await this.couponCodeRepositoryGetter();
         let defaultWhere: Where<CouponCode> = {
-            code: couponCode,
+            code: { ilike: couponCode },
         };
         const couponCount = await couponCodeRepository.count(defaultWhere);
         if (couponCount.count > 0) return true;

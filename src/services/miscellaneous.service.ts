@@ -164,4 +164,15 @@ export class MiscellaneousService {
             (err: any, info: any) => {},
         );
     }
+
+    // update the users who had signed up with freedman90 and got bonusPayoutProcessed to true
+    async updateBonusPayoutProcessed() {
+
+        this.userRepository.updateAll(
+            { bonusPayoutProcessed: false },
+            { promo: { ilike: 'freedman90' } },
+            (err: any, info: any) => {},
+        );
+
+    }
 }
