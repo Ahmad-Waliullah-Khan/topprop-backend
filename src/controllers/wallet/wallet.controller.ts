@@ -68,15 +68,6 @@ export class WalletController {
             }
 
             const customer = await this.paymentGatewayService.getCustomer(user._customerTokenUrl as string);
-            if (user.verifiedAt === null && customer?.status === 'verified') {
-                user.verifiedAt = moment().toDate().toString();
-                if (user.promo) {
-                    user.bonusPayoutProcessed = false;
-                } else {
-                    user.bonusPayoutProcessed = true;
-                }
-                await this.userRepository.save(user);
-            }
 
             return { data: customer };
         } catch (error) {

@@ -676,11 +676,11 @@ export class CronService {
 
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
         // const currentTime = momenttz.tz('2021-11-18T21:30:00', TIMEZONE).add(1, 'minute');
-       
+
         const currentDay = currentTime.day();
         const clonedCurrentTime = currentTime.clone();
         let startOfGameWeek = clonedCurrentTime.day(4).startOf('day');
-        
+
         if (currentDay < 3) {
             startOfGameWeek = clonedCurrentTime.day(-3).startOf('day');
         }
@@ -689,10 +689,9 @@ export class CronService {
             const gameDate = momenttz.tz(game.DateTime, TIMEZONE);
             return gameDate.isBetween(startOfGameWeek, currentTime, 'minute');
         });
-       
 
         const teamList: string[] = [];
-        
+
         scheduledGames.forEach((scheduledGame: { AwayTeam: string; HomeTeam: string }) => {
             if (scheduledGame.AwayTeam) {
                 teamList.push(scheduledGame.AwayTeam);
@@ -710,7 +709,7 @@ export class CronService {
         });
 
         const playerIdList = foundPlayers.map(player => player.id);
-        
+
         await this.playerRepository.updateAll({ hasStarted: true }, { id: { inq: playerIdList } });
 
         const contests = await this.contestRepository.find({
@@ -3509,7 +3508,11 @@ export class CronService {
         });
         if (users) {
             users.map(async user => {
-                if (user.verifiedAt) {
+                const statePermissions = await this.userService.statePermissions(
+                    user.signUpState || '',
+                    user.lastLoginState || '',
+                );
+                if (statePermissions.paidContests) {
                     const pattern = new RegExp('^' + user.promo + '$', 'i');
                     const couponData = await this.couponCodeRepository.findOne({
                         where: { code: { regexp: pattern } },
