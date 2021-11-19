@@ -116,9 +116,9 @@ export class MiscellaneousService {
 
     // misc crons services
     async addPromoCode() {
-        const testPromoArr = [{ code: 'DPP125', amount: 1000 }];
-        // check for coupon if not exists create one
-        testPromoArr.map(async ({ code, amount }) => {
+        const PromoCodeArr = [{ code: 'Freedman90', amount: 1000 }];
+        // check for coupon ,if doesn't exists create one
+        PromoCodeArr.map(async ({ code, amount }) => {
             const couponData = await this.couponCodeRepository.find({
                 where: {
                     code: code,
