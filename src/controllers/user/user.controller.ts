@@ -168,6 +168,7 @@ export class UserController {
                         userId: user.id,
                         grossAmount: couponData?.value,
                         netAmount: couponData?.value,
+                        topUpTransferUrl: 'Signup Bonus',
                     };
                     await this.topUpRepository.create(topupData);
                     const bonusPayoutData = {
@@ -292,6 +293,33 @@ export class UserController {
             isAdmin: isEqual(user.role, ROLES.ADMIN),
         });
 
+        const deposits = await this.topUpRepository.find({
+            where: {
+                and: [
+                    // {
+                    //     or: [{ topUpTransferUrl: { neq: 'Signup Bonus' } }, { topUpTransferUrl: { eq: null } }],
+                    // },
+                    { userId: user.id },
+                ],
+            },
+        });
+
+        const validCouponCode = await this.couponCodeService.validCouponCode(user.promo);
+
+        const statePermissions = await this.userService.statePermissions(user.signUpState, credentials.state);
+        const paidContestPermission = statePermissions?.paidContests;
+
+        let hasDeposits = false;
+        // let hasDeposits = true;
+
+        // if (paidContestPermission) {
+        //     if (validCouponCode) {
+        //         hasDeposits = deposits.length > 1;
+        //     } else {
+        //         hasDeposits = deposits.length > 0;
+        //     }
+        // }
+
         return {
             data: {
                 token,
@@ -301,7 +329,7 @@ export class UserController {
                 COMET_AUTH_KEY: process.env.COMET_AUTH_KEY,
                 COMET_API_KEY: process.env.COMET_APP_API_KEY,
                 COMET_REGION: process.env.COMET_REGION,
-                config: user.config,
+                config: { ...user.config, hasDeposits: hasDeposits },
             },
         };
     }

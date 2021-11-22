@@ -21,10 +21,10 @@ export class MiscellaneousCron extends CronJob {
                 try {
                     // await this.miscellaneousService.resetNoPPRGradedContests();
                     // this.cronService.cronLogger(CRON_JOBS.MISCELLANEOUS_CRON);
-                    await this.miscellaneousService.addPromoCode();
+                    // await this.miscellaneousService.addPromoCode();
                     // await this.miscellaneousService.updateDOB();
                     // await this.miscellaneousService.resetAllPlayers();
-                    await this.miscellaneousService.updateBonusPayoutProcessed();
+                    // await this.miscellaneousService.updateBonusPayoutProcessed();
                     const updatedCronTiming = await this.cronService.updatedCronConfig(CRON_JOBS.MISCELLANEOUS_CRON);
                     const updatedCronTime = new cron.CronTime(updatedCronTiming);
                     this.setTime(updatedCronTime);
