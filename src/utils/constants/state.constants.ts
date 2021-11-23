@@ -91,7 +91,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 19,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Alaska',
@@ -111,7 +111,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 21,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Arkansas',
@@ -151,7 +151,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Delaware',
@@ -161,7 +161,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'District of Columbia',
@@ -211,7 +211,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Illinois',
@@ -231,7 +231,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Iowa',
@@ -241,7 +241,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 21,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Kansas',
@@ -271,7 +271,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 21,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Maine',
@@ -281,7 +281,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Maryland',
@@ -291,7 +291,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 500000,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Massachusetts',
@@ -311,7 +311,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Minnesota',
@@ -331,7 +331,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Missouri',
@@ -341,7 +341,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Montana',
@@ -351,7 +351,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Nebraska',
@@ -371,7 +371,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'New Hampshire',
@@ -391,7 +391,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'New Mexico',
@@ -441,7 +441,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Oklahoma',
@@ -471,7 +471,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Rhode Island',
@@ -551,7 +551,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Washington',
@@ -561,7 +561,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'West Virginia',
@@ -601,7 +601,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Guam',
@@ -611,7 +611,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Northern Mariana Islands',
@@ -621,7 +621,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Puerto Rico',
@@ -631,7 +631,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'US Virgin Islands',
@@ -641,7 +641,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'US Minor Outlying Islands',
@@ -661,7 +661,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Marshall Islands',
@@ -671,7 +671,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'Palau',
@@ -681,7 +681,7 @@ export const US_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
 ];
 
@@ -849,7 +849,7 @@ export const DEV_STATE_PERMISSIONS = [
         minAge: 18,
         weeklyDepositLimit: 0,
         leaguesEnabled: true,
-        battlegroundEnabled: false,
+        battlegroundEnabled: true,
     },
     {
         name: 'WB',
