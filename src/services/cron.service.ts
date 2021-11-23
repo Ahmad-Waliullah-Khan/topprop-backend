@@ -359,6 +359,22 @@ export class CronService {
                         break;
                 }
                 break;
+            case CRON_JOBS.APPROVE_WITHDRAW_REQ:
+                switch (RUN_TYPE) {
+                    case CRON_RUN_TYPES.PRINCIPLE:
+                        // Every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.STAGING:
+                        // Every hour
+                        cronTiming = '0 0 */1 * * *';
+                        break;
+                    case CRON_RUN_TYPES.PROXY:
+                        // Every 5 minutes
+                        cronTiming = '0 */5 * * * *';
+                        break;
+                }
+                break;
             case CRON_JOBS.BONUS_PAYOUT_PROCESSED_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
@@ -3573,6 +3589,58 @@ export class CronService {
         }
 
         return users;
+    }
+
+    // APPROVE WIDTHRAW FROM  csv
+    async approveWithdrawReq() {
+        const readFile = util.promisify(fs.readFile);
+
+        // const filePath = 'src/seeders/withdraw_request_example.csv';
+        const filePath = process.env.WITHDRAW_REQ_FILE_PATH;
+        let records: any[] = [];
+
+        if (filePath && fs.existsSync(filePath)) {
+            try {
+                const data = await readFile(filePath, 'utf8');
+                records = parse(data, {
+                    skipEmptyLines: true,
+                    columns: true,
+                });
+            } catch (error) {
+                logger.error(error);
+            }
+        }
+
+        for (const item of records) {
+            const user = await this.userRepository.findOne({
+                where: {
+                    email: item.Email,
+                },
+            });
+
+            if (user) {
+                const pendingWithdrawReq = await this.withdrawRequestRepository.findOne({
+                    where: {
+                        and: [{ userId: user.id }, { status: WITHDRAW_REQUEST_STATUSES.PENDING }],
+                    },
+                });
+
+                if (pendingWithdrawReq) {
+                    logger.info(`Withdraw request ${pendingWithdrawReq.id} approved for ${user.email} at ${moment().format('DD-MM-YYYY hh:mm:ss a')}`);
+                    await this.withdrawRequestRepository.updateById(pendingWithdrawReq.id, {
+                        status: WITHDRAW_REQUEST_STATUSES.APPROVED,
+                    });
+                }
+            }
+        }
+
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlink(filePath, err => {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        }
     }
 
     async bonusProcessed() {

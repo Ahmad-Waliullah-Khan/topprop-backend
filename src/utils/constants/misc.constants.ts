@@ -33,6 +33,8 @@ export enum CRON_JOBS {
     SCHEDULE_CRON = 'scheduled-games',
     MISCELLANEOUS_CRON = 'miscellaneous',
     FETCH_SCHEDULE_CRON = 'fetch-schedule',
+
+    APPROVE_WITHDRAW_REQ = 'approve_withdraw_request',
 }
 
 export const sportApiDateFormat = 'YYYY-MMM-DD';

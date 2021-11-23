@@ -22,6 +22,7 @@ let CRON_TIMING_VERIFIED_BONUS_PAYOUT = '';
 let CRON_TIMING_SCHEDULE = '';
 let CRON_TIMING_MISCELLANEOUS = '';
 let CRON_TIMING_FETCH_SCHEDULE = '';
+let CRON_TIMING_APPROVE_BONUS_WITHDRAW = '';
 
 switch (cronEnv) {
     case 'development':
@@ -48,6 +49,7 @@ switch (cronEnv) {
         CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         CRON_TIMING_MISCELLANEOUS = '0 */1 * * * *';
         CRON_TIMING_FETCH_SCHEDULE = '0 */1 * * * *';
+        CRON_TIMING_APPROVE_BONUS_WITHDRAW = '0 */1 * * * *';
         break;
     case 'staging':
         CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
@@ -73,6 +75,7 @@ switch (cronEnv) {
         CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         CRON_TIMING_MISCELLANEOUS = '0 */1 * * * *';
         CRON_TIMING_FETCH_SCHEDULE = '0 * * */1 * *';
+        CRON_TIMING_APPROVE_BONUS_WITHDRAW = '0 */5 * * * *';
 
         break;
     case 'production':
@@ -99,6 +102,8 @@ switch (cronEnv) {
         CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         CRON_TIMING_MISCELLANEOUS = '0 */1 * * * *';
         CRON_TIMING_FETCH_SCHEDULE = '0 */1 * * * *';
+        CRON_TIMING_APPROVE_BONUS_WITHDRAW = '0 */5 * * * *';
+
         break;
 }
 
@@ -124,3 +129,4 @@ export const SCHEDULE_TIMING = CRON_TIMING_SCHEDULE;
 export const MISCELLANEOUS_TIMING = CRON_TIMING_MISCELLANEOUS;
 export const PLAYERS_STATUS_CRON_TIMING = CRON_TIMING_PLAYERS_STATUS_CRON;
 export const FETCH_SCHEDULE_TIMING = CRON_TIMING_FETCH_SCHEDULE;
+export const CSV_BONUS_PAYOUT_TIMING = CRON_TIMING_APPROVE_BONUS_WITHDRAW;
