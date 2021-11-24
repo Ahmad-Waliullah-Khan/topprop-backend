@@ -604,4 +604,143 @@ export class ContestController {
             },
         };
     }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @get(API_ENDPOINTS.CONTESTS.OPEN_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Array of Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(Contest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async fetchOpenContests(
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+
+        const userId = +currentUser[securityId];
+
+        const filter = {
+            where: {
+            status: CONTEST_STATUSES.OPEN,
+            ended: false,
+            creatorId: { neq: userId },
+            },
+            include: [
+            "creator",
+            "claimer",
+            "winner",
+            "creatorPlayer",
+            "claimerPlayer",
+            ],
+            order: ["createdAt ASC, entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC"],
+        }
+
+        return { data: await this.contestRepository.find(filter) };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @get(API_ENDPOINTS.CONTESTS.MY_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Array of Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(Contest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async fetchMyContests(
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+
+        const userId = +currentUser[securityId];
+
+        const filter = {
+            where: {
+              and: [
+                { ended: false },
+                { or: [{ creatorId: userId }, { claimerId: userId }] },
+                {
+                  or: [
+                    { status: CONTEST_STATUSES.OPEN },
+                    { status: CONTEST_STATUSES.MATCHED },
+                    { status: CONTEST_STATUSES.UNMATCHED },
+                  ],
+                },
+              ],
+            },
+            include: [
+              "creator",
+              "claimer",
+              "winner",
+              "creatorPlayer",
+              "claimerPlayer",
+            ],
+            order: ["createdAt ASC, entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC"],
+          }
+
+        return { data: await this.contestRepository.find(filter) };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @get(API_ENDPOINTS.CONTESTS.PAST_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Array of Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(Contest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+    async fetchPastContests(
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<any>> {
+
+        const userId = +currentUser[securityId];
+
+        const filter = {
+            where: {
+              and: [
+                { ended: true },
+                { or: [{ creatorId: userId }, { claimerId: userId }] },
+                {
+                  or: [{ status: CONTEST_STATUSES.CLOSED }],
+                },
+              ],
+            },
+            include: [
+              "creator",
+              "claimer",
+              "winner",
+              "creatorPlayer",
+              "claimerPlayer",
+            ],
+            order: ["createdAt ASC, entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC"],
+          }
+
+
+        return { data: await this.contestRepository.find(filter) };
+    }
 }

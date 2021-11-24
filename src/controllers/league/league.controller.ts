@@ -42,6 +42,7 @@ import {
     ILeagueInvitesFetchRequest,
     ILeagueInvitesJoinRequest,
     ILeagueInvitesRequest,
+    ILeagueOpenContestRequest,
     ILeagueResync
 } from '@src/utils/interfaces';
 import {COMMON_MESSAGES, CONTEST_MESSAGES, LEAGUE_MESSAGES} from '@src/utils/messages';
@@ -1651,5 +1652,412 @@ export class LeagueController {
         }
 
         throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.RESYNC_FAILED);
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.OPEN_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Array of League Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(LeagueContest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+
+    async fetchOpenContests(
+        @requestBody()
+        body: Partial<ILeagueOpenContestRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<LeagueContest[]>> {
+
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const userId = +currentUser[securityId];
+
+        const filter = {
+            where: {
+              status: CONTEST_STATUSES.OPEN,
+              ended: false,
+              creatorId: {
+                neq: userId,
+              },
+              leagueId: body.currentLeagueId
+            },
+            include: [
+              {
+                relation: "creatorTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "user",
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "claimerTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "user",
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "creator",
+              },
+              {
+                relation: "claimer",
+              },
+              {
+                relation: "creatorContestTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "contestRosters",
+                      scope: {
+                        include: [
+                          {
+                            relation: "player",
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: "team",
+                      scope: {
+                        include: [
+                          {
+                            relation: "user",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "claimerContestTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "contestRosters",
+                      scope: {
+                        include: [
+                          {
+                            relation: "player",
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: "team",
+                      scope: {
+                        include: [
+                          {
+                            relation: "user",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            order: ["createdAt ASC, entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC"],
+          }
+
+        return { data: await this.leagueContestRepository.find(filter) };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @get(API_ENDPOINTS.LEAGUE.CONTEST.MY_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Array of League Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(LeagueContest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+
+    async fetchMyContests(
+        @requestBody()
+        body: Partial<ILeagueOpenContestRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<LeagueContest[]>> {
+
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const userId = +currentUser[securityId];
+
+        const filter = {
+            where: {
+              and: [
+                { ended: false },
+                { leagueId: body.currentLeagueId},
+                {
+                  or: [
+                    {
+                      creatorId: userId,
+                    },
+                    {
+                      claimerId: userId,
+                    },
+                  ],
+                },
+                {
+                  or: [
+                    {
+                      status: CONTEST_STATUSES.OPEN,
+                    },
+                    { status: CONTEST_STATUSES.MATCHED },
+                    { status: CONTEST_STATUSES.UNMATCHED },
+                  ],
+                },
+              ],
+            },
+            include: [
+              {
+                relation: "creatorTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "user",
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "claimerTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "user",
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "creator",
+              },
+              {
+                relation: "claimer",
+              },
+              {
+                relation: "creatorContestTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "contestRosters",
+                      scope: {
+                        include: [
+                          {
+                            relation: "player",
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: "team",
+                      scope: {
+                        include: [
+                          {
+                            relation: "user",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "claimerContestTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "contestRosters",
+                      scope: {
+                        include: [
+                          {
+                            relation: "player",
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: "team",
+                      scope: {
+                        include: [
+                          {
+                            relation: "user",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            order: ["createdAt ASC, entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC"],
+          }
+
+        return { data: await this.leagueContestRepository.find(filter) };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.PAST_CONTEST, {
+        responses: {
+            '200': {
+                description: 'Array of League Contest model instances',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'array',
+                            items: getModelSchemaRef(LeagueContest, { includeRelations: true }),
+                        },
+                    },
+                },
+            },
+        },
+    })
+
+    async fetchPastContests(
+        @requestBody()
+        body: Partial<ILeagueOpenContestRequest>,
+        @inject(SecurityBindings.USER) currentUser: ICustomUserProfile,
+    ): Promise<ICommonHttpResponse<LeagueContest[]>> {
+
+        if (!body || isEmpty(body)) throw new HttpErrors.BadRequest(COMMON_MESSAGES.MISSING_OR_INVALID_BODY_REQUEST);
+
+        const userId = +currentUser[securityId];
+
+        const filter = {
+            where: {
+              and: [
+                { ended: true },
+                { leagueId: body.currentLeagueId },
+                {
+                  or: [
+                    {
+                      creatorId: userId,
+                    },
+                    {
+                      claimerId: userId,
+                    },
+                  ],
+                },
+                {
+                  or: [
+                    {
+                      status: CONTEST_STATUSES.CLOSED,
+                    },
+                  ],
+                },
+              ],
+            },
+            include: [
+              {
+                relation: "creatorTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "user",
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "claimerTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "user",
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "creator",
+              },
+              {
+                relation: "claimer",
+              },
+              {
+                relation: "creatorContestTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "contestRosters",
+                      scope: {
+                        include: [
+                          {
+                            relation: "player",
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: "team",
+                      scope: {
+                        include: [
+                          {
+                            relation: "user",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                relation: "claimerContestTeam",
+                scope: {
+                  include: [
+                    {
+                      relation: "contestRosters",
+                      scope: {
+                        include: [
+                          {
+                            relation: "player",
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      relation: "team",
+                      scope: {
+                        include: [
+                          {
+                            relation: "user",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            order: ["createdAt ASC, entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC"],
+          }
+
+        return { data: await this.leagueContestRepository.find(filter) };
     }
 }

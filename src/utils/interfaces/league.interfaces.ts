@@ -34,3 +34,7 @@ export interface ILeagueResync extends League {
     leagueId: number;
 //    importSourceId: number;
 }
+
+export interface ILeagueOpenContestRequest extends LeagueContest {
+    currentLeagueId: number;
+}
