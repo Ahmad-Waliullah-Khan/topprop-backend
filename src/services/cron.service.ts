@@ -1,14 +1,13 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, CronLog, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
     ConfigRepository,
     ContestRepository,
     ContestRosterRepository,
-    CouponCodeRepository,
-    GainRepository,
+    CouponCodeRepository, CronLogRepository, GainRepository,
     LeagueContestRepository,
     LeagueRepository,
     PlayerRepository,
@@ -17,20 +16,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -47,12 +46,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -77,6 +76,7 @@ export class CronService {
         @repository('ConfigRepository') private configRepository: ConfigRepository,
         @repository('BonusPayoutRepository') private bonusPayoutRepository: BonusPayoutRepository,
         @repository('CouponCodeRepository') private couponCodeRepository: CouponCodeRepository,
+        @repository('CronLogRepository') private cronLogRepository: CronLogRepository,
     ) {}
 
     async fetchDate() {
@@ -618,6 +618,16 @@ export class CronService {
                         foundLocalPlayer.opponentName = remotePlayer.Opponent;
                         foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
                         foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
+                        await this.logCron(
+                            "Projected-Fantasy-Points-Cron",
+                            ["player"],
+                            [
+                               `opponentName -> ${remotePlayer.Opponent}`,
+                               `homeOrAway -> ${remotePlayer.HomeOrAway}`,
+                               `projectedFantasyPoints -> ${remotePlayer.ProjectedFantasyPoints}`,
+                            ],
+                            foundLocalPlayer.id
+                        )
                         await this.playerRepository.save(foundLocalPlayer);
                         break;
                     case CRON_RUN_TYPES.STAGING:
@@ -626,6 +636,18 @@ export class CronService {
                         foundLocalPlayer.opponentName = remotePlayer.Opponent;
                         foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
                         foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
+                        await this.logCron(
+                            "Projected-Fantasy-Points-Cron",
+                            ["player"],
+                            [
+                               `hasStarted -> false`,
+                               `isOver -> false`,
+                               `opponentName -> ${remotePlayer.Opponent}`,
+                               `homeOrAway -> ${remotePlayer.HomeOrAway}`,
+                               `projectedFantasyPoints -> ${remotePlayer.ProjectedFantasyPoints}`,
+                            ],
+                            foundLocalPlayer.id
+                        )
                         await this.playerRepository.save(foundLocalPlayer);
                         break;
                     case CRON_RUN_TYPES.PROXY:
@@ -652,6 +674,14 @@ export class CronService {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
                 foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
+                await this.logCron(
+                    "Projected-Fantasy-Points-Cron",
+                    ["player"],
+                    [
+                       "projectedFantasyPointsHalfPpr",
+                    ],
+                    foundLocalPlayer.id
+                )
                 await this.playerRepository.save(foundLocalPlayer);
             }
         });
@@ -727,6 +757,23 @@ export class CronService {
         const playerIdList = foundPlayers.map(player => player.id);
 
         await this.playerRepository.updateAll({ hasStarted: true }, { id: { inq: playerIdList } });
+
+        await this.logCron(
+                    "Player Cron",
+                    ["player"],
+                    [
+                        "photoUrl",
+                        "photoUrlHiRes",
+                        "status",
+                        "available",
+                        "teamName",
+                        "playerType",
+                        "yahooPlayerId",
+                        "projectedFantasyPoints"
+                    ],
+                    0,
+                    playerIdList
+                )
 
         const contests = await this.contestRepository.find({
             where: {
@@ -3024,6 +3071,21 @@ export class CronService {
                         foundLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
+                await this.logCron(
+                    "Player Cron",
+                    ["player"],
+                    [
+                        `photoUrl -> ${remotePlayer.PhotoUrl}`,
+                        `photoUrlHiRes -> ${highResRemotePlayerPhotoUrl}`,
+                        `status -> ${remotePlayer.Status}`,
+                        `available -> ${remotePlayer.Active}`,
+                        `teamName -> ${remotePlayer.Team}`,
+                        `playerType -> 1`,
+                        `yahooPlayerId -> ${remotePlayer.YahooPlayerID}`,
+                        `projectedFantasyPoints -> 0`
+                    ],
+                    foundLocalPlayer.id
+                )
                 return this.playerRepository.save(foundLocalPlayer);
             } else {
                 const newLocalPlayer = new Player();
@@ -3049,6 +3111,28 @@ export class CronService {
                         newLocalPlayer.espnPlayerId = record.EspnPlayerID;
                     }
                 }
+                // await this.logCron(
+                //     "Player Cron",
+                //     ["player"],
+                //     [
+                //        `remoteId`,
+                //        `photoUrl`,
+                //        `photoUrlHiRes`,
+                //        `firstName`,
+                //        `lastName`,
+                //        `fullName`,
+                //        `shortName`,
+                //        `status`,
+                //        `available`,
+                //        `position`,
+                //        `teamName`,
+                //        `teamId`,
+                //        `playerType`,
+                //        `yahooPlayerId`,
+                //        `isOver`,
+                //        `projectedFantasyPoints`,
+                //     ],
+                // )
                 return this.playerRepository.create(newLocalPlayer);
             }
         });
@@ -3890,4 +3974,37 @@ export class CronService {
 
         return playerPromises;
     }
+
+    async logCron(cronName: string, tablesAffected: string[], changesMade: string[], playerId?: number, playerIds?: number[]) {
+
+        if(playerIds) {
+            for(let i=0;i<playerIds.length; i++) {
+                const player = await this.playerRepository.findById(playerIds[i]);
+                if(player) {
+                    const log = new CronLog();
+                    log.cronName = cronName;
+                    log.tablesAffected = tablesAffected;
+                    log.changesMade = changesMade;
+                    log.playerId = player.id;
+                    await this.cronLogRepository.create(log);
+                }
+            }
+
+        } else {
+
+            const cronLog = new CronLog();
+
+            cronLog.playerId = playerId?? 0;
+            cronLog.env = process.env.NODE_ENV ?? "development";
+            cronLog.cronName = cronName;
+            cronLog.changesMade = changesMade;
+            cronLog.tablesAffected = tablesAffected;
+
+            await this.cronLogRepository.create(cronLog);
+
+            logger.info(`${cronName} Logged Successfully`,);
+        }
+
+    }
+
 }
