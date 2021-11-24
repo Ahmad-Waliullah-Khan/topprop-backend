@@ -1,15 +1,15 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {
     ContestRepository,
     CouponCodeRepository,
     GainRepository,
     PlayerRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
 import chalk from 'chalk';
 import moment from 'moment';
-import { CONTEST_STATUSES } from '../utils/constants';
+import {CONTEST_STATUSES} from '../utils/constants';
 import logger from '../utils/logger';
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -174,5 +174,18 @@ export class MiscellaneousService {
             (err: any, info: any) => {},
         );
 
+    }
+
+    async makeAllPlayersAvailable() {
+        /*
+        Date: 24-11-2021
+        Description: Resets all player hasStarted and isOver flag.
+        */
+        await this.playerRepository.updateAll(
+            { isOver: false, hasStarted: false},
+            { id: { gt: 0 } },
+            (err: any, info: any) => {},
+        );
+        logger.info((`Misc cron ran successfully. hasStarted and isOver flag for all players reset successfully`));
     }
 }
