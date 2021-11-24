@@ -1773,7 +1773,7 @@ export class LeagueController {
                 },
               },
             ],
-            order: ["createdAt ASC, entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC"],
+            order: ["entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC, createdAt DESC"],
           }
 
         return { data: await this.leagueContestRepository.find(filter) };
@@ -1781,7 +1781,7 @@ export class LeagueController {
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ALL_CONTESTS)] })
-    @get(API_ENDPOINTS.LEAGUE.CONTEST.MY_CONTEST, {
+    @post(API_ENDPOINTS.LEAGUE.CONTEST.MY_CONTEST, {
         responses: {
             '200': {
                 description: 'Array of League Contest model instances',
@@ -1915,7 +1915,7 @@ export class LeagueController {
                 },
               },
             ],
-            order: ["createdAt ASC, entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC"],
+            order: ["entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC, createdAt DESC"],
           }
 
         return { data: await this.leagueContestRepository.find(filter) };
@@ -2055,7 +2055,7 @@ export class LeagueController {
                 },
               },
             ],
-            order: ["createdAt ASC, entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC"],
+            order: ["entryAmount DESC, creatorTeamProjFantasyPoints DESC, claimerTeamProjFantasyPoints DESC, createdAt DESC"],
           }
 
         return { data: await this.leagueContestRepository.find(filter) };

@@ -641,7 +641,7 @@ export class ContestController {
             "creatorPlayer",
             "claimerPlayer",
             ],
-            order: ["createdAt ASC, entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC"],
+            order: ["entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC, createdAt DESC"],
         }
 
         return { data: await this.contestRepository.find(filter) };
@@ -691,7 +691,7 @@ export class ContestController {
               "creatorPlayer",
               "claimerPlayer",
             ],
-            order: ["createdAt ASC, entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC"],
+            order: ["entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC, createdAt DESC"],
           }
 
         return { data: await this.contestRepository.find(filter) };
@@ -737,7 +737,7 @@ export class ContestController {
               "creatorPlayer",
               "claimerPlayer",
             ],
-            order: ["createdAt ASC, entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC"],
+            order: ["entryAmount DESC, creatorPlayerProjFantasyPoints DESC, claimerPlayerProjFantasyPoints DESC, createdAt DESC"],
           }
 
 
