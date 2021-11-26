@@ -140,7 +140,7 @@ export class MiscellaneousService {
         Description: Updates the DOB of parker@carbonfoxdesigns.com to 9/11/1984
         Description: Updates the DOB of cbcrating@yahoo.com to 8/6/1975 */
 
-        const dob = new Date('1975-06-08 00:00:00');
+        const dob = new Date('1975-08-06 00:00:00');
         const formattedDob = moment(dob).format('YYYY-MM-DD HH:mm:ss');
 
         const user = await this.userRepository.findOne({
