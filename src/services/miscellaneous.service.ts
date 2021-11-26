@@ -137,14 +137,15 @@ export class MiscellaneousService {
     async updateDOB() {
         /*
         Date: 4-11-2021
-        Description: Updates the DOB of parker@carbonfoxdesigns.com to 9/11/1984 */
+        Description: Updates the DOB of parker@carbonfoxdesigns.com to 9/11/1984
+        Description: Updates the DOB of cbcrating@yahoo.com to 8/6/1975 */
 
-        const dob = new Date('1984-9-11 00:00:00');
+        const dob = new Date('1975-06-08 00:00:00');
         const formattedDob = moment(dob).format('YYYY-MM-DD HH:mm:ss');
 
         const user = await this.userRepository.findOne({
             where: {
-                email: 'parker@carbonfoxdesigns.com',
+                email: 'cbcrating@yahoo.com',
             },
         });
 
