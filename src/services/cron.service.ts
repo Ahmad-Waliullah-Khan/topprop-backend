@@ -427,15 +427,15 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // 1st of Feb
-                        cronTiming = '* * * * 2 *';
+                        cronTiming = '1 1 1 1 2 *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 1st of Feb
-                        cronTiming = '* * * * 2 *';
+                        cronTiming = '1 1 1 1 2 *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 1st of Feb
-                        cronTiming = '* * * * 2 *';
+                        cronTiming = '1 1 1 1 2 *';
                         break;
                 }
                 break;

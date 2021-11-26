@@ -181,7 +181,7 @@ export class MiscellaneousService {
         Date: 24-11-2021
         Description: Resets all player hasStarted and isOver flag.
         */
-        await this.playerRepository.updateAll(
+        this.playerRepository.updateAll(
             { isOver: false, hasStarted: false},
             { id: { gt: 0 } },
             (err: any, info: any) => {},
