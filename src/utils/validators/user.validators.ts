@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { ValidatorHelpers } from '../helpers';
+import {ValidatorHelpers} from '../helpers';
 
 export const USER_VALIDATORS = {
     id: {
@@ -126,6 +126,13 @@ export const USER_VALIDATORS = {
         message: {
             isValidBefore: 'You must be at least 18 years old',
             required: 'Date of Birth is required.',
+        },
+    },
+    country: {
+        type: String,
+        required: true,
+        message: {
+            required: 'Sign Up country is required.',
         },
     },
     // notificationType: {
