@@ -25,6 +25,7 @@ import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
+import {v4 as uuidv4} from 'uuid';
 import {TRANSFER_TYPES} from '../services';
 import {LeagueService} from '../services/league.service';
 import {PaymentGatewayService} from '../services/payment-gateway.service';
@@ -605,6 +606,8 @@ export class CronService {
 
         const remotePlayers = await this.sportsDataService.projectedFantasyPointsByPlayer(currentDate);
 
+        const cronRunHash = uuidv4();
+
         const localPlayers = await this.playerRepository.find();
         const ruledOutPlayer: number[] = [];
         const playerPromises = remotePlayers.map(async remotePlayer => {
@@ -620,6 +623,7 @@ export class CronService {
                         foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
                         await this.logCron(
                             "Projected-Fantasy-Points-Cron",
+                            cronRunHash,
                             ["player"],
                             [
                                `opponentName -> ${remotePlayer.Opponent}`,
@@ -638,6 +642,7 @@ export class CronService {
                         foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
                         await this.logCron(
                             "Projected-Fantasy-Points-Cron",
+                            cronRunHash,
                             ["player"],
                             [
                                `hasStarted -> false`,
@@ -676,6 +681,7 @@ export class CronService {
                 foundLocalPlayer.projectedFantasyPointsHalfPpr = remotePlayer.FantasyPointsFanDuel;
                 await this.logCron(
                     "Projected-Fantasy-Points-Cron",
+                    cronRunHash,
                     ["player"],
                     [
                        "projectedFantasyPointsHalfPpr",
@@ -714,6 +720,7 @@ export class CronService {
     }
 
     async processSchedulesGames() {
+        const cronRunHash = uuidv4();
         const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
         const weeklyGames = JSON.parse(rawData);
 
@@ -760,6 +767,7 @@ export class CronService {
 
         await this.logCron(
                     "Player Cron",
+                    cronRunHash,
                     ["player"],
                     [
                         "photoUrl",
@@ -802,8 +810,6 @@ export class CronService {
                 teamName: { inq: byeTeamList },
             },
         });
-
-        // console.log('found BYE players: ..................', foundByePlayers);
 
         const byePlayerIdList = foundByePlayers.map(player => player.id);
 
@@ -3050,6 +3056,7 @@ export class CronService {
         } catch (err) {
             logger.error(err);
         }
+        const cronRunHash = uuidv4();
         const remotePlayers = await this.sportsDataService.availablePlayers();
         const localPlayers = await this.playerRepository.find();
         const playerPromises = remotePlayers.map(async remotePlayer => {
@@ -3073,6 +3080,7 @@ export class CronService {
                 }
                 await this.logCron(
                     "Player Cron",
+                    cronRunHash,
                     ["player"],
                     [
                         `photoUrl -> ${remotePlayer.PhotoUrl}`,
@@ -3113,6 +3121,7 @@ export class CronService {
                 }
                 // await this.logCron(
                 //     "Player Cron",
+                //     cronRunHash,
                 //     ["player"],
                 //     [
                 //        `remoteId`,
@@ -3975,7 +3984,7 @@ export class CronService {
         return playerPromises;
     }
 
-    async logCron(cronName: string, tablesAffected: string[], changesMade: string[], playerId?: number, playerIds?: number[]) {
+    async logCron(cronName: string, cronRunHash: string, tablesAffected: string[], changesMade: string[], playerId?: number, playerIds?: number[]) {
 
         if(playerIds) {
             for(let i=0;i<playerIds.length; i++) {
@@ -3983,6 +3992,7 @@ export class CronService {
                 if(player) {
                     const log = new CronLog();
                     log.cronName = cronName;
+                    log.cronHash = cronRunHash;
                     log.tablesAffected = tablesAffected;
                     log.changesMade = changesMade;
                     log.playerId = player.id;
@@ -3997,6 +4007,7 @@ export class CronService {
             cronLog.playerId = playerId?? 0;
             cronLog.env = process.env.NODE_ENV ?? "development";
             cronLog.cronName = cronName;
+            cronLog.cronHash = cronRunHash;
             cronLog.changesMade = changesMade;
             cronLog.tablesAffected = tablesAffected;
 

@@ -12,6 +12,12 @@ export class CronLog extends Base {
     id: number;
 
     @property({
+      type: 'string',
+      required: false,
+    })
+    cronHash: string;
+
+    @property({
         type: 'string',
         required: true,
     })
