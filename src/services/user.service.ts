@@ -1,24 +1,21 @@
-import { bind, BindingScope, Getter, service } from '@loopback/core';
-import { Filter, repository, Where } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
-import { User } from '@src/models';
-import { UserRepository } from '@src/repositories';
-import { EMAIL_TEMPLATES, ROLES } from '@src/utils/constants';
+import {bind, BindingScope, Getter, service} from '@loopback/core';
+import {Filter, repository, Where} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
+import {User} from '@src/models';
+import {UserRepository} from '@src/repositories';
+import {EMAIL_TEMPLATES, ROLES} from '@src/utils/constants';
 import {
-    DEV_VALID_COUNTRIES,
-    DEV_STATE_PERMISSIONS,
-    VALID_COUNTRIES,
-    VALID_STATE_PERMISSIONS,
-    FALLBACK_PERMISSIONS,
+    DEV_STATE_PERMISSIONS, DEV_VALID_COUNTRIES, FALLBACK_PERMISSIONS, VALID_COUNTRIES,
+    VALID_STATE_PERMISSIONS
 } from '@src/utils/constants/state.constants';
-import { MiscHelpers, UserHelpers } from '@src/utils/helpers';
-import { LoginCredentials } from '@src/utils/interfaces';
-import { USER_MESSAGES } from '@src/utils/messages';
-import { compare, hash } from 'bcrypt';
-import { randomBytes } from 'crypto';
-import { isEqual, isNumber, merge } from 'lodash';
+import {MiscHelpers, UserHelpers} from '@src/utils/helpers';
+import {LoginCredentials} from '@src/utils/interfaces';
+import {USER_MESSAGES} from '@src/utils/messages';
+import {compare, hash} from 'bcrypt';
+import {randomBytes} from 'crypto';
+import {isEqual, isNumber, merge} from 'lodash';
 import moment from 'moment';
-import { EmailService } from './email.service';
+import {EmailService} from './email.service';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class UserService {
@@ -107,6 +104,7 @@ export class UserService {
         const config = await this.statePermissions(foundUser.signUpState || '', credentials.state || '');
 
         foundUser.lastLoginState = credentials.state;
+        foundUser.lastLoginCountry = credentials.country;
         foundUser.invalidLoginCount = 0;
         foundUser.lockedTime = null;
         await userRepository.updateById(foundUser.id, foundUser);

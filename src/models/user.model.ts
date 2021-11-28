@@ -1,13 +1,13 @@
-import { Entity, hasMany, model, property } from '@loopback/repository';
-import { ROLES } from '@src/utils/constants';
-import { Bet } from './bet.model';
-import { ContactSubmission } from './contact-submission.model';
-import { Contest } from './contest.model';
-import { Gain } from './gain.model';
-import { LeagueContest } from './league-contest.model';
-import { Team } from './team.model';
-import { TopUp } from './top-up.model';
-import { WithdrawRequest } from './withdraw-request.model';
+import {Entity, hasMany, model, property} from '@loopback/repository';
+import {ROLES} from '@src/utils/constants';
+import {Bet} from './bet.model';
+import {ContactSubmission} from './contact-submission.model';
+import {Contest} from './contest.model';
+import {Gain} from './gain.model';
+import {LeagueContest} from './league-contest.model';
+import {Team} from './team.model';
+import {TopUp} from './top-up.model';
+import {WithdrawRequest} from './withdraw-request.model';
 
 @model({
     settings: {
@@ -148,7 +148,17 @@ export class User extends Entity {
     @property({
         type: 'string',
     })
+    signUpCountry?: string | null;
+
+    @property({
+        type: 'string',
+    })
     lastLoginState?: string | null;
+
+    @property({
+        type: 'string',
+    })
+    lastLoginCountry?: string | null;
 
     @property({
         type: 'number',

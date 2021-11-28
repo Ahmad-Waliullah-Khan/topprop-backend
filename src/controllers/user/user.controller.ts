@@ -1,27 +1,27 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { User } from '@src/models';
-import { BonusPayoutRepository, CouponCodeRepository, TopUpRepository, UserRepository } from '@src/repositories';
-import { CouponCodeService, JwtService } from '@src/services';
-import { UserService } from '@src/services/user.service';
-import { API_ENDPOINTS, BONUSSTATUS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {User} from '@src/models';
+import {BonusPayoutRepository, CouponCodeRepository, TopUpRepository, UserRepository} from '@src/repositories';
+import {CouponCodeService, JwtService} from '@src/services';
+import {UserService} from '@src/services/user.service';
+import {API_ENDPOINTS, BONUSSTATUS, EMAIL_TEMPLATES, PERMISSIONS, ROLES, RUN_TYPE} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     EmailRequest,
     ICommonHttpResponse,
     ICustomUserProfile,
     LoginCredentials,
     ResetPasswordRequest,
-    SignupUserRequest,
+    SignupUserRequest
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, USER_MESSAGES } from '@src/utils/messages';
-import { USER_VALIDATORS } from '@src/utils/validators';
-import { isEmpty, isEqual } from 'lodash';
+import {COMMON_MESSAGES, USER_MESSAGES} from '@src/utils/messages';
+import {USER_VALIDATORS} from '@src/utils/validators';
+import {isEmpty, isEqual} from 'lodash';
 import moment from 'moment';
 import Schema from 'validate';
 
@@ -67,6 +67,7 @@ export class UserController {
             password: USER_VALIDATORS.password,
             confirmPassword: USER_VALIDATORS.confirmPassword,
             signUpState: USER_VALIDATORS.state,
+            signUpCountry: USER_VALIDATORS.country,
             dateOfBirth: USER_VALIDATORS.dateOfBirth,
         };
         const clientHost = process.env.CLIENT_HOST;
@@ -141,7 +142,6 @@ export class UserController {
 
         delete body.password;
         delete body.confirmPassword;
-        delete body.signUpCountry;
         // delete body.couponCode;
         const user = await this.userRepository.create(body);
         const token = await this.jwtService.generateToken({
@@ -309,7 +309,7 @@ export class UserController {
         const statePermissions = await this.userService.statePermissions(user.signUpState, credentials.state);
         const paidContestPermission = statePermissions?.paidContests;
 
-        let hasDeposits = false;
+        const hasDeposits = false;
         // let hasDeposits = true;
 
         // if (paidContestPermission) {
