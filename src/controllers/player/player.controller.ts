@@ -532,7 +532,7 @@ export class PlayerController {
         const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(
             position => position != currentPlayer.position || position != 'K',
         );
-        let firstPlayer = await this.playerRepository.findOne({
+        let firstPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -546,6 +546,9 @@ export class PlayerController {
                 status: 'Active',
             },
         });
+        let firstPlayerRandomIndex = Math.floor(Math.random() * firstPlayerArray.length);
+
+        let firstPlayer = firstPlayerArray[firstPlayerRandomIndex];
 
         if (!firstPlayer) {
             firstPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -554,7 +557,7 @@ export class PlayerController {
         }
 
         // Same Team/Game
-        let secondPlayer = await this.playerRepository.findOne({
+        let secondPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -569,6 +572,10 @@ export class PlayerController {
                 status: 'Active',
             },
         });
+        
+        let secondPlayerRandomIndex = Math.floor(Math.random() * secondPlayerArray.length);
+
+        let secondPlayer = secondPlayerArray[secondPlayerRandomIndex]
 
         if (!secondPlayer) {
             secondPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -578,20 +585,25 @@ export class PlayerController {
         }
 
         // Favorite from same position
-        let thirdPlayer = await this.playerRepository.findOne({
+        let thirdPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { between: [currentPlayerProjectedFantasyPoints, projectedPointsUpperLimit] } },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
             },
         });
+        
+        let thirdPlayerRandomIndex = Math.floor(Math.random() * thirdPlayerArray.length);
+
+        let thirdPlayer = thirdPlayerArray[thirdPlayerRandomIndex]
+
 
         if (!thirdPlayer) {
             thirdPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -602,20 +614,24 @@ export class PlayerController {
         }
 
         // Underdog from same position
-        let fourthPlayer = await this.playerRepository.findOne({
+        let fourthPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0, thirdPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, currentPlayerProjectedFantasyPoints] } },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
             },
         });
+
+        let fourthPlayerRandomIndex = Math.floor(Math.random() * fourthPlayerArray.length);
+
+        let fourthPlayer = fourthPlayerArray[fourthPlayerRandomIndex];
 
         if (!fourthPlayer) {
             fourthPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -627,7 +643,7 @@ export class PlayerController {
         }
 
         // Random from same position
-        let fifthPlayer = await this.playerRepository.findOne({
+        let fifthPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -649,6 +665,10 @@ export class PlayerController {
                 status: 'Active',
             },
         });
+
+        let fifthPlayerRandomIndex = Math.floor(Math.random() * fifthPlayerArray.length);
+
+        let fifthPlayer = fifthPlayerArray[fifthPlayerRandomIndex]
 
         if (!fifthPlayer) {
             fifthPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -682,7 +702,7 @@ export class PlayerController {
         if (!currentPlayer) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYER_NOT_FOUND);
 
         // Positioned random player
-        let randomPlayer = await this.playerRepository.findOne({
+        let randomPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -697,9 +717,13 @@ export class PlayerController {
             },
         });
 
+        let randomPlayerRandomIndex = Math.floor(Math.random() * randomPlayerArray.length);
+
+        let randomPlayer = randomPlayerArray[randomPlayerRandomIndex]
+
         // True random player (any position)
         if (!randomPlayer) {
-            randomPlayer = await this.playerRepository.findOne({
+            randomPlayerArray = await this.playerRepository.find({
                 where: {
                     hasStarted: false,
                     isOver: false,
@@ -714,6 +738,10 @@ export class PlayerController {
                 },
             });
         }
+
+        randomPlayerRandomIndex = Math.floor(Math.random() * randomPlayerArray.length);
+
+        randomPlayer = randomPlayerArray[randomPlayerRandomIndex]
 
         return randomPlayer;
     }
