@@ -1,36 +1,44 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
-import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {Bet, Contest, Gain} from '@src/models';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
+import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
+import { SecurityBindings, securityId } from '@loopback/security';
+import { Bet, Contest, Gain } from '@src/models';
 import {
     BetRepository,
-    ContestRepository, GainRepository, PlayerRepository,
+    ContestRepository,
+    GainRepository,
+    PlayerRepository,
     PlayerResultRepository,
-    UserRepository
+    UserRepository,
 } from '@src/repositories';
-import {ContestPayoutService, ContestService, PaymentGatewayService, UserService} from '@src/services';
+import { ContestPayoutService, ContestService, PaymentGatewayService, UserService } from '@src/services';
 import {
-    API_ENDPOINTS, CONTEST_STAKEHOLDERS, CONTEST_STATUSES,
+    API_ENDPOINTS,
+    CONTEST_STAKEHOLDERS,
+    CONTEST_STATUSES,
     EMAIL_TEMPLATES,
     LOBBY_SPREAD_LIMIT,
-    PERMISSIONS
+    PERMISSIONS,
+    TIMEZONE,
+    PLAYER_POSITIONS,
 } from '@src/utils/constants';
-import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
-    ICustomUserProfile
+    ICustomUserProfile,
 } from '@src/utils/interfaces';
-import {COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES} from '@src/utils/messages';
-import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/validators';
-import {isEmpty} from 'lodash';
-import moment from 'moment';
+import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
+import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
+import { isEmpty } from 'lodash';
 import Schema from 'validate';
+import fs from 'fs';
+import moment from 'moment';
+import momenttz from 'moment-timezone';
 
 export class ContestController {
     constructor(
@@ -601,6 +609,64 @@ export class ContestController {
                     cover: coverWithoutBonus,
                     winBonus: 0,
                 },
+            },
+        };
+    }
+
+    @authenticate('jwt')
+    @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.CREATE_ANY_CONTEST)] })
+    @get(API_ENDPOINTS.CONTESTS.STATUS, {
+        responses: {
+            '200': {
+                description: 'Run Cron Job',
+            },
+        },
+    })
+    async status(): Promise<ICommonHttpResponse<any>> {
+        let status = 'active';
+
+        const players = await this.playerRepository.find({
+            where: {
+                isOver: false,
+                position: { inq: PLAYER_POSITIONS },
+                projectedFantasyPointsHalfPpr: { gt: 2.9 },
+                // id: { neq: firstPlayer?.id },
+                available: true,
+                status: 'Active',
+            },
+        });
+
+        const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
+        const weeklyGames = JSON.parse(rawData);
+
+        const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
+        // const currentTime = momenttz.tz('2021-11-30T20:30:00', TIMEZONE).add(1, 'minute');
+
+        const currentDay = currentTime.day();
+
+        const clonedCurrentTime = currentTime.clone();
+
+        if (currentDay === 1) {
+            const startOfMonday = clonedCurrentTime.startOf('day');
+
+            const scheduledGames = weeklyGames.filter((game: { DateTime: number }) => {
+                const gameDate = momenttz.tz(game.DateTime, TIMEZONE);
+                return gameDate.isBetween(startOfMonday, currentTime, 'minute');
+            });
+
+            if (scheduledGames.length > 0) {
+                status = 'mondayNightFootball';
+            }
+        }
+
+        if (players.length === 0) {
+            status = 'noPlayers';
+        }
+
+        return {
+            // active, noPlayers, mondayNightFootball
+            data: {
+                status: status,
             },
         };
     }
