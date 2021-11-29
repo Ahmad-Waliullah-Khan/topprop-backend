@@ -1,11 +1,11 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
-import {inject, service} from '@loopback/core';
-import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
-import {get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings} from '@loopback/rest';
-import {Player} from '@src/models';
-import {ContestRepository, PlayerRepository, TeamRepository} from '@src/repositories';
-import {EmailService, MultiPartyFormService, SportsDataService} from '@src/services';
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { inject, service } from '@loopback/core';
+import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
+import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
+import { Player } from '@src/models';
+import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
+import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -16,18 +16,18 @@ import {
     PERMISSIONS,
     PLAYER_POSITIONS,
     TOP_PLAYERS,
-    TOP_PLAYER_POSITIONS
+    TOP_PLAYER_POSITIONS,
 } from '@src/utils/constants';
-import {ErrorHandler} from '@src/utils/helpers';
-import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
-import {ICommonHttpResponse, IImportedPlayer, IRemotePlayer} from '@src/utils/interfaces';
-import {PLAYER_MESSAGES} from '@src/utils/messages';
-import {IMPORTED_PLAYER_VALIDATORS} from '@src/utils/validators';
+import { ErrorHandler } from '@src/utils/helpers';
+import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
+import { PLAYER_MESSAGES } from '@src/utils/messages';
+import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
-import {isEqual, isNumber, sortBy, values} from 'lodash';
+import { isEqual, isNumber, sortBy, values } from 'lodash';
 import moment from 'moment';
-import Schema, {SchemaDefinition} from 'validate';
+import Schema, { SchemaDefinition } from 'validate';
 
 export class PlayerController {
     constructor(
@@ -539,7 +539,11 @@ export class PlayerController {
                 position: { inq: filteredFirstPlayerPosition },
                 id: { nin: [currentPlayer.id] },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    {
+                        projectedFantasyPointsHalfPpr: {
+                            between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                        },
+                    },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
@@ -565,17 +569,21 @@ export class PlayerController {
                 position: { inq: PLAYER_POSITIONS },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    {
+                        projectedFantasyPointsHalfPpr: {
+                            between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                        },
+                    },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
             },
         });
-        
+
         let secondPlayerRandomIndex = Math.floor(Math.random() * secondPlayerArray.length);
 
-        let secondPlayer = secondPlayerArray[secondPlayerRandomIndex]
+        let secondPlayer = secondPlayerArray[secondPlayerRandomIndex];
 
         if (!secondPlayer) {
             secondPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -592,18 +600,21 @@ export class PlayerController {
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [currentPlayerProjectedFantasyPoints, projectedPointsUpperLimit] } },
+                    {
+                        projectedFantasyPointsHalfPpr: {
+                            between: [currentPlayerProjectedFantasyPoints, projectedPointsUpperLimit],
+                        },
+                    },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
                 status: 'Active',
             },
         });
-        
+
         let thirdPlayerRandomIndex = Math.floor(Math.random() * thirdPlayerArray.length);
 
-        let thirdPlayer = thirdPlayerArray[thirdPlayerRandomIndex]
-
+        let thirdPlayer = thirdPlayerArray[thirdPlayerRandomIndex];
 
         if (!thirdPlayer) {
             thirdPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -621,7 +632,11 @@ export class PlayerController {
                 position: { inq: [currentPlayer?.position] },
                 id: { nin: [currentPlayer?.id, firstPlayer?.id || 0, secondPlayer?.id || 0, thirdPlayer?.id || 0] },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, currentPlayerProjectedFantasyPoints] } },
+                    {
+                        projectedFantasyPointsHalfPpr: {
+                            between: [projectedPointsLowerLimit, currentPlayerProjectedFantasyPoints],
+                        },
+                    },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
@@ -658,7 +673,11 @@ export class PlayerController {
                     ],
                 },
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    {
+                        projectedFantasyPointsHalfPpr: {
+                            between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                        },
+                    },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
@@ -667,8 +686,9 @@ export class PlayerController {
         });
 
         let fifthPlayerRandomIndex = Math.floor(Math.random() * fifthPlayerArray.length);
-
-        let fifthPlayer = fifthPlayerArray[fifthPlayerRandomIndex]
+        
+        let fifthPlayer = fifthPlayerArray[fifthPlayerRandomIndex];
+        
 
         if (!fifthPlayer) {
             fifthPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -678,10 +698,11 @@ export class PlayerController {
                 thirdPlayer?.id || 0,
                 fourthPlayer?.id || 0,
             ]);
+            
         }
 
         const recommendations = [firstPlayer, secondPlayer, thirdPlayer, fourthPlayer, fifthPlayer].filter(
-            player => player !== null,
+            player => player !== null && player !== undefined,
         );
 
         return {
@@ -709,7 +730,11 @@ export class PlayerController {
                 id: { nin: playerList },
                 position: currentPlayer?.position,
                 and: [
-                    { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                    {
+                        projectedFantasyPointsHalfPpr: {
+                            between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                        },
+                    },
                     { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                 ],
                 available: true,
@@ -718,9 +743,10 @@ export class PlayerController {
         });
 
         let randomPlayerRandomIndex = Math.floor(Math.random() * randomPlayerArray.length);
+        
 
-        let randomPlayer = randomPlayerArray[randomPlayerRandomIndex]
-
+        let randomPlayer = randomPlayerArray[randomPlayerRandomIndex];
+        
         // True random player (any position)
         if (!randomPlayer) {
             randomPlayerArray = await this.playerRepository.find({
@@ -730,19 +756,24 @@ export class PlayerController {
                     id: { nin: playerList },
                     position: { inq: PLAYER_POSITIONS },
                     and: [
-                        { projectedFantasyPointsHalfPpr: { between: [projectedPointsLowerLimit, projectedPointsUpperLimit] } },
+                        {
+                            projectedFantasyPointsHalfPpr: {
+                                between: [projectedPointsLowerLimit, projectedPointsUpperLimit],
+                            },
+                        },
                         { projectedFantasyPointsHalfPpr: { gt: 2.9 } },
                     ],
                     available: true,
                     status: 'Active',
                 },
             });
+            
         }
 
         randomPlayerRandomIndex = Math.floor(Math.random() * randomPlayerArray.length);
 
-        randomPlayer = randomPlayerArray[randomPlayerRandomIndex]
-
+        randomPlayer = randomPlayerArray[randomPlayerRandomIndex];
+       
         return randomPlayer;
     }
 
