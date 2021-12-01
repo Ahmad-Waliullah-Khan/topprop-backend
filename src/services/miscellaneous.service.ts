@@ -158,6 +158,10 @@ export class MiscellaneousService {
         /*
         Date: 10-11-2021
         Description: Resets all player info. Recreates the logic used in fetch player reset functionality
+
+        Reused
+        - 2021-11-24
+        - 2021-12-01
         */
         this.playerRepository.updateAll(
             { isOver: false, hasStarted: false, projectedFantasyPoints: 0, projectedFantasyPointsHalfPpr: 0 },
