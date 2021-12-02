@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Schedule, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -12,25 +12,24 @@ import {
     LeagueContestRepository,
     LeagueRepository,
     PlayerRepository,
-    RosterRepository,
-    TeamRepository,
+    RosterRepository, ScheduleRepository, TeamRepository,
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -47,12 +46,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -77,6 +76,7 @@ export class CronService {
         @repository('ConfigRepository') private configRepository: ConfigRepository,
         @repository('BonusPayoutRepository') private bonusPayoutRepository: BonusPayoutRepository,
         @repository('CouponCodeRepository') private couponCodeRepository: CouponCodeRepository,
+        @repository('ScheduleRepository') private scheduleRepository: ScheduleRepository,
     ) {}
 
     async fetchDate() {
@@ -693,15 +693,30 @@ export class CronService {
         //     game =>  isEqual(game.Week, +currentTimeFrame.ApiWeek),
         // );
 
+        const rawData = await this.scheduleRepository.findOne({ order: ['id DESC'] });
+
+        if (rawData) {
+            rawData.schedule = JSON.stringify(filteredSeasonSchedule);
+            await this.scheduleRepository.updateById(rawData.id, rawData);
+        } else {
+            const scheduleData = new Schedule();
+            scheduleData.schedule = JSON.stringify(filteredSeasonSchedule);
+            await this.scheduleRepository.create(scheduleData);
+        }
+
         // write JSON file
-        fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(filteredSeasonSchedule), 'utf8');
+        // fs.writeFileSync('./src/utils/constants/schedule.week.json', JSON.stringify(filteredSeasonSchedule), 'utf8');
 
         return;
     }
 
     async processSchedulesGames() {
-        const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
-        const weeklyGames = JSON.parse(rawData);
+        // const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
+        const rawData = await this.scheduleRepository.findOne({ order: ['id DESC'] });
+        let weeklyGames = null;
+        if(rawData?.schedule) {
+            weeklyGames = JSON.parse(rawData?.schedule);
+        }
 
         // const rawData = fs.readFileSync('./src/utils/constants/schedule.week.json', 'utf8');
         // const weeklyGames = JSON.parse(rawData);

@@ -19,6 +19,7 @@ export * from './payment-gateway-event.repository';
 export * from './player-result.repository';
 export * from './player.repository';
 export * from './roster.repository';
+export * from './schedule.repository';
 export * from './scoring-type.repository';
 export * from './spread.repository';
 export * from './team.repository';
@@ -26,3 +27,4 @@ export * from './timeframe.repository';
 export * from './top-up.repository';
 export * from './user.repository';
 export * from './withdraw-request.repository';
+
