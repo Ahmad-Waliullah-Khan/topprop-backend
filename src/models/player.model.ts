@@ -159,6 +159,12 @@ export class Player extends Base {
     })
     playerType: number;
 
+    @property({
+        type: 'string',
+        required: false,
+    })
+    lastUpdateFrom: string;
+
     @belongsTo(() => Team)
     teamId: number;
 

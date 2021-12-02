@@ -55,13 +55,13 @@ switch (cronEnv) {
         CRON_TIMING_PLAYERS_CRON = '0 0 10 * * 3';
         CRON_TIMING_PLAYERS_STATUS_CRON = '0 */15 * * * *';
         CRON_TIMING_SPECIAL_TEAMS_CRON = '0 */1 * * * *';
-        CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */1 * * * *';
+        CRON_TIMING_PROJECTED_FANTASY_POINTS_CRON = '0 */15 * * * *';
         CRON_TIMING_PLAYER_FANTASY_POINTS_CRON = '0 */5 * * * *';
         CRON_TIMING_WIN_CHECK_CRON = '45 */5 * * * *';
         CRON_TIMING_TIMEFRAME_CRON = '0 15 * * * 3';
         CRON_TIMING_CLOSE_CONTEST_CRON = '0 0 9 * * 2';
         CRON_TIMING_LEAGUE_WIN_CHECK_CRON = '45 */5 * * * *';
-        CRON_TIMING_YAHOO_SYNC_LEAGUES_CRON = '0 */30 * * * *';
+        CRON_TIMING_YAHOO_SYNC_LEAGUES_CRON = '0 0 */6 * * *';
         CRON_TIMING_ESPN_SYNC_LEAGUES_CRON = '0 0 */6 * * *';
         CRON_TIMING_WITHDRAW_FUNDS_CRON = '0 */5 * * * *';
         CRON_TIMING_LEAGUE_WIN_CRITERIA_CRON = '0 */1 * * * *';
@@ -69,12 +69,12 @@ switch (cronEnv) {
         CRON_TIMING_SYNC_TEAMS_CRON = '0 45 * * * *';
         CRON_TIMING_SYNC_GAMES_CRON = '0 30 * * * *';
         CRON_TIMING_ONGOING_GAMES_CRON = '0 */5 * * * *';
-        CRON_TIMING_BONUS_PAYOUT = '0 */5 * * * *';
-        CRON_TIMING_BONUS_PROCESSED = '0 */5 * * * *';
+        CRON_TIMING_BONUS_PAYOUT = '0 0 */1 * * *';
+        CRON_TIMING_BONUS_PROCESSED = '0 0 */1 * * *';
         CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
         CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         CRON_TIMING_MISCELLANEOUS = '0 */1 * * * *';
-        CRON_TIMING_FETCH_SCHEDULE = '0 * * */1 * *';
+        CRON_TIMING_FETCH_SCHEDULE = '0 */15 * * * *';
         CRON_TIMING_APPROVE_BONUS_WITHDRAW = '0 */5 * * * *';
 
         break;
@@ -101,7 +101,7 @@ switch (cronEnv) {
         CRON_TIMING_VERIFIED_BONUS_PAYOUT = '0 */1 * * * *';
         CRON_TIMING_SCHEDULE = '0 */1 * * * *';
         CRON_TIMING_MISCELLANEOUS = '0 */1 * * * *';
-        CRON_TIMING_FETCH_SCHEDULE = '0 */1 * * * *';
+        CRON_TIMING_FETCH_SCHEDULE = '0 */15 * * * *';
         CRON_TIMING_APPROVE_BONUS_WITHDRAW = '0 */5 * * * *';
 
         break;

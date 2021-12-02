@@ -185,8 +185,8 @@ export class CronService {
                         cronTiming = '0 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of every 15th minute
-                        cronTiming = '0 */15 * * * *';
+                        // 0th second of every 5 minutes
+                        cronTiming = '0 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 5th minute from 40th minute to 50th minute
@@ -201,8 +201,8 @@ export class CronService {
                         cronTiming = '45 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of every hour every tuesday
-                        cronTiming = '0 0 */1 * * 2';
+                        // 45th second of every 5 minutes
+                        cronTiming = '45 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 45th second of every 3rd minute from 50th minute to 59th minute
@@ -250,8 +250,8 @@ export class CronService {
                         cronTiming = '45 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of every hour every tuesday
-                        cronTiming = '0 0 */1 * * 2';
+                        // 45th second of every 5 minutes
+                        cronTiming = '45 */5 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 45th second of every 3rd minute from 50th minute to 59th minute
@@ -266,8 +266,8 @@ export class CronService {
                         cronTiming = '0 0 */6 * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of every 0th and 30th minute
-                        cronTiming = '0 */30 * * * *';
+                        // Every 0th second 0th minute 6 hours
+                        cronTiming = '0 0 */6 * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 30th minute
@@ -278,12 +278,12 @@ export class CronService {
             case CRON_JOBS.ESPN_SYNC_LEAGUES_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // 45th second of every 5 minutes
+                        // Every 6 hours
                         cronTiming = '0 0 */6 * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // 0th second of every 0th and 30th minute
-                        cronTiming = '0 0,30 * * * *';
+                        // Every 6 hours
+                        cronTiming = '0 0 */6 * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // 0th second of every 30th minute
@@ -317,7 +317,7 @@ export class CronService {
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // 0th minute every hour
-                        cronTiming = '0 0 */1 * * *';
+                        cronTiming = '0 0 */12 * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // Every 12 hours - twice a day
@@ -394,12 +394,12 @@ export class CronService {
             case CRON_JOBS.VERIFIED_BONUS_PAYPUT_CRON:
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        // Every hour
-                        cronTiming = '0 0 * * * 3';
+                        // Every 5 hours
+                        cronTiming = '0 0 */6 * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        // Every 5 minutes
-                        cronTiming = '0 0 */5 * * *';
+                        // Every 5 hours
+                        cronTiming = '0 0 */6 * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // Every 2 minutes
@@ -459,15 +459,15 @@ export class CronService {
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
                         // Every hour
-                        cronTiming = '0 0 0 */1 * *';
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.STAGING:
                         // Every 5 minutes
-                        cronTiming = '0 0 0 */1 * *';
+                        cronTiming = '0 */15 * * * *';
                         break;
                     case CRON_RUN_TYPES.PROXY:
                         // Once a week
-                        cronTiming = '0 0 0 */1 * *';
+                        cronTiming = '0 */15 * * * *';
                         break;
                 }
                 break;
@@ -529,6 +529,18 @@ export class CronService {
             case CRON_JOBS.PLAYERS_STATUS_CRON:
                 cronMessage = 'Players Status';
                 break;
+            case CRON_JOBS.FETCH_SCHEDULE_CRON:
+                cronMessage = 'Fetch Schedule';
+                break;
+            case CRON_JOBS.LEAGUE_WIN_CHECK_CRON:
+                cronMessage = 'League Win Check';
+                break;
+            case CRON_JOBS.APPROVE_WITHDRAW_REQ:
+                cronMessage = 'Approve Withdraw Request';
+                break;
+            case CRON_JOBS.VERIFIED_BONUS_PAYPUT_CRON:
+                cronMessage = 'Verified Bonus Payout';
+                break;
         }
 
         console.log(chalk.green(`${cronMessage} cron finished at`, moment().format('DD-MM-YYYY hh:mm:ss a')));
@@ -540,7 +552,8 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const remotePlayers = await this.sportsDataService.fantasyPointsByDate(currentDate);
         const localPlayers = await this.playerRepository.find();
-        const currentTime = moment().tz(TIMEZONE);
+        const currentTime = moment.tz('2021-12-01 05:00', TIMEZONE);
+        // const currentTime = moment().tz(TIMEZONE);
 
         const startObject = { hour: FP_IGNORED_SLOT.startHour, minute: FP_IGNORED_SLOT.startMinute };
         const startDatetime = momenttz.tz(startObject, TIMEZONE).day(FP_IGNORED_SLOT.startDay).subtract(1, 'minute');
@@ -560,6 +573,7 @@ export class CronService {
                             foundLocalPlayer.fantasyPointsHalfPpr =
                                 remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
                             foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                            foundLocalPlayer.lastUpdateFrom = 'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on principle';
                             await this.playerRepository.save(foundLocalPlayer);
                         }
                         break;
@@ -574,6 +588,7 @@ export class CronService {
                                 foundLocalPlayer.fantasyPointsHalfPpr =
                                     remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
                                 foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                                foundLocalPlayer.lastUpdateFrom = 'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on staging';
                                 await this.playerRepository.save(foundLocalPlayer);
                             }
                         }
@@ -585,6 +600,7 @@ export class CronService {
                         foundLocalPlayer.fantasyPointsHalfPpr =
                             remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
                         foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
+                        foundLocalPlayer.lastUpdateFrom = 'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on proxy';
                         await this.playerRepository.save(foundLocalPlayer);
 
                         break;
@@ -621,8 +637,8 @@ export class CronService {
                         await this.playerRepository.save(foundLocalPlayer);
                         break;
                     case CRON_RUN_TYPES.STAGING:
-                        foundLocalPlayer.hasStarted = false;
-                        foundLocalPlayer.isOver = false;
+                        // foundLocalPlayer.hasStarted = false;
+                        // foundLocalPlayer.isOver = false;
                         foundLocalPlayer.opponentName = remotePlayer.Opponent;
                         foundLocalPlayer.homeOrAway = remotePlayer.HomeOrAway;
                         foundLocalPlayer.projectedFantasyPoints = remotePlayer.ProjectedFantasyPoints;
@@ -756,9 +772,9 @@ export class CronService {
             },
         });
 
-        // console.log('found BYE players: ..................', foundByePlayers);
-
         const byePlayerIdList = foundByePlayers.map(player => player.id);
+
+        logger.debug(`Bye Players found for teams (${byeTeamList.toString()}) are ${byePlayerIdList.toString()}`);
 
         await this.playerRepository.updateAll(
             {
@@ -768,6 +784,7 @@ export class CronService {
                 fantasyPoints: 0,
                 fantasyPointsHalfPpr: 0,
                 fantasyPointsFullPpr: 0,
+                lastUpdateFrom: "processSchedulesGames in cron.service.ts for BYE Players",
             },
             { id: { inq: byePlayerIdList } },
         );
@@ -2780,7 +2797,7 @@ export class CronService {
         await this.closeContestsFromList(contests);
 
         await this.playerRepository.updateAll(
-            { isOver: true, hasStarted: true },
+            { isOver: true, hasStarted: true, lastUpdateFrom: 'closeContests in cron.service.ts' },
             { id: { gt: 0 } },
             (err: any, info: any) => {},
         );
@@ -3016,6 +3033,7 @@ export class CronService {
                 foundLocalPlayer.teamName = remotePlayer.Team;
                 foundLocalPlayer.playerType = 1; // Regular Player
                 foundLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
+                // foundLocalPlayer.lastUpdateFrom = 'fetchPlayers in cron.service.ts with foundLocalPlayer';
                 // foundLocalPlayer.isOver = false;
                 foundLocalPlayer.projectedFantasyPoints = 0;
                 if (records.some(record => record.PlayerID === `${foundLocalPlayer.remoteId}`)) {
@@ -3043,6 +3061,7 @@ export class CronService {
                 newLocalPlayer.yahooPlayerId = remotePlayer.YahooPlayerID;
                 newLocalPlayer.isOver = false;
                 newLocalPlayer.projectedFantasyPoints = 0;
+                newLocalPlayer.lastUpdateFrom = 'fetchPlayers in cron.service.ts with newLocalPlayer';
                 if (records.some(record => record.PlayerID === `${newLocalPlayer.remoteId}`)) {
                     const record = records.find(record => record.PlayerID === `${newLocalPlayer.remoteId}`);
                     if (record.EspnPlayerID.trim() !== '') {
@@ -3055,7 +3074,13 @@ export class CronService {
 
         if (localPlayers.length > 0) {
             this.playerRepository.updateAll(
-                { isOver: false, hasStarted: false, projectedFantasyPoints: 0, projectedFantasyPointsHalfPpr: 0 },
+                {
+                    isOver: false,
+                    hasStarted: false,
+                    projectedFantasyPoints: 0,
+                    projectedFantasyPointsHalfPpr: 0,
+                    lastUpdateFrom: 'fetchPlayers in cron.service.ts with all players update',
+                },
                 { id: { gt: 0 } },
                 (err: any, info: any) => {},
             );
@@ -3077,7 +3102,8 @@ export class CronService {
                 foundLocalPlayer.available = true;
                 foundLocalPlayer.teamName = remoteTeam.Key;
                 foundLocalPlayer.playerType = 2; // Special Team Player
-                foundLocalPlayer.isOver = false;
+                // foundLocalPlayer.isOver = false;
+                // foundLocalPlayer.lastUpdateFrom = 'fetchSpecialTeams in cron.service.ts with foundLocalPlayer';
                 const record = DST_IDS.find(record => record.sportsdataplayerid === foundLocalPlayer.remoteId);
                 if (record) {
                     foundLocalPlayer.yahooPlayerId = record.yahooplayerid;
@@ -3100,6 +3126,7 @@ export class CronService {
                 newLocalPlayer.teamId = remoteTeam.TeamID;
                 newLocalPlayer.playerType = 2; // Special Team Player
                 newLocalPlayer.isOver = false;
+                newLocalPlayer.lastUpdateFrom = 'fetchSpecialTeams in cron.service.ts with newLocalPlayer';
                 const record = DST_IDS.find(record => record.sportsdataplayerid === newLocalPlayer.remoteId);
                 if (record) {
                     newLocalPlayer.yahooPlayerId = record.yahooplayerid;
@@ -3626,7 +3653,11 @@ export class CronService {
                 });
 
                 if (pendingWithdrawReq) {
-                    logger.info(`Withdraw request ${pendingWithdrawReq.id} approved for ${user.email} at ${moment().format('DD-MM-YYYY hh:mm:ss a')}`);
+                    logger.info(
+                        `Withdraw request ${pendingWithdrawReq.id} approved for ${user.email} at ${moment().format(
+                            'DD-MM-YYYY hh:mm:ss a',
+                        )}`,
+                    );
                     await this.withdrawRequestRepository.updateById(pendingWithdrawReq.id, {
                         status: WITHDRAW_REQUEST_STATUSES.APPROVED,
                     });
