@@ -2,7 +2,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  50,
         spread:  50,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -10,7 +10,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  49.5,
         spread:  49.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -18,7 +18,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  49,
         spread:  49,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -26,7 +26,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  48.5,
         spread:  48.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -34,7 +34,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  48,
         spread:  48,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -42,7 +42,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  47.5,
         spread:  47.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -50,7 +50,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  47,
         spread:  47,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -58,7 +58,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  46.5,
         spread:  46.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -66,7 +66,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  46,
         spread:  46,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -74,7 +74,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  45.5,
         spread:  45.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -82,7 +82,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  45,
         spread:  45,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -90,7 +90,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  44.5,
         spread:  44.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -98,7 +98,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  44,
         spread:  44,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -106,7 +106,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  43.5,
         spread:  43.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -114,7 +114,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  43,
         spread:  43,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -122,7 +122,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  42.5,
         spread:  42.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -130,7 +130,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  42,
         spread:  42,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -138,7 +138,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  41.5,
         spread:  41.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -146,7 +146,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  41,
         spread:  41,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -154,7 +154,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  40.5,
         spread:  40.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -162,7 +162,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  40,
         spread:  40,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -170,7 +170,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  39.5,
         spread:  39.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -178,7 +178,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  39,
         spread:  39,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -186,7 +186,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  38.5,
         spread:  38.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -194,7 +194,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  38,
         spread:  38,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -202,7 +202,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  37.5,
         spread:  37.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -210,7 +210,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  37,
         spread:  37,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -218,7 +218,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  36.5,
         spread:  36.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -226,7 +226,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  36,
         spread:  36,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -234,7 +234,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  35.5,
         spread:  35.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -242,7 +242,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  35,
         spread:  35,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -250,7 +250,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  34.5,
         spread:  34.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -258,7 +258,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  34,
         spread:  34,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -266,7 +266,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  33.5,
         spread:  33.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -274,7 +274,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  33,
         spread:  33,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -282,7 +282,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  32.5,
         spread:  32.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -290,7 +290,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  32,
         spread:  32,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -298,7 +298,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  31.5,
         spread:  31.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -306,7 +306,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  31,
         spread:  31,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -314,7 +314,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  30.5,
         spread:  30.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -322,7 +322,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  30,
         spread:  30,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -330,7 +330,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  29.5,
         spread:  29.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -338,7 +338,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  29,
         spread:  29,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -346,7 +346,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  28.5,
         spread:  28.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -354,7 +354,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  28,
         spread:  28,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -362,7 +362,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  27.5,
         spread:  27.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -370,7 +370,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  27,
         spread:  27,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -378,7 +378,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  26.5,
         spread:  26.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -386,7 +386,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  26,
         spread:  26,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -394,7 +394,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  25.5,
         spread:  25.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -402,7 +402,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  25,
         spread:  25,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -410,7 +410,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  24.5,
         spread:  24.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -418,7 +418,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  24,
         spread:  24,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -426,7 +426,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  23.5,
         spread:  23.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -434,7 +434,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  23,
         spread:  23,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -442,7 +442,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  22.5,
         spread:  22.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -450,7 +450,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  22,
         spread:  22,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -458,7 +458,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  21.5,
         spread:  21.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -466,7 +466,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  21,
         spread:  21,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -474,7 +474,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  20.5,
         spread:  20.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -482,7 +482,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  20,
         spread:  20,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -490,7 +490,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  19.5,
         spread:  19.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -498,7 +498,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  19,
         spread:  19,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -506,7 +506,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  18.5,
         spread:  18.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -514,7 +514,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  18,
         spread:  18,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -522,7 +522,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  17.5,
         spread:  17.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -530,7 +530,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  17,
         spread:  17,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -538,7 +538,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  16.5,
         spread:  16.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -546,7 +546,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  16,
         spread:  16,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -554,7 +554,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  15.5,
         spread:  15.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -562,7 +562,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  15,
         spread:  15,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -570,7 +570,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  14.5,
         spread:  14.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -578,7 +578,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  14,
         spread:  14,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -586,7 +586,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  13.5,
         spread:  13.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -594,7 +594,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  13,
         spread:  13,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -602,7 +602,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  12.5,
         spread:  12.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -610,7 +610,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  12,
         spread:  12,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -618,7 +618,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  11.5,
         spread:  11.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -626,7 +626,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  11,
         spread:  11,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -634,7 +634,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  10.5,
         spread:  10.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -642,7 +642,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  10,
         spread:  10,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -650,7 +650,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  9.5,
         spread:  9.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -658,7 +658,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  9,
         spread:  9,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -666,7 +666,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  8.5,
         spread:  8.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -674,7 +674,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  8,
         spread:  8,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -682,7 +682,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  7.5,
         spread:  7.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -690,7 +690,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  7,
         spread:  7,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -698,7 +698,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  6.5,
         spread:  6.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -706,7 +706,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  6,
         spread:  6,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -714,7 +714,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  5.5,
         spread:  5.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -722,7 +722,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  5,
         spread:  5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -730,7 +730,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  4.5,
         spread:  4.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -738,7 +738,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  4,
         spread:  4,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -746,7 +746,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  3.5,
         spread:  3.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -754,7 +754,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  3,
         spread:  3,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -762,7 +762,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  2.5,
         spread:  2.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -770,7 +770,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  2,
         spread:  2,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -778,7 +778,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  1.5,
         spread:  1.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -786,7 +786,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  1,
         spread:  1,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -794,7 +794,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  0.5,
         spread:  0.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -802,7 +802,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  0,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -810,7 +810,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -0.5,
         spread:  -0.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -818,7 +818,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -1,
         spread:  -1,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -826,7 +826,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -1.5,
         spread:  -1.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -834,7 +834,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -2,
         spread:  -2,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -842,7 +842,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -2.5,
         spread:  -2.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -850,7 +850,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -3,
         spread:  -3,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -858,7 +858,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -3.5,
         spread:  -3.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -866,7 +866,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -4,
         spread:  -4,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -874,7 +874,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -4.5,
         spread:  -4.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -882,7 +882,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -5,
         spread:  -5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -890,7 +890,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -5.5,
         spread:  -5.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -898,7 +898,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -6,
         spread:  -6,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -906,7 +906,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -6.5,
         spread:  -6.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -914,7 +914,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -7,
         spread:  -7,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -922,7 +922,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -7.5,
         spread:  -7.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -930,7 +930,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -8,
         spread:  -8,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -938,7 +938,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -8.5,
         spread:  -8.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -946,7 +946,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -9,
         spread:  -9,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -954,7 +954,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -9.5,
         spread:  -9.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -962,7 +962,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -10,
         spread:  -10,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -970,7 +970,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -10.5,
         spread:  -10.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -978,7 +978,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -11,
         spread:  -11,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -986,7 +986,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -11.5,
         spread:  -11.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -994,7 +994,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -12,
         spread:  -12,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1002,7 +1002,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -12.5,
         spread:  -12.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1010,7 +1010,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -13,
         spread:  -13,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1018,7 +1018,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -13.5,
         spread:  -13.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1026,7 +1026,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -14,
         spread:  -14,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1034,7 +1034,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -14.5,
         spread:  -14.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1042,7 +1042,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -15,
         spread:  -15,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1050,7 +1050,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -15.5,
         spread:  -15.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1058,7 +1058,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -16,
         spread:  -16,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1066,7 +1066,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -16.5,
         spread:  -16.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1074,7 +1074,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -17,
         spread:  -17,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1082,7 +1082,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -17.5,
         spread:  -17.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1090,7 +1090,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -18,
         spread:  -18,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1098,7 +1098,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -18.5,
         spread:  -18.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1106,7 +1106,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -19,
         spread:  -19,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1114,7 +1114,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -19.5,
         spread:  -19.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1122,7 +1122,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -20,
         spread:  -20,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1130,7 +1130,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -20.5,
         spread:  -20.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1138,7 +1138,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -21,
         spread:  -21,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1146,7 +1146,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -21.5,
         spread:  -21.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1154,7 +1154,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -22,
         spread:  -22,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1162,7 +1162,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -22.5,
         spread:  -22.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1170,7 +1170,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -23,
         spread:  -23,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1178,7 +1178,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -23.5,
         spread:  -23.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1186,7 +1186,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -24,
         spread:  -24,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1194,7 +1194,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -24.5,
         spread:  -24.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1202,7 +1202,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -25,
         spread:  -25,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1210,7 +1210,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -25.5,
         spread:  -25.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1218,7 +1218,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -26,
         spread:  -26,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1226,7 +1226,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -26.5,
         spread:  -26.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1234,7 +1234,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -27,
         spread:  -27,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1242,7 +1242,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -27.5,
         spread:  -27.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1250,7 +1250,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -28,
         spread:  -28,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1258,7 +1258,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -28.5,
         spread:  -28.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1266,7 +1266,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -29,
         spread:  -29,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1274,7 +1274,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -29.5,
         spread:  -29.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1282,7 +1282,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -30,
         spread:  -30,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1290,7 +1290,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -30.5,
         spread:  -30.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1298,7 +1298,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -31,
         spread:  -31,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1306,7 +1306,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -31.5,
         spread:  -31.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1314,7 +1314,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -32,
         spread:  -32,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1322,7 +1322,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -32.5,
         spread:  -32.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1330,7 +1330,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -33,
         spread:  -33,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1338,7 +1338,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -33.5,
         spread:  -33.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1346,7 +1346,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -34,
         spread:  -34,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1354,7 +1354,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -34.5,
         spread:  -34.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1362,7 +1362,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -35,
         spread:  -35,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1370,7 +1370,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -35.5,
         spread:  -35.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1378,7 +1378,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -36,
         spread:  -36,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1386,7 +1386,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -36.5,
         spread:  -36.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1394,7 +1394,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -37,
         spread:  -37,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1402,7 +1402,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -37.5,
         spread:  -37.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1410,7 +1410,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -38,
         spread:  -38,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1418,7 +1418,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -38.5,
         spread:  -38.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1426,7 +1426,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -39,
         spread:  -39,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1434,7 +1434,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -39.5,
         spread:  -39.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1442,7 +1442,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -40,
         spread:  -40,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1450,7 +1450,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -40.5,
         spread:  -40.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1458,7 +1458,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -41,
         spread:  -41,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1466,7 +1466,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -41.5,
         spread:  -41.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1474,7 +1474,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -42,
         spread:  -42,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1482,7 +1482,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -42.5,
         spread:  -42.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1490,7 +1490,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -43,
         spread:  -43,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1498,7 +1498,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -43.5,
         spread:  -43.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1506,7 +1506,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -44,
         spread:  -44,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1514,7 +1514,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -44.5,
         spread:  -44.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1522,7 +1522,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -45,
         spread:  -45,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1530,7 +1530,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -45.5,
         spread:  -45.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1538,7 +1538,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -46,
         spread:  -46,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1546,7 +1546,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -46.5,
         spread:  -46.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1554,7 +1554,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -47,
         spread:  -47,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1562,7 +1562,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -47.5,
         spread:  -47.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1570,7 +1570,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -48,
         spread:  -48,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1578,7 +1578,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -48.5,
         spread:  -48.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1586,7 +1586,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -49,
         spread:  -49,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1594,7 +1594,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -49.5,
         spread:  -49.5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
@@ -1602,7 +1602,7 @@ const oneToTwoSeeder = [
     {
         projectionSpread:  -50,
         spread:  -50,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_1_to_2',
