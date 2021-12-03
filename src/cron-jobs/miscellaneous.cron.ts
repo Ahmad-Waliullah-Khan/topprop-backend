@@ -21,7 +21,7 @@ export class MiscellaneousCron extends CronJob {
                 try {
                     // await this.miscellaneousService.resetNoPPRGradedContests();
                     // this.cronService.cronLogger(CRON_JOBS.MISCELLANEOUS_CRON);
-                    await this.miscellaneousService.addPromoCode();
+                    // await this.miscellaneousService.addPromoCode();
                     // await this.miscellaneousService.updateDOB();
                     // await this.miscellaneousService.resetAllPlayers();
                     // await this.miscellaneousService.updateBonusPayoutProcessed();

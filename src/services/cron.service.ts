@@ -552,20 +552,22 @@ export class CronService {
         const currentDate = await this.fetchDate();
         const remotePlayers = await this.sportsDataService.fantasyPointsByDate(currentDate);
         const localPlayers = await this.playerRepository.find();
-        const currentTime = moment.tz('2021-12-01 05:00', TIMEZONE);
-        // const currentTime = moment().tz(TIMEZONE);
+        // const currentTime = moment.tz('2021-12-01 05:00', TIMEZONE);
+        const currentTime = moment().tz(TIMEZONE);
 
         const startObject = { hour: FP_IGNORED_SLOT.startHour, minute: FP_IGNORED_SLOT.startMinute };
         const startDatetime = momenttz.tz(startObject, TIMEZONE).day(FP_IGNORED_SLOT.startDay).subtract(1, 'minute');
 
         const endObject = { hour: FP_IGNORED_SLOT.endHour, minute: FP_IGNORED_SLOT.endMinute };
         const endDatetime = momenttz.tz(endObject, TIMEZONE).day(FP_IGNORED_SLOT.endDay).add(1, 'minute');
-
+        
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
+                
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
+                        
                         if (!currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
                             foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                             foundLocalPlayer.isOver = remotePlayer.IsOver;
@@ -573,7 +575,8 @@ export class CronService {
                             foundLocalPlayer.fantasyPointsHalfPpr =
                                 remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
                             foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                            foundLocalPlayer.lastUpdateFrom = 'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on principle';
+                            foundLocalPlayer.lastUpdateFrom =
+                                'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on principle';
                             await this.playerRepository.save(foundLocalPlayer);
                         }
                         break;
@@ -588,7 +591,8 @@ export class CronService {
                                 foundLocalPlayer.fantasyPointsHalfPpr =
                                     remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
                                 foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                                foundLocalPlayer.lastUpdateFrom = 'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on staging';
+                                foundLocalPlayer.lastUpdateFrom =
+                                    'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on staging';
                                 await this.playerRepository.save(foundLocalPlayer);
                             }
                         }
@@ -600,7 +604,8 @@ export class CronService {
                         foundLocalPlayer.fantasyPointsHalfPpr =
                             remotePlayer.FantasyPointsYahoo || remotePlayer.FantasyPointsFanDuel;
                         foundLocalPlayer.fantasyPointsFullPpr = remotePlayer.FantasyPointsPPR;
-                        foundLocalPlayer.lastUpdateFrom = 'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on proxy';
+                        foundLocalPlayer.lastUpdateFrom =
+                            'processPlayerFantasyPoints in cron.service.ts with foundLocalPlayer on proxy';
                         await this.playerRepository.save(foundLocalPlayer);
 
                         break;
@@ -784,7 +789,7 @@ export class CronService {
                 fantasyPoints: 0,
                 fantasyPointsHalfPpr: 0,
                 fantasyPointsFullPpr: 0,
-                lastUpdateFrom: "processSchedulesGames in cron.service.ts for BYE Players",
+                lastUpdateFrom: 'processSchedulesGames in cron.service.ts for BYE Players',
             },
             { id: { inq: byePlayerIdList } },
         );
