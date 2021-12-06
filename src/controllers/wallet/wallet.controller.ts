@@ -1,6 +1,7 @@
 import { authenticate } from '@loopback/authentication';
 import { authorize } from '@loopback/authorization';
 import { inject, service } from '@loopback/core';
+import momenttz from 'moment-timezone';
 import { repository } from '@loopback/repository';
 import { del, get, HttpErrors, param, patch, post, Request, requestBody, RestBindings } from '@loopback/rest';
 import { User } from '@src/models';
@@ -16,7 +17,7 @@ import {
     UserService,
     WalletTransfer,
 } from '@src/services';
-import { API_ENDPOINTS, FILE_NAMES, PERMISSIONS, WITHDRAW_REQUEST_STATUSES } from '@src/utils/constants';
+import { API_ENDPOINTS, FILE_NAMES, PERMISSIONS, WITHDRAW_REQUEST_STATUSES, TIMEZONE } from '@src/utils/constants';
 import { ErrorHandler } from '@src/utils/helpers';
 import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
 import { ICommonHttpResponse } from '@src/utils/interfaces';
@@ -92,6 +93,9 @@ export class WalletController {
             if (!(await this.userRepository.exists(id))) throw new HttpErrors.NotFound(USER_MESSAGES.USER_NOT_FOUND);
             const user = await this.userRepository.findById(id);
             if (!user._customerTokenUrl) throw new HttpErrors.NotFound(WALLET_MESSAGES.MISSING_WALLET);
+            const currentTime = momenttz.tz(`${body.dateOfBirth}T12:00:00`, TIMEZONE).toDate();
+            user.dateOfBirth = currentTime;
+            await this.userRepository.save(user);
 
             await this.paymentGatewayService.upgradeCustomer(user._customerTokenUrl, body);
 
