@@ -2,7 +2,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  50,
         spread:  47,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -10,7 +10,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  49.5,
         spread:  47,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -18,7 +18,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  49,
         spread:  46,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -26,7 +26,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  48.5,
         spread:  46,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -34,7 +34,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  48,
         spread:  45,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -42,7 +42,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  47.5,
         spread:  45,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -50,7 +50,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  47,
         spread:  44,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -58,7 +58,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  46.5,
         spread:  44,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -66,7 +66,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  46,
         spread:  43,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -74,7 +74,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  45.5,
         spread:  43,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -82,7 +82,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  45,
         spread:  42,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -90,7 +90,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  44.5,
         spread:  42,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -98,7 +98,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  44,
         spread:  41,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -106,7 +106,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  43.5,
         spread:  41,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -114,7 +114,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  43,
         spread:  40,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -122,7 +122,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  42.5,
         spread:  40,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -130,7 +130,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  42,
         spread:  39,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -138,7 +138,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  41.5,
         spread:  39,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -146,7 +146,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  41,
         spread:  38,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -154,7 +154,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  40.5,
         spread:  38,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -162,7 +162,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  40,
         spread:  37,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -170,7 +170,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  39.5,
         spread:  37,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -178,7 +178,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  39,
         spread:  36,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -186,7 +186,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  38.5,
         spread:  36,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -194,7 +194,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  38,
         spread:  35,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -202,7 +202,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  37.5,
         spread:  35,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -210,7 +210,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  37,
         spread:  34,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -218,7 +218,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  36.5,
         spread:  34,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -226,7 +226,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  36,
         spread:  33,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -234,7 +234,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  35.5,
         spread:  33,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -242,7 +242,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  35,
         spread:  32,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -250,7 +250,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  34.5,
         spread:  32,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -258,7 +258,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  34,
         spread:  31,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -266,7 +266,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  33.5,
         spread:  31,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -274,7 +274,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  33,
         spread:  30,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -282,7 +282,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  32.5,
         spread:  30,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -290,7 +290,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  32,
         spread:  29,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -298,7 +298,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  31.5,
         spread:  29,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -306,7 +306,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  31,
         spread:  28,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -314,7 +314,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  30.5,
         spread:  28,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -322,7 +322,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  30,
         spread:  27,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -330,7 +330,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  29.5,
         spread:  27,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -338,7 +338,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  29,
         spread:  26,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -346,7 +346,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  28.5,
         spread:  26,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -354,7 +354,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  28,
         spread:  25,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -362,7 +362,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  27.5,
         spread:  25,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -370,7 +370,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  27,
         spread:  24,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -378,7 +378,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  26.5,
         spread:  24,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -386,7 +386,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  26,
         spread:  23,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -394,7 +394,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  25.5,
         spread:  23,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -402,7 +402,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  25,
         spread:  22,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -410,7 +410,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  24.5,
         spread:  22,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -418,7 +418,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  24,
         spread:  21,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -426,7 +426,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  23.5,
         spread:  21,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -434,7 +434,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  23,
         spread:  20,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -442,7 +442,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  22.5,
         spread:  20,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -450,7 +450,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  22,
         spread:  19,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -458,7 +458,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  21.5,
         spread:  19,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -466,7 +466,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  21,
         spread:  18,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -474,7 +474,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  20.5,
         spread:  18,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -482,7 +482,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  20,
         spread:  17,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -490,7 +490,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  19.5,
         spread:  17,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -498,7 +498,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  19,
         spread:  16,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -506,7 +506,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  18.5,
         spread:  16,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -514,7 +514,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  18,
         spread:  15,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -522,7 +522,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  17.5,
         spread:  15,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -530,7 +530,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  17,
         spread:  14,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -538,7 +538,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  16.5,
         spread:  14,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -546,7 +546,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  16,
         spread:  13,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -554,7 +554,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  15.5,
         spread:  13,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -562,7 +562,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  15,
         spread:  12,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -570,7 +570,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  14.5,
         spread:  12,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -578,7 +578,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  14,
         spread:  11,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -586,7 +586,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  13.5,
         spread:  11,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -594,7 +594,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  13,
         spread:  10,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -602,7 +602,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  12.5,
         spread:  10,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -610,7 +610,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  12,
         spread:  9,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -618,7 +618,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  11.5,
         spread:  9,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -626,7 +626,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  11,
         spread:  8,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -634,7 +634,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  10.5,
         spread:  8,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -642,7 +642,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  10,
         spread:  7,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -650,7 +650,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  9.5,
         spread:  7,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -658,7 +658,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  9,
         spread:  6,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -666,7 +666,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  8.5,
         spread:  6,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -674,7 +674,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  8,
         spread:  5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -682,7 +682,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  7.5,
         spread:  5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -690,7 +690,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  7,
         spread:  4,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -698,7 +698,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  6.5,
         spread:  4,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -706,7 +706,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  6,
         spread:  3,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -714,7 +714,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  5.5,
         spread:  3,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -722,7 +722,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  5,
         spread:  2,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -730,7 +730,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  4.5,
         spread:  2,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -738,7 +738,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  4,
         spread:  1,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -746,7 +746,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  3.5,
         spread:  1,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -754,7 +754,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  3,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -762,7 +762,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  2.5,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -770,7 +770,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  2,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -778,7 +778,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  1.5,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -786,7 +786,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  1,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -794,7 +794,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  0.5,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -802,7 +802,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  0,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -810,7 +810,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  0,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -818,7 +818,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -0.5,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -826,7 +826,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -1,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -834,7 +834,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -1.5,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -842,7 +842,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -2,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -850,7 +850,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -2.5,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -858,7 +858,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -3,
         spread:  0,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -866,7 +866,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -3.5,
         spread:  -1,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -874,7 +874,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -4,
         spread:  -1,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -882,7 +882,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -4.5,
         spread:  -2,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -890,7 +890,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -5,
         spread:  -2,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -898,7 +898,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -5.5,
         spread:  -3,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -906,7 +906,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -6,
         spread:  -3,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -914,7 +914,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -6.5,
         spread:  -4,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -922,7 +922,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -7,
         spread:  -4,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -930,7 +930,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -7.5,
         spread:  -5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -938,7 +938,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -8,
         spread:  -5,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -946,7 +946,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -8.5,
         spread:  -6,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -954,7 +954,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -9,
         spread:  -6,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -962,7 +962,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -9.5,
         spread:  -7,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -970,7 +970,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -10,
         spread:  -7,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -978,7 +978,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -10.5,
         spread:  -8,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -986,7 +986,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -11,
         spread:  -8,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -994,7 +994,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -11.5,
         spread:  -9,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1002,7 +1002,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -12,
         spread:  -9,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1010,7 +1010,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -12.5,
         spread:  -10,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1018,7 +1018,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -13,
         spread:  -10,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1026,7 +1026,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -13.5,
         spread:  -11,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1034,7 +1034,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -14,
         spread:  -11,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1042,7 +1042,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -14.5,
         spread:  -12,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1050,7 +1050,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -15,
         spread:  -12,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1058,7 +1058,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -15.5,
         spread:  -13,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1066,7 +1066,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -16,
         spread:  -13,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1074,7 +1074,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -16.5,
         spread:  -14,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1082,7 +1082,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -17,
         spread:  -14,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1090,7 +1090,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -17.5,
         spread:  -15,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1098,7 +1098,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -18,
         spread:  -15,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1106,7 +1106,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -18.5,
         spread:  -16,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1114,7 +1114,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -19,
         spread:  -16,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1122,7 +1122,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -19.5,
         spread:  -17,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1130,7 +1130,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -20,
         spread:  -17,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1138,7 +1138,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -20.5,
         spread:  -18,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1146,7 +1146,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -21,
         spread:  -18,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1154,7 +1154,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -21.5,
         spread:  -19,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1162,7 +1162,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -22,
         spread:  -19,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1170,7 +1170,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -22.5,
         spread:  -20,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1178,7 +1178,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -23,
         spread:  -20,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1186,7 +1186,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -23.5,
         spread:  -21,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1194,7 +1194,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -24,
         spread:  -21,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1202,7 +1202,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -24.5,
         spread:  -22,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1210,7 +1210,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -25,
         spread:  -22,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1218,7 +1218,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -25.5,
         spread:  -23,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1226,7 +1226,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -26,
         spread:  -23,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1234,7 +1234,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -26.5,
         spread:  -24,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1242,7 +1242,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -27,
         spread:  -24,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1250,7 +1250,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -27.5,
         spread:  -25,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1258,7 +1258,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -28,
         spread:  -25,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1266,7 +1266,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -28.5,
         spread:  -26,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1274,7 +1274,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -29,
         spread:  -26,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1282,7 +1282,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -29.5,
         spread:  -27,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1290,7 +1290,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -30,
         spread:  -27,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1298,7 +1298,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -30.5,
         spread:  -28,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1306,7 +1306,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -31,
         spread:  -28,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1314,7 +1314,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -31.5,
         spread:  -29,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1322,7 +1322,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -32,
         spread:  -29,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1330,7 +1330,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -32.5,
         spread:  -30,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1338,7 +1338,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -33,
         spread:  -30,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1346,7 +1346,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -33.5,
         spread:  -31,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1354,7 +1354,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -34,
         spread:  -31,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1362,7 +1362,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -34.5,
         spread:  -32,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1370,7 +1370,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -35,
         spread:  -32,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1378,7 +1378,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -35.5,
         spread:  -33,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1386,7 +1386,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -36,
         spread:  -33,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1394,7 +1394,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -36.5,
         spread:  -34,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1402,7 +1402,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -37,
         spread:  -34,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1410,7 +1410,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -37.5,
         spread:  -35,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1418,7 +1418,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -38,
         spread:  -35,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1426,7 +1426,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -38.5,
         spread:  -36,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1434,7 +1434,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -39,
         spread:  -36,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1442,7 +1442,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -39.5,
         spread:  -37,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1450,7 +1450,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -40,
         spread:  -37,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1458,7 +1458,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -40.5,
         spread:  -38,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1466,7 +1466,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -41,
         spread:  -38,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1474,7 +1474,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -41.5,
         spread:  -39,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1482,7 +1482,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -42,
         spread:  -39,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1490,7 +1490,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -42.5,
         spread:  -40,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1498,7 +1498,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -43,
         spread:  -40,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1506,7 +1506,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -43.5,
         spread:  -41,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1514,7 +1514,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -44,
         spread:  -41,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1522,7 +1522,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -44.5,
         spread:  -42,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1530,7 +1530,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -45,
         spread:  -42,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1538,7 +1538,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -45.5,
         spread:  -43,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1546,7 +1546,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -46,
         spread:  -43,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1554,7 +1554,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -46.5,
         spread:  -44,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1562,7 +1562,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -47,
         spread:  -44,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1570,7 +1570,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -47.5,
         spread:  -45,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1578,7 +1578,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -48,
         spread:  -45,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1586,7 +1586,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -48.5,
         spread:  -46,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1594,7 +1594,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -49,
         spread:  -46,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1602,7 +1602,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -49.5,
         spread:  -47,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
@@ -1610,7 +1610,7 @@ const sevenToEighteenSeeder = [
     {
         projectionSpread:  -50,
         spread:  -47,
-        spreadPay:  0.9,
+        spreadPay:  1.0,
         ml:  0,
         mlPay:  0,
         spreadType: 'league_7_to_18',
