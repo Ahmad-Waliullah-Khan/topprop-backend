@@ -1,6 +1,6 @@
-import { BindingScope, Getter, injectable, service } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { League, Roster, Team } from '@src/models';
+import {BindingScope, Getter, injectable, service} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {League, Roster, Team} from '@src/models';
 import {
     InviteRepository,
     LeagueRepository,
@@ -9,21 +9,21 @@ import {
     RosterRepository,
     SpreadRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { EMAIL_TEMPLATES } from '@src/utils/constants';
+import {EMAIL_TEMPLATES} from '@src/utils/constants';
 import {
     ESPN_BLOCKED_LINEUPID_LIST,
     ESPN_LINEUP_SLOT_MAPPING,
     ESPN_POSITION_MAPPING,
-    YAHOO_BLOCKED_POSITION_LIST,
+    YAHOO_BLOCKED_POSITION_LIST
 } from '@src/utils/constants/league.constants';
-import { MiscHelpers } from '@src/utils/helpers';
+import {MiscHelpers} from '@src/utils/helpers';
 import axios from 'axios';
 import chalk from 'chalk';
 import moment from 'moment';
 import logger from '../utils/logger';
-import { UserService } from './user.service';
+import {UserService} from './user.service';
 const { Client } = require('espn-fantasy-football-api/node');
 const YahooFantasy = require('yahoo-fantasy');
 
@@ -342,7 +342,6 @@ export class LeagueService {
                     leagueId: localLeagueId,
                 },
             });
-            // console.log("🚀 ~ file: league.service.ts ~ line 216 ~ LeagueService ~ resyncYahoo ~ localTeams", localTeams)
 
             const teams = await yf.league.teams(leagueId);
             await Promise.all(
@@ -523,7 +522,7 @@ export class LeagueService {
             // await transaction.rollback();
             await transaction.commit();
         } catch (error) {
-            console.log('resyncYahoo: Ln 462 league.service.ts ~ error', error);
+            logger.info('resyncYahoo: Ln 462 league.service.ts ~ error', error);
             await transaction.rollback();
 
             await this.handleSyncFail(localLeagueId, 'YAHOO');
@@ -648,9 +647,6 @@ export class LeagueService {
 
                                 if (!foundPlayer) {
                                     notFoundPlayers.push(remotePlayer);
-                                    // throw new HttpErrors.BadRequest(
-                                    //     `${normalisedRemotePlayer.name.first} ${normalisedRemotePlayer.name.last} from "${createdTeam.name}" does not exist in our system. Our team is working on it. We apologies for the inconvenience`,
-                                    // );
                                 } else {
                                     const rosterData = new Roster();
                                     rosterData.teamId = foundLocalTeam.id;
@@ -659,15 +655,12 @@ export class LeagueService {
                                     rosterObjects.push(rosterData);
 
                                     if (!normalisedRemotePlayer.display_position) {
-                                        // console.log("🚀 ~ file: league.service.ts ~ line 621 ~ LeagueService ~ sortedRoster.map ~ normalisedRemotePlayer", normalisedRemotePlayer)
                                         logger.error(
                                             chalk.redBright(
                                                 `${foundPlayer.fullName} does not have a display position when returned from ESPN`,
                                             ),
                                         );
                                     }
-
-                                    // await this.rosterRepository.create(rosterData, { transaction });
                                 }
                             }
                         }),
@@ -789,7 +782,7 @@ export class LeagueService {
             // await transaction.rollback();
             await transaction.commit();
         } catch (error) {
-            console.log('resyncESPN: Ln 562 league.service.ts ~ error', error);
+            logger.info('resyncESPN: Ln 562 league.service.ts ~ error', error);
             await transaction.rollback();
 
             await this.handleSyncFail(localLeagueId, 'ESPN');

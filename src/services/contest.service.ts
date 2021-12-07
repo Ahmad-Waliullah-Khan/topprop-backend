@@ -6,6 +6,7 @@ import {MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
+import logger from '../utils/logger';
 
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -28,12 +29,12 @@ export class ContestService {
 
         const playerData = await this.playerRepo.findById(playerId);
         if (!playerData) {
-            console.log(chalk.redBright(`Player with id: ${playerId} not found`));
+            logger.info(chalk.redBright(`Player with id: ${playerId} not found`));
         }
 
         const opponentData = await this.playerRepo.findById(opponentId);
         if (!opponentData) {
-            console.log(chalk.redBright(`Opponent with id: ${opponentId} not found`));
+            logger.info(chalk.redBright(`Opponent with id: ${opponentId} not found`));
         }
 
         const playerProjectedPoints = playerData ? playerData.projectedFantasyPointsHalfPpr : 0;
@@ -82,18 +83,18 @@ export class ContestService {
     async checkPlayerStatus(playerId: number, opponentId: number) {
         const playerData = await this.playerRepo.findById(playerId);
         if (!playerData) {
-            console.log(chalk.redBright(`Player with id: ${playerId} not found`));
+            logger.info(chalk.redBright(`Player with id: ${playerId} not found`));
             return false;
         }
 
         const opponentData = await this.playerRepo.findById(opponentId);
         if (!opponentData) {
-            console.log(chalk.redBright(`Opponent with id: ${opponentId} not found`));
+            logger.info(chalk.redBright(`Opponent with id: ${opponentId} not found`));
             return false;
         }
 
         if (playerData.isOver || opponentData.isOver) {
-            console.log(chalk.redBright(`Player(s) not available for contest`));
+            logger.info(chalk.redBright(`Player(s) not available for contest`));
             return false;
         }
 
@@ -123,7 +124,7 @@ export class ContestService {
         });
 
         if(teamList.includes(playerData.teamName) || teamList.includes(opponentData.teamName)){
-            console.log(chalk.redBright(`Player(s) not available for contest`));
+            logger.info(chalk.redBright(`Player(s) not available for contest`));
             return false;
         }
 

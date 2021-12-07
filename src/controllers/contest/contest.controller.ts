@@ -1,44 +1,42 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Filter, FilterExcludingWhere, repository } from '@loopback/repository';
-import { del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { Bet, Contest, Gain } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Filter, FilterExcludingWhere, repository} from '@loopback/repository';
+import {del, get, getModelSchemaRef, HttpErrors, param, patch, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Bet, Contest, Gain} from '@src/models';
 import {
     BetRepository,
     ContestRepository,
     GainRepository,
     PlayerRepository,
     PlayerResultRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { ContestPayoutService, ContestService, PaymentGatewayService, UserService } from '@src/services';
+import {ContestPayoutService, ContestService, PaymentGatewayService, UserService} from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STAKEHOLDERS,
     CONTEST_STATUSES,
     EMAIL_TEMPLATES,
     LOBBY_SPREAD_LIMIT,
-    PERMISSIONS,
-    TIMEZONE,
-    PLAYER_POSITIONS,
+    PERMISSIONS, PLAYER_POSITIONS, TIMEZONE
 } from '@src/utils/constants';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     IContestClaimRequest,
     IContestCreateRequest,
-    ICustomUserProfile,
+    ICustomUserProfile
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES } from '@src/utils/messages';
-import { CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS } from '@src/utils/validators';
-import { isEmpty } from 'lodash';
-import Schema from 'validate';
+import {COMMON_MESSAGES, CONTEST_MESSAGES, PLAYER_MESSAGES} from '@src/utils/messages';
+import {CONTEST_CLAIM_VALIDATOR, CONTEST_CREATE_VALIDATORS} from '@src/utils/validators';
 import fs from 'fs';
+import {isEmpty} from 'lodash';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
+import Schema from 'validate';
 
 export class ContestController {
     constructor(
@@ -484,28 +482,6 @@ export class ContestController {
         return { data: await this.contestRepository.find(filter) };
     }
 
-    // @patch(API_ENDPOINTS.CONTESTS.CRUD, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Contest PATCH success count',
-    //             content: { 'application/json': { schema: CountSchema } },
-    //         },
-    //     },
-    // })
-    // async updateAll(
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Contest, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     contest: Contest,
-    //     @param.where(Contest) where?: Where<Contest>,
-    // ): Promise<Count> {
-    //     return this.contestRepository.updateAll(contest, where);
-    // }
-
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.VIEW_ANY_CONTEST)] })
     @get(API_ENDPOINTS.CONTESTS.BY_ID, {
@@ -526,38 +502,6 @@ export class ContestController {
     ): Promise<ICommonHttpResponse<Contest>> {
         return { data: await this.contestRepository.findById(id, filter) };
     }
-
-    // @patch(API_ENDPOINTS.CONTESTS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Contest PATCH success',
-    //         },
-    //     },
-    // })
-    // async updateById(
-    //     @param.path.number('id') id: number,
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Contest, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     contest: Contest,
-    // ): Promise<void> {
-    //     await this.contestRepository.updateById(id, contest);
-    // }
-
-    // @put(API_ENDPOINTS.CONTESTS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Contest PUT success',
-    //         },
-    //     },
-    // })
-    // async replaceById(@param.path.number('id') id: number, @requestBody() contest: Contest): Promise<void> {
-    //     await this.contestRepository.replaceById(id, contest);
-    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTESTS.DELETE_ANY_CONTEST)] })

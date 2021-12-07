@@ -1,9 +1,10 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { TeamRepository } from '@src/repositories';
-import { NFL_TEAMS } from '@src/utils/constants';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {TeamRepository} from '@src/repositories';
+import {NFL_TEAMS} from '@src/utils/constants';
 import chalk from 'chalk';
-import { startCase } from 'lodash';
+import {startCase} from 'lodash';
+import logger from '../utils/logger';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class TeamService {
@@ -20,8 +21,8 @@ export class TeamService {
                     name: startCase(nflTeam.slug),
                     abbr: nflTeam.abbr,
                 });
-                console.log(chalk.greenBright(`Team: ${nflTeam.slug} created.`));
-            } else console.log(chalk.greenBright(`Team: ${nflTeam.slug} already exists.`));
+                logger.info(chalk.greenBright(`Team: ${nflTeam.slug} created.`));
+            } else logger.info(chalk.greenBright(`Team: ${nflTeam.slug} already exists.`));
         }
     }
 }

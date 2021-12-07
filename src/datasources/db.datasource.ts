@@ -1,6 +1,7 @@
-import { inject, lifeCycleObserver, LifeCycleObserver, ValueOrPromise } from '@loopback/core';
-import { juggler } from '@loopback/repository';
+import {inject, lifeCycleObserver, LifeCycleObserver, ValueOrPromise} from '@loopback/core';
+import {juggler} from '@loopback/repository';
 import chalk from 'chalk';
+import logger from '../utils/logger';
 
 export const defaultDbConfig = {
     name: 'db',
@@ -28,7 +29,7 @@ export class DbDataSource extends juggler.DataSource implements LifeCycleObserve
      * Start the datasource when application is started
      */
     start(): ValueOrPromise<void> {
-        console.log(chalk.greenBright(`Connection established...`));
+        logger.info(chalk.greenBright(`Connection established...`));
     }
 
     /**

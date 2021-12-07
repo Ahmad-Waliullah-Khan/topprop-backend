@@ -1,4 +1,4 @@
-import { TopPropBackendApplication } from './application';
+import {TopPropBackendApplication} from './application';
 
 export async function migrate(args: string[]) {
     const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';

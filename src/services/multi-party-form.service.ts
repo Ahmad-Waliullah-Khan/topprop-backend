@@ -1,11 +1,12 @@
-import { /* inject, */ BindingScope, injectable } from '@loopback/core';
-import { Request } from '@loopback/rest';
-import { IMappedField, IMappedFile, IRequestFile } from '@src/utils/constants';
-import { parse } from 'bytes';
+import { /* inject, */ BindingScope, injectable} from '@loopback/core';
+import {Request} from '@loopback/rest';
+import {IMappedField, IMappedFile, IRequestFile} from '@src/utils/constants';
+import {parse} from 'bytes';
 import chalk from 'chalk';
-import { removeSync } from 'fs-extra';
-import { forOwn, isEqual } from 'lodash';
+import {removeSync} from 'fs-extra';
+import {forOwn, isEqual} from 'lodash';
 import multiparty from 'multiparty';
+import logger from '../utils/logger';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class MultiPartyFormService {
@@ -21,12 +22,12 @@ export class MultiPartyFormService {
                     if (isEqual((error as any).code, 'ETOOBIG')) error.message = `The maximum file size is 10MB.`;
                     return reject(error);
                 }
-                let mappedFile: IMappedFile = {};
+                const mappedFile: IMappedFile = {};
                 forOwn(files, (val, key) => {
-                    let file: IRequestFile = val[0];
+                    const file: IRequestFile = val[0];
                     mappedFile[file.fieldName] = file;
                 });
-                let mappedField: IMappedField = {};
+                const mappedField: IMappedField = {};
                 forOwn(fields, (val, key) => {
                     mappedField[key] = val[0];
                 });
@@ -41,7 +42,7 @@ export class MultiPartyFormService {
             if (keepFile && isEqual(key, keepFile)) return;
             removeSync(val.path);
             delete files[key];
-            console.log(chalk.greenBright(`File: ${val.originalFilename} was removed successfully.`));
+            logger.info(chalk.greenBright(`File: ${val.originalFilename} was removed successfully.`));
         });
     }
 

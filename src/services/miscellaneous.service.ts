@@ -1,15 +1,15 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {
     ContestRepository,
     CouponCodeRepository,
     GainRepository,
     PlayerRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
 import chalk from 'chalk';
 import moment from 'moment';
-import { CONTEST_STATUSES } from '../utils/constants';
+import {CONTEST_STATUSES} from '../utils/constants';
 import logger from '../utils/logger';
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -29,7 +29,7 @@ export class MiscellaneousService {
         incorrectly graded because of not coercing data
         fetched from the DB to a number before comparison */
 
-        console.log('contests');
+        logger.info('contests');
 
         const sql =
             "select id from contest where ended=true and claimerid is not null and ((creatorplayerfantasypoints + creatorplayerspread > claimerplayerfantasypoints and winnerlabel='claimer') or (creatorplayerfantasypoints + creatorplayerspread < claimerplayerfantasypoints and winnerlabel='creator'))";
@@ -40,13 +40,6 @@ export class MiscellaneousService {
 
         if (contestIds.length > 0) {
             logger.info(chalk.redBright(`Contests that were graded incorrectly are `, contestIds));
-
-            // const gains = await this.gainRepository.find({
-            //     where: {
-            //         contestId: { inq: contestIds },
-
-            //     },
-            // });
 
             await this.gainRepository.deleteAll({
                 contestId: { inq: contestIds },
@@ -87,10 +80,6 @@ export class MiscellaneousService {
         if (contestIds.length > 0) {
             logger.info(chalk.redBright(`Contests that were graded incorrectly are `, contestIds));
 
-            // const gains = await this.gainRepository.find({
-            //     where: { contestId: { inq: contestIds }, contestType: 'battleground' },
-            // });
-
             await this.gainRepository.deleteAll({
                 contestId: { inq: contestIds },
                 contestType: 'battleground',
@@ -125,7 +114,7 @@ export class MiscellaneousService {
             { code: 'Beat Freedman', amount: 2500 },
             { code: 'BeatFreedman', amount: 2500 },
         ];
-        
+
         // check for coupon ,if doesn't exists create one
         PromoCodeArr.map(async ({ code, amount }) => {
             const couponData = await this.couponCodeRepository.find({

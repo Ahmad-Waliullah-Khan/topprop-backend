@@ -1,19 +1,7 @@
-// import axios, { AxiosResponse } from 'axios';
-// import { GoogleIdTokenGeneratedFromCustom } from '../interfaces/misc.interfaces';
 import randomString from 'randomstring';
+import logger from '../logger';
 
 export class MiscHelpers {
-    // //* Just for testing purposes
-    // static generateGoogleIdTokenFromCustom = (
-    //     customToken: string,
-    // ): Promise<AxiosResponse<GoogleIdTokenGeneratedFromCustom>> => {
-    //     const url = `https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key=${process.env.FIREBASE_WEB_API_KEY}`;
-    //     const data = {
-    //         token: customToken,
-    //         returnSecureToken: true,
-    //     };
-    //     return axios.post(url, data);
-    // };
 
     static toCurrency = (amount: number): string => {
         const maskedAmount = `$${amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
@@ -47,9 +35,9 @@ export class MiscHelpers {
     static parseCookie(cookie: string) {
         const value = '; ' + document.cookie;
         const parts = value.split('; ' + name + '=');
-        console.log('Parsing cookie: ' + name);
+        logger.info('Parsing cookie: ' + name);
         if (parts.length === 2) {
-            console.log(parts.pop()?.split(';').shift());
+            logger.info(parts.pop()?.split(';').shift());
             return parts.pop()?.split(';').shift();
         }
     }

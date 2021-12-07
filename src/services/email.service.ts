@@ -1,5 +1,6 @@
 import {bind, /* inject, */ BindingScope} from '@loopback/core';
 import {join} from 'path';
+import logger from '../utils/logger';
 import EmailTemplate = require('email-templates');
 import chalk = require('chalk');
 
@@ -49,9 +50,9 @@ export class EmailService {
     async sendEmail(options: EmailTemplate.EmailOptions): Promise<void> {
         try {
             await this.emailSender.send(options);
-            console.log(chalk.greenBright(`Email sent. Template: ${options.template} - To: ${options.message.to}`));
+            logger.info(chalk.greenBright(`Email sent. Template: ${options.template} - To: ${options.message.to}`));
         } catch (error) {
-            console.error(
+            logger.error(
                 chalk.redBright(
                     `Error sending email. Template: ${options} - To: ${options.message.to}. Error: `,
                     error,

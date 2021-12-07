@@ -1,9 +1,10 @@
-import { bind, /* inject, */ BindingScope } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { GameRepository, TeamRepository } from '@src/repositories';
-import { GAME_TYPES, NFL_WEEK_1 } from '@src/utils/constants';
+import {bind, /* inject, */ BindingScope} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {GameRepository, TeamRepository} from '@src/repositories';
+import {GAME_TYPES, NFL_WEEK_1} from '@src/utils/constants';
 import chalk from 'chalk';
 import moment from 'moment';
+import logger from '../utils/logger';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class GameService {
@@ -26,7 +27,7 @@ export class GameService {
                         week: 1,
                     },
                 });
-                if (game) console.log(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} already exists`));
+                if (game) logger.info(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} already exists`));
                 else {
                     await this.gameRepository.create({
                         visitorTeamId: visitorTeam.id,
@@ -35,12 +36,12 @@ export class GameService {
                         week: 1,
                         startTime: moment(nflGame.startTime),
                     });
-                    console.log(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} created`));
+                    logger.info(chalk.greenBright(`Game: ${visitorTeam.abbr} @ ${homeTeam.abbr} created`));
                 }
             }
             if (!visitorTeam)
-                console.log(chalk.greenBright(`Visitor team for ${nflGame.visitorTeam} could not be found.`));
-            if (!homeTeam) console.log(chalk.greenBright(`Home team for ${nflGame.homeTeam} could not be found.`));
+                logger.info(chalk.greenBright(`Visitor team for ${nflGame.visitorTeam} could not be found.`));
+            if (!homeTeam) logger.info(chalk.greenBright(`Home team for ${nflGame.homeTeam} could not be found.`));
         }
     }
 }

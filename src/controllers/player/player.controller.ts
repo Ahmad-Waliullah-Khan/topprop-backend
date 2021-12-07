@@ -1,11 +1,11 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { Count, CountSchema, Filter, FilterExcludingWhere, repository, Where } from '@loopback/repository';
-import { get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings } from '@loopback/rest';
-import { Player } from '@src/models';
-import { ContestRepository, PlayerRepository, TeamRepository } from '@src/repositories';
-import { EmailService, MultiPartyFormService, SportsDataService } from '@src/services';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {Count, CountSchema, Filter, FilterExcludingWhere, repository, Where} from '@loopback/repository';
+import {get, getModelSchemaRef, HttpErrors, param, post, requestBody, Response, RestBindings} from '@loopback/rest';
+import {Player} from '@src/models';
+import {ContestRepository, PlayerRepository, TeamRepository} from '@src/repositories';
+import {EmailService, MultiPartyFormService, SportsDataService} from '@src/services';
 import {
     API_ENDPOINTS,
     CONTEST_STATUSES,
@@ -16,18 +16,19 @@ import {
     PERMISSIONS,
     PLAYER_POSITIONS,
     TOP_PLAYERS,
-    TOP_PLAYER_POSITIONS,
+    TOP_PLAYER_POSITIONS
 } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
-import { ICommonHttpResponse, IImportedPlayer, IRemotePlayer } from '@src/utils/interfaces';
-import { PLAYER_MESSAGES } from '@src/utils/messages';
-import { IMPORTED_PLAYER_VALIDATORS } from '@src/utils/validators';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
+import {ICommonHttpResponse, IImportedPlayer, IRemotePlayer} from '@src/utils/interfaces';
+import {PLAYER_MESSAGES} from '@src/utils/messages';
+import {IMPORTED_PLAYER_VALIDATORS} from '@src/utils/validators';
 import chalk from 'chalk';
 import * as fastCsv from 'fast-csv';
-import { isEqual, isNumber, sortBy, values } from 'lodash';
+import {isEqual, isNumber, sortBy, values} from 'lodash';
 import moment from 'moment';
-import Schema, { SchemaDefinition } from 'validate';
+import Schema, {SchemaDefinition} from 'validate';
+import logger from '../../utils/logger';
 
 export class PlayerController {
     constructor(
@@ -149,7 +150,7 @@ export class PlayerController {
                 await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
             }
         } catch (error) {
-            console.error(`Error upserting players from google sheets. Error:`, error);
+            logger.error(`Error upserting players from google sheets. Error:`, error);
             this.emailService.sendEmail({
                 template: EMAIL_TEMPLATES.ADMIN_IMPORT_PLAYERS_UPDATE,
                 message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
@@ -161,128 +162,6 @@ export class PlayerController {
             });
         }
     }
-
-    //!!DEPRECATED
-    // @authenticate('jwt')
-    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.IMPORT_PLAYERS)] })
-    // @post(API_ENDPOINTS.PLAYERS.IMPORT)
-    // async create(
-    //     @requestBody.file()
-    //     req: Request,
-    // ): Promise<void> {
-    //     try {
-    //         // await this.playerRepository.updateAll({ available: true });
-    //         const { files, fields } = await this.multipartyFormService.getFilesAndFields(req, '25MB');
-
-    //         // if (isEmpty(fields) || !fields.type) throw new HttpErrors.BadRequest(PLAYER_MESSAGES.PLAYERS_FILE_INVALID_TYPE);
-
-    //         if (isEmpty(files)) throw new HttpErrors.BadRequest(FILE_MESSAGES.FILE_MISSING);
-
-    //         const playersFile = files[FILE_NAMES.PLAYERS];
-    //         if (!playersFile) {
-    //             this.multipartyFormService.removeFiles(files);
-    //             throw new HttpErrors.BadRequest(FILE_MESSAGES.FILE_MISSING);
-    //         }
-
-    //         const allowedContentType = 'text/csv';
-
-    //         let fileContentType = playersFile.headers['content-type'];
-
-    //         if (!this.multipartyFormService.isContentType(allowedContentType, fileContentType)) {
-    //             this.multipartyFormService.removeFiles(files);
-    //             throw new HttpErrors.UnsupportedMediaType(FILE_MESSAGES.FILE_INVALID(allowedContentType));
-    //         }
-
-    //         const errors: string[] = [];
-    //         const promises: Promise<void>[] = [];
-
-    //         const csvStream = csv().fromStream(createReadStream(playersFile.path));
-
-    //         csvStream.on('header', async (header: string[]) => {
-    //             if (!this.validHeaders(header)) errors.push('Invalid CSV Header');
-    //         });
-
-    //         csvStream.on('error', error => {
-    //             errors.push(error.message);
-    //         });
-
-    //         csvStream.on('data', data => {
-    //             if (errors.length) return;
-
-    //             const stringifiedData = data.toString('utf8');
-    //             const parsedData: IImportedPlayer = JSON.parse(stringifiedData);
-
-    //             if (!this.validPlayer(parsedData)) errors.push(stringifiedData);
-    //             else promises.push(this.upsertPlayer(parsedData));
-    //         });
-
-    //         csvStream.on('done', async err => {
-    //             this.multipartyFormService.removeFiles(files);
-
-    //             if (err) errors.push(err.message);
-
-    //             if (errors.length) {
-    //                 this.emailService.sendEmail({
-    //                     template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
-    //                     message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-    //                     locals: {
-    //                         targetResources: 'Players',
-    //                         importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-    //                         errors,
-    //                     },
-    //                 });
-    //                 return;
-    //             }
-    //             try {
-    //                 await this.playerRepository.updateAll({ available: false });
-    //                 await Promise.all(promises);
-    //                 this.emailService.sendEmail({
-    //                     template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_SUCCESS,
-    //                     message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-    //                     locals: {
-    //                         targetResources: 'Players',
-    //                         importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-    //                     },
-    //                 });
-
-    //                 //* HANDLE UNAVAILABLE PLAYERS
-    //                 const unavailablePlayers = await this.playerRepository.find({ where: { available: false } });
-    //                 const unavailablePlayerIds = unavailablePlayers.map(player => player.id);
-
-    //                 const contests = await this.contestRepository.find({
-    //                     where: {
-    //                         and: [
-    //                             { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
-    //                             { playerId: { inq: unavailablePlayerIds } },
-    //                         ],
-    //                     },
-    //                 });
-
-    //                 for (let index = 0; index < contests.length; index++) {
-    //                     const contest = contests[index];
-    //                     contest.status = CONTEST_STATUSES.CLOSED;
-    //                     contest.ended = true;
-    //                     contest.endedAt = moment().toDate();
-    //                     await this.contestRepository.save(contest, { refundBets: true, skipGameValidation: true });
-    //                 }
-    //             } catch (error) {
-    //                 errors.push(err.message);
-    //                 console.error(`Error upserting players. Error:`, error);
-    //                 this.emailService.sendEmail({
-    //                     template: EMAIL_TEMPLATES.ADMIN_IMPORT_DATA_FAILURE,
-    //                     message: { to: process.env.SUPPORT_EMAIL_ADDRESS as string },
-    //                     locals: {
-    //                         targetResources: 'Players',
-    //                         importedDateAndTime: moment().format('MM/DD/YYYY @ hh:mm a'),
-    //                         errors,
-    //                     },
-    //                 });
-    //             }
-    //         });
-    //     } catch (error) {
-    //         ErrorHandler.httpError(error);
-    //     }
-    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.EXPORT_PLAYERS)] })
@@ -361,55 +240,6 @@ export class PlayerController {
     async find(@param.filter(Player) filter?: Filter<Player>): Promise<ICommonHttpResponse<Player[]>> {
         return { data: await this.playerRepository.find(filter) };
     }
-
-    // @authenticate('jwt')
-    // @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ALL_PLAYERS)] })
-    // @get(API_ENDPOINTS.PLAYERS.GET_REMOTE, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Array of Player model instances',
-    //             content: {
-    //                 'application/json': {
-    //                     schema: {
-    //                         type: 'array',
-    //                         items: getModelSchemaRef(Player, { includeRelations: true }),
-    //                     },
-    //                 },
-    //             },
-    //         },
-    //     },
-    // })
-    // async findRemote(@param.filter(Player) filter?: Filter<Player>): Promise<any | undefined> {
-    //     // try {
-    //     //     const now = moment().subtract(7, 'days').format(sportApiDateFormat);
-    //     //     const res = await this.sportDataService.sportDataClient.NFLv3StatsClient.getPlayerDetailsByAvailablePromise();
-    //     //     return res;
-    //     // } catch (error) {
-    //     //     ErrorHandler.httpError(error);
-    //     // }
-    // }
-
-    // @patch(API_ENDPOINTS.PLAYERS.CRUD, {
-    //     responses: {
-    //         '200': {
-    //             description: 'Player PATCH success count',
-    //             content: { 'application/json': { schema: CountSchema } },
-    //         },
-    //     },
-    // })
-    // async updateAll(
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Player, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     player: Player,
-    //     @param.where(Player) where?: Where<Player>,
-    // ): Promise<Count> {
-    //     return this.playerRepository.updateAll(player, where);
-    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.PLAYERS.VIEW_ANY_PLAYER)] })
@@ -532,7 +362,7 @@ export class PlayerController {
         const filteredFirstPlayerPosition = TOP_PLAYER_POSITIONS.filter(
             position => position != currentPlayer.position || position != 'K',
         );
-        let firstPlayerArray = await this.playerRepository.find({
+        const firstPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -550,7 +380,7 @@ export class PlayerController {
                 status: 'Active',
             },
         });
-        let firstPlayerRandomIndex = Math.floor(Math.random() * firstPlayerArray.length);
+        const firstPlayerRandomIndex = Math.floor(Math.random() * firstPlayerArray.length);
 
         let firstPlayer = firstPlayerArray[firstPlayerRandomIndex];
 
@@ -561,7 +391,7 @@ export class PlayerController {
         }
 
         // Same Team/Game
-        let secondPlayerArray = await this.playerRepository.find({
+        const secondPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -581,7 +411,7 @@ export class PlayerController {
             },
         });
 
-        let secondPlayerRandomIndex = Math.floor(Math.random() * secondPlayerArray.length);
+        const secondPlayerRandomIndex = Math.floor(Math.random() * secondPlayerArray.length);
 
         let secondPlayer = secondPlayerArray[secondPlayerRandomIndex];
 
@@ -593,7 +423,7 @@ export class PlayerController {
         }
 
         // Favorite from same position
-        let thirdPlayerArray = await this.playerRepository.find({
+        const thirdPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -612,7 +442,7 @@ export class PlayerController {
             },
         });
 
-        let thirdPlayerRandomIndex = Math.floor(Math.random() * thirdPlayerArray.length);
+        const thirdPlayerRandomIndex = Math.floor(Math.random() * thirdPlayerArray.length);
 
         let thirdPlayer = thirdPlayerArray[thirdPlayerRandomIndex];
 
@@ -625,7 +455,7 @@ export class PlayerController {
         }
 
         // Underdog from same position
-        let fourthPlayerArray = await this.playerRepository.find({
+        const fourthPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -644,7 +474,7 @@ export class PlayerController {
             },
         });
 
-        let fourthPlayerRandomIndex = Math.floor(Math.random() * fourthPlayerArray.length);
+        const fourthPlayerRandomIndex = Math.floor(Math.random() * fourthPlayerArray.length);
 
         let fourthPlayer = fourthPlayerArray[fourthPlayerRandomIndex];
 
@@ -658,7 +488,7 @@ export class PlayerController {
         }
 
         // Random from same position
-        let fifthPlayerArray = await this.playerRepository.find({
+        const fifthPlayerArray = await this.playerRepository.find({
             where: {
                 hasStarted: false,
                 isOver: false,
@@ -685,10 +515,10 @@ export class PlayerController {
             },
         });
 
-        let fifthPlayerRandomIndex = Math.floor(Math.random() * fifthPlayerArray.length);
-        
+        const fifthPlayerRandomIndex = Math.floor(Math.random() * fifthPlayerArray.length);
+
         let fifthPlayer = fifthPlayerArray[fifthPlayerRandomIndex];
-        
+
 
         if (!fifthPlayer) {
             fifthPlayer = await this.fetchRandomPlayer(projectedPointsLowerLimit, projectedPointsUpperLimit, [
@@ -698,7 +528,7 @@ export class PlayerController {
                 thirdPlayer?.id || 0,
                 fourthPlayer?.id || 0,
             ]);
-            
+
         }
 
         const recommendations = [firstPlayer, secondPlayer, thirdPlayer, fourthPlayer, fifthPlayer].filter(
@@ -743,10 +573,10 @@ export class PlayerController {
         });
 
         let randomPlayerRandomIndex = Math.floor(Math.random() * randomPlayerArray.length);
-        
+
 
         let randomPlayer = randomPlayerArray[randomPlayerRandomIndex];
-        
+
         // True random player (any position)
         if (!randomPlayer) {
             randomPlayerArray = await this.playerRepository.find({
@@ -767,58 +597,15 @@ export class PlayerController {
                     status: 'Active',
                 },
             });
-            
+
         }
 
         randomPlayerRandomIndex = Math.floor(Math.random() * randomPlayerArray.length);
 
         randomPlayer = randomPlayerArray[randomPlayerRandomIndex];
-       
+
         return randomPlayer;
     }
-
-    // @patch(API_ENDPOINTS.PLAYERS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Player PATCH success',
-    //         },
-    //     },
-    // })
-    // async updateById(
-    //     @param.path.number('id') id: number,
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(Player, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     player: Player,
-    // ): Promise<void> {
-    //     await this.playerRepository.updateById(id, player);
-    // }
-
-    // @put(API_ENDPOINTS.PLAYERS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Player PUT success',
-    //         },
-    //     },
-    // })
-    // async replaceById(@param.path.number('id') id: number, @requestBody() player: Player): Promise<void> {
-    //     await this.playerRepository.replaceById(id, player);
-    // }
-
-    // @del(API_ENDPOINTS.PLAYERS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'Player DELETE success',
-    //         },
-    //     },
-    // })
-    // async deleteById(@param.path.number('id') id: number): Promise<void> {
-    //     await this.playerRepository.deleteById(id);
-    // }
 
     private async upsertPlayer(nflPlayer: IImportedPlayer, row: number): Promise<void> {
         const team = await this.teamRepository.findOne({ where: { abbr: nflPlayer.team } });
@@ -842,7 +629,7 @@ export class PlayerController {
                     photoUrl: nflPlayer.photoUrl,
                     updatedAt: moment().toDate().toString(),
                 });
-                console.log(chalk.greenBright(`Player: ${nflPlayer.name} updated for team: ${team.name}`));
+                logger.info(chalk.greenBright(`Player: ${nflPlayer.name} updated for team: ${team.name}`));
             } else {
                 await this.playerRepository.create({
                     firstName: nflPlayer.name,
@@ -852,7 +639,7 @@ export class PlayerController {
                     remoteId: nflPlayer.remoteId,
                     photoUrl: nflPlayer.photoUrl,
                 });
-                console.log(chalk.greenBright(`Player: ${nflPlayer.name} created for team: ${team.name}`));
+                logger.info(chalk.greenBright(`Player: ${nflPlayer.name} created for team: ${team.name}`));
             }
         } else throw new Error(`Error at row: ${row}. Invalid team (${nflPlayer.team}) for player ${nflPlayer.name}.`);
     }

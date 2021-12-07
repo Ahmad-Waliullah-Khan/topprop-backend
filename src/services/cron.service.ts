@@ -1,6 +1,6 @@
-import { BindingScope, injectable, service } from '@loopback/core';
-import { repository, Where } from '@loopback/repository';
-import { Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User } from '@src/models';
+import {BindingScope, injectable, service} from '@loopback/core';
+import {repository, Where} from '@loopback/repository';
+import {Bet, Gain, LeagueContest, LeagueContestRelations, Player, Timeframe, TopUp, User} from '@src/models';
 import {
     BetRepository,
     BonusPayoutRepository,
@@ -17,20 +17,20 @@ import {
     TimeframeRepository,
     TopUpRepository,
     UserRepository,
-    WithdrawRequestRepository,
+    WithdrawRequestRepository
 } from '@src/repositories';
-import { ErrorHandler, MiscHelpers } from '@src/utils/helpers';
+import {ErrorHandler, MiscHelpers} from '@src/utils/helpers';
 import chalk from 'chalk';
 import parse from 'csv-parse/lib/sync';
 import fs from 'fs';
 import moment from 'moment';
 import momenttz from 'moment-timezone';
 import util from 'util';
-import { TRANSFER_TYPES } from '../services';
-import { LeagueService } from '../services/league.service';
-import { PaymentGatewayService } from '../services/payment-gateway.service';
-import { SportsDataService } from '../services/sports-data.service';
-import { UserService } from '../services/user.service';
+import {TRANSFER_TYPES} from '../services';
+import {LeagueService} from '../services/league.service';
+import {PaymentGatewayService} from '../services/payment-gateway.service';
+import {SportsDataService} from '../services/sports-data.service';
+import {UserService} from '../services/user.service';
 import {
     BLOCKED_TIME_SLOTS,
     CONTEST_STAKEHOLDERS,
@@ -47,12 +47,12 @@ import {
     SCORING_TYPE,
     TIMEFRAMES,
     TIMEZONE,
-    WITHDRAW_REQUEST_STATUSES,
+    WITHDRAW_REQUEST_STATUSES
 } from '../utils/constants';
-import { DST_IDS } from '../utils/constants/dst.constants';
+import {DST_IDS} from '../utils/constants/dst.constants';
 import logger from '../utils/logger';
 import sleep from '../utils/sleep';
-import { BONUSSTATUS } from './../utils/constants/bonus-payout.constants';
+import {BONUSSTATUS} from './../utils/constants/bonus-payout.constants';
 
 @injectable({ scope: BindingScope.TRANSIENT })
 export class CronService {
@@ -119,7 +119,6 @@ export class CronService {
         } else {
             const currentDate = moment(`${PROXY_YEAR}-${PROXY_MONTH}-${PROXY_DAY}`, 'YYYY-MMM-DD');
             currentDate.add(PROXY_DAY_OFFSET, 'days');
-            // console.log("🚀 ~ file: cron.service.ts ~ line 60 ~ CronService ~ fetchTimeframe ~ currentDate", currentDate)
             const [currentTimeFrame] = await this.timeframeRepository.find({
                 where: { and: [{ startDate: { lte: currentDate } }, { endDate: { gte: currentDate } }] },
             });
@@ -543,7 +542,7 @@ export class CronService {
                 break;
         }
 
-        console.log(chalk.green(`${cronMessage} cron finished at`, moment().format('DD-MM-YYYY hh:mm:ss a')));
+        logger.info(chalk.green(`${cronMessage} cron finished at`, moment().format('DD-MM-YYYY hh:mm:ss a')));
 
         logger.info(`${cronMessage} cron finished at ` + moment().format('DD-MM-YYYY hh:mm:ss a'));
     }
@@ -560,14 +559,14 @@ export class CronService {
 
         const endObject = { hour: FP_IGNORED_SLOT.endHour, minute: FP_IGNORED_SLOT.endMinute };
         const endDatetime = momenttz.tz(endObject, TIMEZONE).day(FP_IGNORED_SLOT.endDay).add(1, 'minute');
-        
+
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
-                
+
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        
+
                         if (!currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
                             foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                             foundLocalPlayer.isOver = remotePlayer.IsOver;
@@ -992,19 +991,13 @@ export class CronService {
                 entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
-                // entryGain.contenderId = underdog.playerId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ refund data for favorite', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
-                // entryGain.contenderId = favorite.playerId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ refund data for underdog', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
@@ -1093,10 +1086,7 @@ export class CronService {
                 entryGain.contestType = 'battleground';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = userId;
-                // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
@@ -1104,10 +1094,7 @@ export class CronService {
                 winningGain.contestType = 'battleground';
                 winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
-                // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
-
-                // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
 
@@ -1595,20 +1582,14 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
-                // entryGain.contenderId = underdog.teamId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ refund data for favorite', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
-                // entryGain.contenderId = favorite.teamId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ refund data for underdog', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
@@ -1720,10 +1701,7 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = userId;
-                // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
@@ -1731,10 +1709,7 @@ export class CronService {
                 winningGain.contestType = 'League';
                 winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
-                // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
-
-                // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
                 const clientHost = process.env.CLIENT_HOST;
@@ -2261,19 +2236,13 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = favorite.userId;
-                // entryGain.contenderId = underdog.teamId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ refund data for favorite', entryGain);
 
                 await this.gainRepository.create(entryGain);
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = underdog.userId;
-                // entryGain.contenderId = favorite.teamId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ refund data for underdog', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
@@ -2378,10 +2347,7 @@ export class CronService {
                 entryGain.contestType = 'League';
                 entryGain.amount = Number(entryAmount);
                 entryGain.userId = userId;
-                // entryGain.contenderId = contenderId;
                 entryGain.contestId = contest.id;
-
-                // console.log('🚀 ~ gainData (Entry Amount)', entryGain);
 
                 await this.gainRepository.create(entryGain);
 
@@ -2389,10 +2355,8 @@ export class CronService {
                 winningGain.contestType = 'League';
                 winningGain.amount = Number(winningAmount);
                 winningGain.userId = userId;
-                // winningGain.contenderId = contenderId;
                 winningGain.contestId = contest.id;
                 const clientHost = process.env.CLIENT_HOST;
-                // console.log('🚀 ~ gainData (Winning Amount)', winningGain);
 
                 await this.gainRepository.create(winningGain);
 
@@ -3615,7 +3579,7 @@ export class CronService {
         if (filePath && fs.existsSync(filePath)) {
             fs.unlink(filePath, err => {
                 if (err) {
-                    console.log(err);
+                    logger.info(err);
                 }
             });
         }
@@ -3673,7 +3637,7 @@ export class CronService {
         if (filePath && fs.existsSync(filePath)) {
             fs.unlink(filePath, err => {
                 if (err) {
-                    console.log(err);
+                    logger.info(err);
                 }
             });
         }
@@ -3743,7 +3707,6 @@ export class CronService {
                 },
             ],
         });
-        // console.log("🚀 ~ file: cron.service.ts ~ line 2766 ~ CronService ~ withdrawFunds ~ withdrawRequests", withdrawRequests)
 
         await Promise.all(
             withdrawRequests.map(async request => {
@@ -3789,7 +3752,7 @@ export class CronService {
                         },
                     });
                 } catch (err) {
-                    console.log('🚀 ~ file: cron.service.ts ~ line 2812 ~ CronService ~ withdrawFunds ~ err', err);
+                    logger.info('🚀 ~ file: cron.service.ts ~ line 2812 ~ CronService ~ withdrawFunds ~ err', err);
                     logger.error(err);
                 }
             }),

@@ -82,16 +82,9 @@ export class UserController {
             throw new HttpErrors.BadRequest(USER_MESSAGES.STATE_NOT_DETECTED);
         }
 
-        // const validState = await this.userService.validState(body.signUpState);
-        // if (!validState) throw new HttpErrors.BadRequest(`${body.signUpState} ${USER_MESSAGES.STATE_INVALID}`);
-
         if (body.signUpCountry === undefined || body.signUpCountry === null || body.signUpCountry === '') {
             throw new HttpErrors.BadRequest(USER_MESSAGES.CONUTRY_NOT_DETECTED);
         }
-
-        // const validCountry = await this.userService.validCountry(body.signUpCountry || '');
-        // console.log(validCountry)
-        // if (!validCountry) throw new HttpErrors.BadRequest(`${body.signUpCountry} ${USER_MESSAGES.COUNTRY_INVALID}`);
 
         const statePermissions = await this.userService.statePermissions(body.signUpState, body.signUpState);
 
@@ -133,16 +126,9 @@ export class UserController {
         }
 
         body.bonusPayoutProcessed = false;
-        // if (body.promo) {
-        //     const validCouponCode = await this.couponCodeService.validCouponCode(body.promo);
-        //     if (validCouponCode) {
-        //         body.bonusPayoutProcessed = false;
-        //     }
-        // }
 
         delete body.password;
         delete body.confirmPassword;
-        // delete body.couponCode;
         const user = await this.userRepository.create(body);
         const token = await this.jwtService.generateToken({
             id: user.id,
@@ -296,9 +282,6 @@ export class UserController {
         const deposits = await this.topUpRepository.find({
             where: {
                 and: [
-                    // {
-                    //     or: [{ topUpTransferUrl: { neq: 'Signup Bonus' } }, { topUpTransferUrl: { eq: null } }],
-                    // },
                     { userId: user.id },
                 ],
             },
@@ -310,15 +293,6 @@ export class UserController {
         const paidContestPermission = statePermissions?.paidContests;
 
         const hasDeposits = false;
-        // let hasDeposits = true;
-
-        // if (paidContestPermission) {
-        //     if (validCouponCode) {
-        //         hasDeposits = deposits.length > 1;
-        //     } else {
-        //         hasDeposits = deposits.length > 0;
-        //     }
-        // }
 
         return {
             data: {
@@ -419,10 +393,6 @@ export class UserController {
         return {
             data: await this.userService.validUsername(body.username),
         };
-        // let username = this.userService.buildUsername('murder05kill@gmail.com');
-        // console.log(username);
-        // console.log(username.length);
-        // return { data: true };
     }
 
     @patch(API_ENDPOINTS.USERS.SET_FORGOT_PASSWORD_TOKEN)
@@ -544,28 +514,6 @@ export class UserController {
         return { data: await this.userRepository.find(filter) };
     }
 
-    // @patch(API_ENDPOINTS.USERS.CRUD, {
-    //     responses: {
-    //         '200': {
-    //             description: 'User PATCH success count',
-    //             content: { 'application/json': { schema: CountSchema } },
-    //         },
-    //     },
-    // })
-    // async updateAll(
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(User, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     user: User,
-    //     @param.where(User) where?: Where<User>,
-    // ): Promise<Count> {
-    //     return this.userRepository.updateAll(user, where);
-    // }
-
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.VIEW_ANY_USER)] })
     @get(API_ENDPOINTS.USERS.BY_ID, {
@@ -586,39 +534,6 @@ export class UserController {
     ): Promise<ICommonHttpResponse<User>> {
         return { data: await this.userRepository.findById(id, filter) };
     }
-
-    // @authenticate('jwt')
-    // @patch(API_ENDPOINTS.USERS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'User PATCH success',
-    //         },
-    //     },
-    // })
-    // async updateById(
-    //     @param.path.number('id') id: number,
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(User, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     user: User,
-    // ): Promise<void> {
-    //     await this.userRepository.updateById(id, user);
-    // }
-
-    // @put(API_ENDPOINTS.USERS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'User PUT success',
-    //         },
-    //     },
-    // })
-    // async replaceById(@param.path.number('id') id: number, @requestBody() user: User): Promise<void> {
-    //     await this.userRepository.replaceById(id, user);
-    // }
 
     @authenticate('jwt')
     @authorize({ voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.USERS.DELETE_ANY_USER)] })

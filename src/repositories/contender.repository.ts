@@ -1,16 +1,16 @@
-import { Getter, inject, service } from '@loopback/core';
-import { BelongsToAccessor, DefaultCrudRepository, repository } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
-import { SportsDataService } from '@src/services/sports-data.service';
-import { CONTEST_STATUSES } from '@src/utils/constants';
-import { CONTENDER_MESSAGES, GAME_MESSAGES } from '@src/utils/messages';
-import { find, isEqual } from 'lodash';
+import {Getter, inject, service} from '@loopback/core';
+import {BelongsToAccessor, DefaultCrudRepository, repository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
+import {SportsDataService} from '@src/services/sports-data.service';
+import {CONTEST_STATUSES} from '@src/utils/constants';
+import {CONTENDER_MESSAGES, GAME_MESSAGES} from '@src/utils/messages';
+import {find, isEqual} from 'lodash';
 import moment from 'moment';
-import { DbDataSource } from '../datasources';
-import { Contender, ContenderRelations, Contest, User } from '../models';
-import { BetRepository } from './bet.repository';
-import { ContestRepository } from './contest.repository';
-import { UserRepository } from './user.repository';
+import {DbDataSource} from '../datasources';
+import {Contender, ContenderRelations, Contest, User} from '../models';
+import {BetRepository} from './bet.repository';
+import {ContestRepository} from './contest.repository';
+import {UserRepository} from './user.repository';
 
 export class ContenderRepository extends DefaultCrudRepository<
     Contender,
@@ -49,10 +49,7 @@ export class ContenderRepository extends DefaultCrudRepository<
                 const contestRepo = await this.contestRepositoryGetter();
                 const contest = await contestRepo.findById(ctx.instance.contestId, { include: [{ relation: 'game' }] });
 
-                // const currentWeek = await this.sportsDataService.currentWeek();
                 const filteredSchedule = await this.sportsDataService.currentWeekSchedule();
-
-                // const filteredSchedule = schedule.filter(remoteGame => isEqual(remoteGame.Week, currentWeek));
 
                 const remoteGame = find(filteredSchedule, remoteGame =>
                     isEqual(remoteGame.GlobalGameID, contest.spreadId),
@@ -117,24 +114,10 @@ export class ContenderRepository extends DefaultCrudRepository<
                     include: [{ relation: 'contenders' }],
                 });
 
-                let topPropRevenue = 0;
-                // if (contest.contenders.length == 2) {
-                //     let creatorContender = find(contest.contenders, contender => contender.creator);
-                //     let matcherContender = find(contest.contenders, contender => !contender.creator);
-
-                //     if (creatorContender && matcherContender) {
-                //         let amount1 = +creatorContender.toRiskAmount - matcherContender.toWinAmount;
-                //         let amount2 = +matcherContender.toRiskAmount - +creatorContender.toWinAmount;
-                //         topPropRevenue = amount1 + amount2;
-                //     }
-                // }
-
+                const topPropRevenue = 0;
                 await contestRepository.updateById(ctx.instance.contestId, {
                     status: CONTEST_STATUSES.MATCHED,
                 });
-                console.log(
-                    `Contests with id: ${ctx.instance.contestId} is matched and top prop revenue is calculated.`,
-                );
 
                 ctx.hookState.skipContestMatch = true;
             }
@@ -150,10 +133,6 @@ export class ContenderRepository extends DefaultCrudRepository<
                     userId: ctx.instance.contenderId,
                     amount: ctx.instance.toRiskAmount,
                 });
-
-                console.log(
-                    `Bet created for contest: ${ctx.instance.contestId} and for contender ${ctx.instance.contenderId}`,
-                );
 
                 ctx.hookState.skipBetCreation = true;
             }

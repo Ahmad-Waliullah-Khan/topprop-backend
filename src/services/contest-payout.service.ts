@@ -1,8 +1,8 @@
-import { bind, /* inject, */ BindingScope, Getter } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { ContestPayoutRepository, PlayerRepository } from '@src/repositories';
-import { CONTEST_TYPES, DEFAULT_CONTEST_PAYOUTS } from '@src/utils/constants';
-import { isEqual } from 'lodash';
+import {bind, /* inject, */ BindingScope, Getter} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {ContestPayoutRepository, PlayerRepository} from '@src/repositories';
+import {CONTEST_TYPES, DEFAULT_CONTEST_PAYOUTS} from '@src/utils/constants';
+import {isEqual} from 'lodash';
 
 @bind({ scope: BindingScope.SINGLETON })
 export class ContestPayoutService {
@@ -38,13 +38,12 @@ export class ContestPayoutService {
                     matchPayout: defaultContestPayout.matchPayout,
                 });
         }
-        console.log(`Default contest payouts upserted`);
     }
 
     async calculateToWin(
         playerId: number,
         fantasyPoints: number,
-        riskAmount: number = 0,
+        riskAmount = 0,
         matching = false,
         type: CONTEST_TYPES,
     ): Promise<number> {
@@ -55,17 +54,17 @@ export class ContestPayoutService {
 
             let lookForPercentage = 0;
             let pointsField = `points`;
-            let even = fantasyPoints % 2;
+            const even = fantasyPoints % 2;
             if (isEqual(even, 0)) {
                 pointsField += fantasyPoints;
                 lookForPercentage = +parseFloat(player[pointsField as 'fantasyPoints'].toString()).toFixed();
             } else {
-                let prevPointsField = `points${fantasyPoints - 1}`;
-                let nextPointsField = `points${fantasyPoints + 1}`;
+                const prevPointsField = `points${fantasyPoints - 1}`;
+                const nextPointsField = `points${fantasyPoints + 1}`;
 
-                let prevPointsFieldValue = +player[prevPointsField as 'fantasyPoints'];
-                let nextPointsFieldValue = +player[nextPointsField as 'fantasyPoints'];
-                let avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
+                const prevPointsFieldValue = +player[prevPointsField as 'fantasyPoints'];
+                const nextPointsFieldValue = +player[nextPointsField as 'fantasyPoints'];
+                const avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
                 lookForPercentage = +avgPointsFields.toFixed();
             }
             if (isEqual(type, CONTEST_TYPES.UNDER)) lookForPercentage = 100 - lookForPercentage;
@@ -129,17 +128,17 @@ export class ContestPayoutService {
 
             let lookForPercentage = 0;
             let pointsField = `points`;
-            let even = fantasyPoints % 2;
+            const even = fantasyPoints % 2;
             if (isEqual(even, 0)) {
                 pointsField += fantasyPoints;
                 lookForPercentage = +parseFloat(player[pointsField as 'fantasyPoints'].toString()).toFixed();
             } else {
-                let prevPointsField = `points${fantasyPoints - 1}`;
-                let nextPointsField = `points${fantasyPoints + 1}`;
+                const prevPointsField = `points${fantasyPoints - 1}`;
+                const nextPointsField = `points${fantasyPoints + 1}`;
 
-                let prevPointsFieldValue = +player[prevPointsField as 'fantasyPoints'];
-                let nextPointsFieldValue = +player[nextPointsField as 'fantasyPoints'];
-                let avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
+                const prevPointsFieldValue = +player[prevPointsField as 'fantasyPoints'];
+                const nextPointsFieldValue = +player[nextPointsField as 'fantasyPoints'];
+                const avgPointsFields = (prevPointsFieldValue + nextPointsFieldValue) / 2;
                 lookForPercentage = +avgPointsFields.toFixed();
             }
             if (isEqual(type, CONTEST_TYPES.UNDER)) lookForPercentage = 100 - lookForPercentage;

@@ -104,28 +104,6 @@ export class ContactSubmissionController {
         return {data: await this.contactSubmissionRepository.find(filter)};
     }
 
-    // @patch(API_ENDPOINTS.CONTACT_SUBMISSIONS.CRUD, {
-    //     responses: {
-    //         '200': {
-    //             description: 'ContactSubmission PATCH success count',
-    //             content: { 'application/json': { schema: CountSchema } },
-    //         },
-    //     },
-    // })
-    // async updateAll(
-    //     @requestBody({
-    //         content: {
-    //             'application/json': {
-    //                 schema: getModelSchemaRef(ContactSubmission, { partial: true }),
-    //             },
-    //         },
-    //     })
-    //     contactSubmission: ContactSubmission,
-    //     @param.where(ContactSubmission) where?: Where<ContactSubmission>,
-    // ): Promise<Count> {
-    //     return this.contactSubmissionRepository.updateAll(contactSubmission, where);
-    // }
-
     @authenticate('jwt')
     @authorize({
         voters: [AuthorizationHelpers.allowedByPermission(PERMISSIONS.CONTACT_SUBMISSIONS.VIEW_ANY_CONTACT_SUBMISSION)],
@@ -260,20 +238,6 @@ export class ContactSubmissionController {
         delete contactSubmission.user;
         return {data: await this.contactSubmissionRepository.save(contactSubmission)};
     }
-
-    // @put(API_ENDPOINTS.CONTACT_SUBMISSIONS.BY_ID, {
-    //     responses: {
-    //         '204': {
-    //             description: 'ContactSubmission PUT success',
-    //         },
-    //     },
-    // })
-    // async replaceById(
-    //     @param.path.number('id') id: number,
-    //     @requestBody() contactSubmission: ContactSubmission,
-    // ): Promise<void> {
-    //     await this.contactSubmissionRepository.replaceById(id, contactSubmission);
-    // }
 
     @authenticate('jwt')
     @authorize({

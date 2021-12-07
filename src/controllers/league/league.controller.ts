@@ -317,7 +317,7 @@ export class LeagueController {
                 data: updatedLeague,
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 206 ~ LeagueController ~ error', error);
+            logger.error(`Failed to send league invitation: ${error}`);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_SENDING_FAILED);
         }
     }
@@ -375,7 +375,7 @@ export class LeagueController {
                 data: invite,
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 206 ~ LeagueController ~ error', error);
+            logger.error(`Failed to fetch invitation: ${error}`);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_FETCHING_FAILED);
         }
     }
@@ -529,7 +529,7 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 206 ~ LeagueController ~ error', error);
+            logger.error(`Failed to join invitation: ${error}`);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_JOINING_FAILED);
         }
     }
@@ -613,7 +613,7 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 206 ~ LeagueController ~ error', error);
+            logger.error(`failed to join league invitation: ${error}`);
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.INVITATION_JOINING_FAILED);
         }
     }
@@ -941,7 +941,6 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 807 ~ LeagueController ~ error', error);
             logger.error(JSON.stringify(error));
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
@@ -1384,7 +1383,6 @@ export class LeagueController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league.controller.ts ~ line 1266 ~ LeagueController ~ error', error);
             logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
@@ -1585,7 +1583,7 @@ export class LeagueController {
 
             return { data: data };
         } catch (error) {
-            console.log(error);
+            logger.error(JSON.stringify(`Failed to fetch team roster for the league contest: ${error}`));
             throw new HttpErrors.BadRequest(LEAGUE_MESSAGES.LEAGUE_CONTEST_ROSTER_FAILED);
         }
     }

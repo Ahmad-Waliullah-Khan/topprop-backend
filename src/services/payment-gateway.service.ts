@@ -1,19 +1,19 @@
-import { /* inject, */ BindingScope, Getter, injectable, service } from '@loopback/core';
-import { repository } from '@loopback/repository';
-import { HttpErrors } from '@loopback/rest';
-import { TopUp, User } from '@src/models';
-import { TopUpRepository, UserRepository, WithdrawRequestRepository } from '@src/repositories';
-import { PaymentGatewayEventRepository } from '@src/repositories/payment-gateway-event.repository';
-import { API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
+import { /* inject, */ BindingScope, Getter, injectable, service} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
+import {TopUp, User} from '@src/models';
+import {TopUpRepository, UserRepository, WithdrawRequestRepository} from '@src/repositories';
+import {PaymentGatewayEventRepository} from '@src/repositories/payment-gateway-event.repository';
+import {API_RESOURCES, DWOLLA_WEBHOOK_EVENTS, EMAIL_TEMPLATES, IRequestFile} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
 import sleep from '@src/utils/sleep';
 import Dwolla from 'dwolla-v2';
 import FormData from 'form-data';
-import { createReadStream } from 'fs-extra';
-import { find, isEqual, startsWith } from 'lodash';
+import {createReadStream} from 'fs-extra';
+import {find, isEqual, startsWith} from 'lodash';
 import moment from 'moment';
 import logger from '../utils/logger';
-import { UserService } from './user.service';
+import {UserService} from './user.service';
 
 @injectable({ scope: BindingScope.SINGLETON })
 export class PaymentGatewayService {
@@ -167,24 +167,6 @@ export class PaymentGatewayService {
         return;
     }
 
-    // async getCustomerBalance(customerUrl: string): Promise<number> {
-    //     let balance = '';
-    //     try {
-    //         const fundingSources = await this.getCustomerFundingSources(customerUrl);
-    //         const dwollaSource = find(fundingSources, source => isEqual(source.type, 'balance'));
-    //         if (dwollaSource) {
-    //             const response = await this.dwollaClient.get(
-    //                 `${this.dwollaApiUrl}/funding-sources/${dwollaSource.id}/balance`,
-    //             );
-    //             balance = response.body.balance.value;
-    //         } else balance = '0';
-    //     } catch (error) {
-    //         error.message = ErrorHandler.formatError(error);
-    //         ErrorHandler.httpError(error);
-    //     }
-    //     return +balance * 100;
-    // }
-
     async getTopPropBalance(userId: typeof User.prototype.id): Promise<number> {
         let totalTopUpsAMount = 0;
         let totalBetsAMount = 0;
@@ -224,45 +206,6 @@ export class PaymentGatewayService {
         return totalTopUpsAMount + totalGainsAMount - totalBetsAMount;
     }
 
-    // async addFunds(customerUrl: string, payload: AddFundsPayload): Promise<string> {
-    //     let transferUrl = '';
-    //     try {
-    //         const fundingSources = await this.getCustomerFundingSources(customerUrl);
-    //         const source = find(fundingSources, source => isEqual(source.id, payload.sourceFundingSourceId));
-    //         const dwollaSource = find(fundingSources, source => isEqual(source.type, 'balance'));
-
-    //         if (!source)
-    //             throw new HttpErrors.NotFound('The funding source selected does not exist. Select another one.');
-    //         if (!dwollaSource) throw new HttpErrors.BadRequest('User must be verified to fund the balance.');
-
-    //         const transferRequest: DwollaTransfer = {
-    //             _links: {
-    //                 source: {
-    //                     href: `${this.dwollaApiUrl}/funding-sources/${source.id}`,
-    //                 },
-    //                 destination: {
-    //                     href: `${this.dwollaApiUrl}/funding-sources/${dwollaSource.id}`,
-    //                 },
-    //             },
-    //             amount: {
-    //                 currency: 'USD',
-    //                 value: (payload.amount / 100).toFixed(2),
-    //             },
-    //             clearing: {
-    //                 source: 'next-available',
-    //                 destination: 'next-available',
-    //             },
-    //         };
-
-    //         const response = await this.dwollaClient.post(`${this.dwollaApiUrl}/transfers`, transferRequest);
-    //         transferUrl = response.headers.get('location') as string;
-    //     } catch (error) {
-    //         error.message = ErrorHandler.formatError(error);
-    //         ErrorHandler.httpError(error);
-    //     }
-    //     return transferUrl;
-    // }
-
     async getTransfer(transferUrl: string): Promise<DwollaTransfer | null> {
         let transfer: DwollaTransfer | null = null;
         try {
@@ -285,8 +228,6 @@ export class PaymentGatewayService {
         let transferUrl = '';
         try {
             const fundingSources = await this.getCustomerFundingSources(customerUrl);
-            // const customerDwollaFundingSource = this.getDwollaSource(fundingSources);
-
             let transfer: DwollaTransfer | null = null;
             const value = (+amount / 100).toFixed(2);
 
@@ -298,7 +239,7 @@ export class PaymentGatewayService {
 
             if (isEqual(type, TRANSFER_TYPES.WITHDRAW) || isEqual(type, TRANSFER_TYPES.TOP_UP)) {
                 //TRANSFER FROM TOP PROP'S WALLET (DWOLLA) to BANK ACCOUNT OR FROM BANK ACCOUNT TO TOP PROP WALLET
-                let isTopUp = isEqual(type, TRANSFER_TYPES.TOP_UP);
+                const isTopUp = isEqual(type, TRANSFER_TYPES.TOP_UP);
 
                 const sourceOrDestinationFundingSource = await this.getFundingSource(fundingSourceId);
                 if (!sourceOrDestinationFundingSource)
@@ -327,35 +268,6 @@ export class PaymentGatewayService {
                     },
                 };
             }
-
-            // if (isEqual(type, TRANSFER_TYPES.BET) || isEqual(type, TRANSFER_TYPES.GAIN)) {
-            //     //TRANSFER FROM USERS' WALLET TO TOP PROP ROOT ACCOUNT
-            //     const isBet = isEqual(type, TRANSFER_TYPES.BET);
-            //     dwollaFundingSource = this.getDwollaSource(fundingSources);
-            //     const rootAccountUrl = await this.getRootAccount();
-            //     if (!rootAccountUrl) throw new HttpErrors.NotFound('The TopProp root account could not be found.');
-            //     const mainFundingSources = await this.getCustomerFundingSources(rootAccountUrl);
-
-            //     const dwollaRootFundingSource = this.getDwollaSource(mainFundingSources);
-            //     transfer = {
-            //         _links: {
-            //             source: {
-            //                 href: `${this.dwollaApiUrl}/funding-sources/${
-            //                     isBet ? dwollaFundingSource.id : dwollaRootFundingSource.id
-            //                 }`,
-            //             },
-            //             destination: {
-            //                 href: `${this.dwollaApiUrl}/funding-sources/${
-            //                     isBet ? dwollaRootFundingSource.id : dwollaFundingSource.id
-            //                 }`,
-            //             },
-            //         },
-            //         amount: {
-            //             currency: 'USD',
-            //             value,
-            //         },
-            //     };
-            // }
 
             if (!transfer) throw new HttpErrors.NotFound('Unable to create the transfer. Try again.');
 
@@ -406,8 +318,8 @@ export class PaymentGatewayService {
     async syncMissingTransactions() {
         const userRepo = await this.userRepoGetter();
         const users = await userRepo.find();
-        let today = new Date();
-        let yesterday = new Date();
+        const today = new Date();
+        const yesterday = new Date();
         yesterday.setDate(today.getDate() - 1);
 
         await Promise.all(
@@ -572,7 +484,7 @@ export class PaymentGatewayService {
         for (let index = 0; index < subscriptions.length; index++) {
             const element = subscriptions[index];
             await this.dwollaClient.delete(`${this.dwollaApiUrl}/webhook-subscriptions/${element.id}`);
-            console.log(`${element.url} - Removed`);
+            logger.info(`${element.url} - Removed`);
         }
         const webhookUrl = `${process.env.CLIENT_HOST}/api/v1/${API_RESOURCES.PAYMENT_GATEWAY}/webhooks`;
         await this.dwollaClient.post(`${this.dwollaApiUrl}/webhook-subscriptions`, {

@@ -1,10 +1,10 @@
-import { authenticate } from '@loopback/authentication';
-import { authorize } from '@loopback/authorization';
-import { inject, service } from '@loopback/core';
-import { IsolationLevel, repository } from '@loopback/repository';
-import { HttpErrors, post, requestBody } from '@loopback/rest';
-import { SecurityBindings, securityId } from '@loopback/security';
-import { League, Member, Roster, Team } from '@src/models';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
+import {inject, service} from '@loopback/core';
+import {IsolationLevel, repository} from '@loopback/repository';
+import {HttpErrors, post, requestBody} from '@loopback/rest';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {League, Member, Roster, Team} from '@src/models';
 import {
     LeagueRepository,
     MemberRepository,
@@ -12,13 +12,13 @@ import {
     RosterRepository,
     ScoringTypeRepository,
     TeamRepository,
-    UserRepository,
+    UserRepository
 } from '@src/repositories';
-import { UserService } from '@src/services';
-import { LeagueService } from '@src/services/league.service';
-import { API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS } from '@src/utils/constants';
-import { ErrorHandler } from '@src/utils/helpers';
-import { AuthorizationHelpers } from '@src/utils/helpers/authorization.helpers';
+import {UserService} from '@src/services';
+import {LeagueService} from '@src/services/league.service';
+import {API_ENDPOINTS, EMAIL_TEMPLATES, PERMISSIONS} from '@src/utils/constants';
+import {ErrorHandler} from '@src/utils/helpers';
+import {AuthorizationHelpers} from '@src/utils/helpers/authorization.helpers';
 import {
     ICommonHttpResponse,
     ICustomUserProfile,
@@ -27,18 +27,15 @@ import {
     ILeagueImportRequestYahoo,
     ILeaguesFetchRequestYahoo,
     ILeagueSyncRequestEspn,
-    ILeagueSyncRequestYahoo,
+    ILeagueSyncRequestYahoo
 } from '@src/utils/interfaces';
-import { COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES } from '@src/utils/messages';
-import { FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR } from '@src/utils/validators/league-import.validators';
-// import {Client} from 'espn-fantasy-football-api/node';
-import { isEmpty } from 'lodash';
+import {COMMON_MESSAGES, LEAGUE_IMPORT_MESSAGES} from '@src/utils/messages';
+import {FETCH_LEAGUE_VALIDATOR, IMPORT_LEAGUE_VALIDATOR} from '@src/utils/validators/league-import.validators';
+import {isEmpty} from 'lodash';
 import Schema from 'validate';
 import {
-    ESPN_LINEUP_SLOT_MAPPING,
-    ESPN_POSITION_MAPPING,
-    ESPN_BLOCKED_LINEUPID_LIST,
-    YAHOO_BLOCKED_POSITION_LIST,
+    ESPN_BLOCKED_LINEUPID_LIST, ESPN_LINEUP_SLOT_MAPPING,
+    ESPN_POSITION_MAPPING, YAHOO_BLOCKED_POSITION_LIST
 } from '../../utils/constants/league.constants';
 import logger from '../../utils/logger';
 const { Client } = require('espn-fantasy-football-api/node-dev');
@@ -127,8 +124,9 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league-import.controller.ts ~ line 118 ~ LeagueImportController ~ error', error);
-
+            logger.error(
+                `Failed to fetch league information from Yahoo: ${error}`,
+            );
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_YAHOO);
         }
     }
@@ -206,10 +204,10 @@ export class LeagueImportController {
             };
         } catch (error) {
             if (error.response) {
-                console.log(
-                    '🚀 ~ file: league-import.controller.ts ~ line 98 ~ LeagueImportController ~ error',
-                    error.response.data,
+                logger.error(
+                    `Error importing league from ESPN: ${error.response.data}`,
                 );
+
             }
             throw new HttpErrors.BadRequest(LEAGUE_IMPORT_MESSAGES.FETCH_FAILED_ESPN);
         }
@@ -367,11 +365,6 @@ export class LeagueImportController {
                 }),
             );
 
-            // console.log(
-            //     '🚀 ~ file: league-import.controller.ts ~ line 368 ~ LeagueImportController ~ notFoundPlayers',
-            //     notFoundPlayers,
-            // );
-
             const userData = await this.userRepository.findById(userId);
 
             if (userData) {
@@ -418,7 +411,6 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
             logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
@@ -594,7 +586,6 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
             logger.error(error.message);
             await transaction.rollback();
             if (error.name === 'BadRequestError') {
@@ -668,7 +659,6 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
             logger.error(error.message);
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
@@ -742,7 +732,6 @@ export class LeagueImportController {
                 },
             };
         } catch (error) {
-            console.log('🚀 ~ file: league-import.controller.ts ~ line 360 ~ LeagueImportController ~ error', error);
             logger.error(error.message);
             if (error.name === 'BadRequestError') {
                 throw new HttpErrors.BadRequest(error.message);
