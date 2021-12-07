@@ -560,14 +560,12 @@ export class CronService {
 
         const endObject = { hour: FP_IGNORED_SLOT.endHour, minute: FP_IGNORED_SLOT.endMinute };
         const endDatetime = momenttz.tz(endObject, TIMEZONE).day(FP_IGNORED_SLOT.endDay).add(1, 'minute');
-        
+
         const playerPromises = remotePlayers.map(async remotePlayer => {
             const foundLocalPlayer = localPlayers.find(localPlayer => remotePlayer.PlayerID === localPlayer.remoteId);
             if (foundLocalPlayer) {
-                
                 switch (RUN_TYPE) {
                     case CRON_RUN_TYPES.PRINCIPLE:
-                        
                         if (!currentTime.isBetween(startDatetime, endDatetime, 'minute')) {
                             foundLocalPlayer.hasStarted = remotePlayer.HasStarted;
                             foundLocalPlayer.isOver = remotePlayer.IsOver;
@@ -662,6 +660,7 @@ export class CronService {
         });
         if (ruledOutPlayer.length > 0) {
             await this.leagueVoidContests(ruledOutPlayer);
+            await this.battlegroundVoidContests(ruledOutPlayer);
         }
 
         const remotePlayersHalfPpr = await this.sportsDataService.projectedHalfPprFantasyPointsByWeeek(
@@ -712,7 +711,7 @@ export class CronService {
         // const weeklyGames = JSON.parse(rawData);
 
         const currentTime = momenttz().tz(TIMEZONE).add(1, 'minute');
-        // const currentTime = momenttz.tz('2021-11-18T21:30:00', TIMEZONE).add(1, 'minute');
+        // const currentTime = momenttz.tz('2021-12-03T21:30:00', TIMEZONE).add(1, 'minute');
 
         const currentDay = currentTime.day();
         const clonedCurrentTime = currentTime.clone();
@@ -3469,6 +3468,22 @@ export class CronService {
         });
         logger.debug(`League contests voided ${JSON.stringify(filteredContests)}`);
         return filteredContests;
+    }
+
+    async battlegroundVoidContests(playerIds: number[]) {
+        logger.debug(`Battleground contest voided because players are ruled out ${playerIds.toString()}`);
+
+        const contests = await this.contestRepository.find({
+            where: {
+                and: [
+                    { or: [{ status: CONTEST_STATUSES.OPEN }, { status: CONTEST_STATUSES.MATCHED }] },
+                    { ended: false },
+                    { or: [{ creatorPlayerId: { inq: playerIds } }, { claimerPlayerId: { inq: playerIds } }] },
+                ],
+            },
+            include: ['creator', 'claimer', 'winner', 'creatorPlayer', 'claimerPlayer'],
+        });
+        await this.closeContestsFromList(contests);
     }
 
     async savePlayerEarnedFantasyPoints(contestTeam: any, league: any) {

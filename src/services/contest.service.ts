@@ -98,7 +98,7 @@ export class ContestService {
             playerData.hasStarted ||
             playerData.hasStarted
         ) {
-            console.log(chalk.redBright(`Player(s) not available for contest`));
+            console.log(chalk.redBright(`Player(s) have finished playing for this week`));
             return false;
         }
 
