@@ -1,5 +1,6 @@
 import { bind, /* inject, */ BindingScope } from '@loopback/core';
 import { repository } from '@loopback/repository';
+import { Gain } from '@src/models';
 import {
     ContestRepository,
     CouponCodeRepository,
@@ -9,7 +10,7 @@ import {
 } from '@src/repositories';
 import chalk from 'chalk';
 import moment from 'moment';
-import { CONTEST_STATUSES } from '../utils/constants';
+import { CONTEST_STATUSES, CONTEST_STAKEHOLDERS } from '../utils/constants';
 import logger from '../utils/logger';
 
 @bind({ scope: BindingScope.SINGLETON })
@@ -125,7 +126,7 @@ export class MiscellaneousService {
             { code: 'Beat Freedman', amount: 2500 },
             { code: 'BeatFreedman', amount: 2500 },
         ];
-        
+
         // check for coupon ,if doesn't exists create one
         PromoCodeArr.map(async ({ code, amount }) => {
             const couponData = await this.couponCodeRepository.find({
@@ -199,11 +200,73 @@ export class MiscellaneousService {
         Date: 24-11-2021
         Description: Resets all player hasStarted and isOver flag.
         */
+
         this.playerRepository.updateAll(
             { isOver: false, hasStarted: false, lastUpdateFrom: 'makeAllPlayersAvailable in miscellaneous.service.ts' },
             { id: { gt: 0 } },
             (err: any, info: any) => {},
         );
         logger.info(`Misc cron ran successfully. hasStarted and isOver flag for all players reset successfully`);
+    }
+
+    async regradeInjuredPlayersBattlegroundContests() {
+        /*
+        Date: 07-12-2021
+        Description: Resets all contests that were incorrectly graded because the void contest did not get called.
+        */
+
+        console.log('contests');
+
+        const sql =
+            "SELECT * FROM contest where createdat > '2021-11-30 01:00:00' and (claimerplayerid in(select id From player where projectedFantasypointshalfppr=0) or creatorplayerid in(select id From player where projectedFantasypointshalfppr=0)) and winnerid is not null;";
+
+        const contests = await this.contestRepository.execute(sql, null, null);
+
+        const contestIds = contests.map((contest: { id: number }) => contest.id);
+
+        if (contestIds.length > 0) {
+            logger.info(chalk.redBright(`Contests that were graded incorrectly are `, contestIds));
+
+            await this.gainRepository.deleteAll({
+                contestId: { inq: contestIds },
+                contestType: 'battleground',
+            });
+
+            const constestData = {
+                winnerId: null,
+                topPropProfit: 0,
+                status: CONTEST_STATUSES.CLOSED,
+                ended: true,
+                winnerLabel: CONTEST_STAKEHOLDERS.PUSH,
+                creatorWinAmount: 0,
+                claimerWinAmount: 0,
+            };
+
+            // @ts-ignore
+            await this.contestRepository.updateAll(constestData, { id: { inq: contestIds } });
+
+            contestIds.map(async (contestId: number) => {
+                const contestData = await this.contestRepository.findById(contestId);
+
+                const entryAmount = Number(contestData.entryAmount);
+
+                const entryGain = new Gain();
+                entryGain.contestType = 'battleground';
+                entryGain.amount = Number(entryAmount);
+                entryGain.userId = contestData.creatorId;
+                // entryGain.contenderId = underdog.playerId;
+                entryGain.contestId = contestId;
+
+                await this.gainRepository.create(entryGain);
+
+                entryGain.contestType = 'battleground';
+                entryGain.amount = Number(entryAmount);
+                entryGain.userId = contestData.claimerId;
+                // entryGain.contenderId = favorite.playerId;
+                entryGain.contestId = contestId;
+
+                await this.gainRepository.create(entryGain);
+            });
+        }
     }
 }
