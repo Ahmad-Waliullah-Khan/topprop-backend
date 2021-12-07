@@ -92,7 +92,12 @@ export class ContestService {
             return false;
         }
 
-        if (playerData.isOver || opponentData.isOver) {
+        if (
+            playerData.isOver ||
+            opponentData.isOver ||
+            playerData.hasStarted ||
+            playerData.hasStarted
+        ) {
             console.log(chalk.redBright(`Player(s) not available for contest`));
             return false;
         }
